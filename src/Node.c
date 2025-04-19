@@ -33,14 +33,24 @@ Node** createNodes( Token* tokens, int* numOfTokens, int* numOfNodes )
         nodes[i]->token = tokens[i];
         nodes[i]->prev = NULL;
         nodes[i]->next = NULL;
-
-        (*numOfNodes)++;
     }
+
+    *numOfNodes = *numOfTokens;
 
     for ( int i = 0; i < *numOfNodes; i++ )
     {
-        nodes[i]->prev = i > 0 ? nodes[i - 1] : NULL;
-        nodes[i]->next = i < *numOfNodes - 1 ? nodes[i + 1] : NULL;
+        nodes[i]->prev = (i > 0) ? nodes[i - 1] : NULL;
+        nodes[i]->next = (i < *numOfNodes - 1) ? nodes[i + 1] : NULL;
+
+        if ( nodes[i]->prev != NULL && nodes[i]->prev->token.type == OPERATOR )
+        {
+            nodes[i]->token.type = VARVAL;
+        }
+
+        else if ( nodes[i]->prev != NULL && nodes[i]->prev->token.type == KEYWORD )
+        {
+            nodes[i]->token.type = VARNAME;
+        }
     }
 
     return nodes;

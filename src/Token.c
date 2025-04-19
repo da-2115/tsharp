@@ -72,12 +72,23 @@ enum TokenType getType( char* word )
     enum TokenType tokenType;
 
     int numOfKeywords = sizeof( keywords ) / sizeof( keywords[0] );
+    int numOfOperators = sizeof( operators ) / sizeof( operators[0] );
 
     for ( int i = 0; i < numOfKeywords; i++ )
     {
-        if ( word == keywords[i] )
+        printf("Keyword %s Word %s\n", word, keywords[i]);
+        if ( strcmp(word, keywords[i]) == 0 )
         {
+            printf("MATCH Keyword %s Word %s\n", word, keywords[i]);
             tokenType = KEYWORD;
+        }
+    }
+
+    for ( int i = 0; i < numOfOperators; i++ )
+    {
+        if ( strcmp(word, operators[i]) == 0 )
+        {
+            tokenType = OPERATOR;
         }
     }
 
