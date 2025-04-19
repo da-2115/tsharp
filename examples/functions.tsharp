@@ -1,0 +1,21 @@
+fn example
+{
+    println("Hello World")
+}
+
+int exampleWithReturn
+{
+    return 10
+}
+
+int exampleWithReturnAndArgs( int x, int y )
+{
+    return x + y
+}
+
+fn main
+{
+    example()
+    int ten = exampleWithReturn()
+    int twenty = exampleWithReturnAndArgs( ten, ten )
+}

@@ -1,0 +1,33 @@
+enum Gender
+{
+    Male,
+    Female
+}
+
+class Person
+{
+    private
+    {
+        string fName
+        int fAge
+        Gender fGender
+    }
+    
+    con ( string aName, int aAge, Gender aGender )
+    {
+        fName = aName
+        fAge = aAge
+        fGender = aGender
+    }
+
+    fn speak
+    {
+        println($"I am {fName}, I am a {fAge} year old {fGender}.")
+    }
+}
+
+fn main
+{
+    Person p("Dylan", 22, Gender.Male)
+    p.speak()
+}
