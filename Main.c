@@ -6,6 +6,7 @@ Copyright Dylan Armstrong Research and Development 2025
 */
 
 #include "Token.h"
+#include "Node.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -44,12 +45,11 @@ int main( int argc, char** argv )
     int numOfTokens = 0;
     Token* tokens = createTokens( sourceCode, &numOfTokens );
 
-    printf("Number of tokens: %d\n", numOfTokens);
-    for (int i = 0; i < numOfTokens; i++) {
-        printf("Token at %d = %s\n", i, tokens[i].value);
-        free( tokens[i].value );
-    }
 
+    int numOfNodes = 0;
+    Node** nodes = createNodes( tokens, &numOfTokens, &numOfNodes );
+    
+    free( nodes );
     free( tokens );
     free( sourceCode );
 
