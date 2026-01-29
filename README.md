@@ -1,2 +1,2 @@
 # tsharp
-The T# Programming Language
+The T# Programming Language - Written by Dylan Armstrong
