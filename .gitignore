@@ -44,3 +44,6 @@
 .antlr
 build
 generated
+
+# Visual Studio Code
+.vscode
