@@ -1,0 +1,84 @@
+# Makefile.win
+# Dylan Armstrong, 2026
+
+.PHONY: all clean generate build test help
+
+# Variables
+ANTLR_CMD = java -jar D:/Source/antlr/antlr-4.13.1-complete.jar
+GRAMMAR_DIR = .
+OUTPUT_DIR = ./generated
+BUILD_DIR = ./build
+LEXER_GRAMMAR = tsharp_lexer.g4
+PARSER_GRAMMAR = tsharp_parser.g4
+
+# ANTLR4 C++ Runtime paths (using vcpkg)
+ANTLR4_RUNTIME_PREFIX = D:/Source/vcpkg/installed/x64-windows
+
+# C++ Compiler settings (MSVC)
+CXX = cl.exe
+CXXFLAGS = /std:c++17 /W4 /I./generated /I$(ANTLR4_RUNTIME_PREFIX)/include/antlr4-runtime
+LDFLAGS = $(ANTLR4_RUNTIME_PREFIX)/lib/antlr4-runtime.lib
+
+# Source files
+GENERATED_SOURCES = $(OUTPUT_DIR)/tsharp_lexer.cpp $(OUTPUT_DIR)/tsharp_parser.cpp main.cpp
+GENERATED_HEADERS = $(OUTPUT_DIR)/tsharp_lexer.h $(OUTPUT_DIR)/tsharp_parser.h $(OUTPUT_DIR)/tsharp_parserBaseListener.h
+GENERATED_OBJECTS = $(OUTPUT_DIR)/tsharp_lexer.obj $(OUTPUT_DIR)/tsharp_parser.obj main.obj
+
+# Output executable
+EXECUTABLE = $(BUILD_DIR)/tsharp.exe
+
+# Default target
+all: generate build
+
+# Help target
+help:
+	@echo tsharp ANTLR C++ Language Makefile (Windows)
+	@echo.
+	@echo Available targets:
+	@echo   make generate     - Generate C++ files from ANTLR grammars
+	@echo   make build        - Build the project
+	@echo   make clean        - Remove generated files and build artifacts
+	@echo   make test         - Run tests (if available)
+	@echo   make all          - Generate and build (default)
+
+# Generate C++ files from ANTLR grammars
+generate: $(GENERATED_SOURCES)
+	@echo ^*^* Generated ANTLR C++ files
+
+$(GENERATED_SOURCES): $(LEXER_GRAMMAR) $(PARSER_GRAMMAR)
+	@echo Generating C++ code from ANTLR grammars...
+	@if not exist "$(OUTPUT_DIR)" mkdir "$(OUTPUT_DIR)"
+	$(ANTLR_CMD) -Dlanguage=Cpp -visitor -listener -o "$(OUTPUT_DIR)" -Xexact-output-dir $(LEXER_GRAMMAR)
+	$(ANTLR_CMD) -Dlanguage=Cpp -visitor -listener -o "$(OUTPUT_DIR)" -Xexact-output-dir $(PARSER_GRAMMAR)
+
+# Build the project
+build: $(EXECUTABLE)
+	@echo ^*^* Build complete
+
+$(EXECUTABLE): $(GENERATED_OBJECTS)
+	@echo Building tsharp...
+	@if not exist "$(BUILD_DIR)" mkdir "$(BUILD_DIR)"
+	$(CXX) $(CXXFLAGS) $(GENERATED_OBJECTS) $(LDFLAGS) /Fe:$(EXECUTABLE)
+	@echo ^*^* Compilation complete
+
+# Compile individual source files
+$(OUTPUT_DIR)/%.obj: $(OUTPUT_DIR)/%.cpp
+	$(CXX) $(CXXFLAGS) /c $< /Fo:$@
+
+main.obj: main.cpp
+	$(CXX) $(CXXFLAGS) /c $< /Fo:$@
+
+# Test target
+test:
+	@echo Running tests...
+	@echo No tests configured yet
+
+# Clean generated files and build artifacts
+clean:
+	@echo Cleaning...
+	@if exist "$(OUTPUT_DIR)" rmdir /s /q "$(OUTPUT_DIR)"
+	@if exist "$(BUILD_DIR)" rmdir /s /q "$(BUILD_DIR)"
+	@echo ^*^* Clean complete
+
+# Phony targets for convenience
+.PHONY: all clean generate build test help

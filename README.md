@@ -3,7 +3,15 @@ The T# Programming Language - Written by Dylan Armstrong.
 
 # How to Run?
 
-## Windows (Coming Soon)
+## Windows
+You **must** have the following installed:
+- Visual Studio Build Tools (MSVC) C++ compiler.
+- ANTLR (and the ANTLR C++ runtime - can install via `vcpkg`)
+
+Install and use by doing the following:
+1. Go to the source directory for where you cloned T# e.g. `C:\Users\dylan\Source\tsharp`.
+2. Type `make` to make everything.
+3. Run your T# code by doing: `.\build\tsharp.exe your_file_name_here.tsharp`
 
 ## Mac
 You **must** have the following installed:
