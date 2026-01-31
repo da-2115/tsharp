@@ -4,7 +4,7 @@
 .PHONY: all clean generate build test help
 
 # Variables
-ANTLR_CMD = antlr
+ANTLR_CMD = antlr4
 GRAMMAR_DIR = .
 OUTPUT_DIR = ./generated
 BUILD_DIR = ./build
