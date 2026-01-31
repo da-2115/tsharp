@@ -4,7 +4,7 @@
 .PHONY: all clean generate build test help
 
 # Variables
-ANTLR_CMD = antlr4
+ANTLR_CMD = java -jar /usr/local/antlr/antlr-4.13.1-complete.jar
 GRAMMAR_DIR = .
 OUTPUT_DIR = ./generated
 BUILD_DIR = ./build
@@ -12,7 +12,7 @@ LEXER_GRAMMAR = tsharp_lexer.g4
 PARSER_GRAMMAR = tsharp_parser.g4
 
 # ANTLR4 C++ Runtime paths (install via: sudo apt install antlr4 libantlr4-runtime-dev)
-# Common locations: /usr/local, /usr, ~/.local
+# For ANTLR 4.13.1 runtime, build from source or use vcpkg
 ANTLR4_RUNTIME_PREFIX = /usr
 
 # C++ Compiler settings (g++)
