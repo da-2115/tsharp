@@ -11,9 +11,13 @@ BUILD_DIR = ./build
 LEXER_GRAMMAR = tsharp_lexer.g4
 PARSER_GRAMMAR = tsharp_parser.g4
 
-# ANTLR4 C++ Runtime paths (install via: sudo apt install antlr4 libantlr4-runtime-dev)
-# For ANTLR 4.13.1 runtime, build from source or use vcpkg
-ANTLR4_RUNTIME_PREFIX = /usr
+# ANTLR4 C++ Runtime paths (build from source)
+# Build instructions:
+#   cd ~/antlr4-cpp-runtime-4.13.1-source/runtime
+#   mkdir build && cd build
+#   cmake -DCMAKE_INSTALL_PREFIX=/usr/local ..
+#   make && sudo make install
+ANTLR4_RUNTIME_PREFIX = /usr/local
 
 # C++ Compiler settings (g++)
 CXX = g++
