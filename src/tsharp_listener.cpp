@@ -49,16 +49,16 @@ void tsharp_listener::enterPrint_statement(tsharp_parser::Print_statementContext
 
         message.erase(std::remove(message.begin(), message.end(), '\"'), message.end());
 
-        std::cout << message << std::ends;
+        std::cout << message << std::flush;
     }
 
     else if(ctx->VAR) {
         if (ints.find(ctx->VAR->getText()) != ints.end()) {
-            std::cout << ints.at(ctx->VAR->getText()) << std::ends;
+            std::cout << ints.at(ctx->VAR->getText()) << std::flush;
         }
 
         else if(strings.find(ctx->VAR->getText()) != strings.end()) {
-            std::cout << strings.at(ctx->VAR->getText()) << std::ends;
+            std::cout << strings.at(ctx->VAR->getText()) << std::flush;
         }
     }
 }
