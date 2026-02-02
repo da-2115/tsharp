@@ -15,14 +15,15 @@ PARSER_GRAMMAR = tsharp_parser.g4
 ANTLR4_RUNTIME_PREFIX = D:/Source/vcpkg/installed/x64-windows
 
 # C++ Compiler settings (MSVC)
-CXX = cl.exe
-CXXFLAGS = /std:c++17 /W4 /I./generated /I$(ANTLR4_RUNTIME_PREFIX)/include/antlr4-runtime
+CXX = "C:\Program Files\Microsoft Visual Studio\18\Enterprise\VC\Tools\MSVC\14.50.35717\bin\Hostx64\x64\cl.exe"
+CXXFLAGS = /std:c++17 /W4 /EHsc /MD /I./generated /I./include /I$(ANTLR4_RUNTIME_PREFIX)/include/antlr4-runtime
 LDFLAGS = $(ANTLR4_RUNTIME_PREFIX)/lib/antlr4-runtime.lib
 
 # Source files
-GENERATED_SOURCES = $(OUTPUT_DIR)/tsharp_lexer.cpp $(OUTPUT_DIR)/tsharp_parser.cpp main.cpp
-GENERATED_HEADERS = $(OUTPUT_DIR)/tsharp_lexer.h $(OUTPUT_DIR)/tsharp_parser.h $(OUTPUT_DIR)/tsharp_parserBaseListener.h
-GENERATED_OBJECTS = $(OUTPUT_DIR)/tsharp_lexer.obj $(OUTPUT_DIR)/tsharp_parser.obj main.obj
+GENERATED_SOURCES = $(OUTPUT_DIR)/tsharp_lexer.cpp $(OUTPUT_DIR)/tsharp_parser.cpp main.cpp $(wildcard src/*.cpp)
+GENERATED_HEADERS = $(OUTPUT_DIR)/tsharp_lexer.h $(OUTPUT_DIR)/tsharp_parser.h $(OUTPUT_DIR)/tsharp_parserBaseListener.h $(wildcard include/*.h)
+SRC_OBJECTS = $(patsubst src/%.cpp,src/%.obj,$(wildcard src/*.cpp))
+GENERATED_OBJECTS = $(OUTPUT_DIR)/tsharp_lexer.obj $(OUTPUT_DIR)/tsharp_parser.obj main.obj $(SRC_OBJECTS)
 
 # Output executable
 EXECUTABLE = $(BUILD_DIR)/tsharp.exe
@@ -53,6 +54,8 @@ $(GENERATED_SOURCES): $(LEXER_GRAMMAR) $(PARSER_GRAMMAR)
 
 # Build the project
 build: $(EXECUTABLE)
+	@echo Copying ANTLR runtime DLL...
+	@copy "$(ANTLR4_RUNTIME_PREFIX)\bin\antlr4-runtime.dll" "$(BUILD_DIR)\" >nul
 	@echo ^*^* Build complete
 
 $(EXECUTABLE): $(GENERATED_OBJECTS)
@@ -68,6 +71,9 @@ $(OUTPUT_DIR)/%.obj: $(OUTPUT_DIR)/%.cpp
 main.obj: main.cpp
 	$(CXX) $(CXXFLAGS) /c $< /Fo:$@
 
+src/%.obj: src/%.cpp
+	$(CXX) $(CXXFLAGS) /c $< /Fo:$@
+
 # Test target
 test:
 	@echo Running tests...
@@ -78,6 +84,8 @@ clean:
 	@echo Cleaning...
 	@if exist "$(OUTPUT_DIR)" rmdir /s /q "$(OUTPUT_DIR)"
 	@if exist "$(BUILD_DIR)" rmdir /s /q "$(BUILD_DIR)"
+	@del /q main.obj 2>nul
+	@del /q src\*.obj 2>nul
 	@echo ^*^* Clean complete
 
 # Phony targets for convenience

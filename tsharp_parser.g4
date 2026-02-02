@@ -8,4 +8,5 @@ options {
     tokenVocab = tsharp_lexer;
 }
 
-my_test: (TEST)*;
+println_statement: PRINTLN OPEN_BRACKET (MESSAGE=STRING_LIT|VAR=ID) CLOSE_BRACKET;
+print_statement: PRINT OPEN_BRACKET (MESSAGE=STRING_LIT|VAR=ID) CLOSE_BRACKET;

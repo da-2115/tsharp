@@ -3,4 +3,9 @@
 
 lexer grammar tsharp_lexer;
 
-TEST: 'tsharp';
+ID: [a-zA-Z] [a-zA-Z0-9]*;
+STRING_LIT: '"' ~["]* '"';
+OPEN_BRACKET: '(';
+CLOSE_BRACKET: ')';
+PRINTLN: 'println';
+PRINT: 'print';
