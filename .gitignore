@@ -39,3 +39,12 @@
 
 # debug information files
 *.dwo
+
+# ANTLR / T# specific
+.antlr
+build
+generated
+*.tsharp
+
+# Visual Studio Code
+.vscode
