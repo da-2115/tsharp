@@ -10,11 +10,13 @@
 #include "tsharp_listener.h"
 
 int main(int argc, const char* argv[]) {
+    // Check for command line argument (with file name path)
     if (argc < 2) {
         std::cerr << "Usage: tsharp <file>" << std::endl;
         return 1;
     }
 
+    // Open file stream with .tsharp file
     std::ifstream stream;
     stream.open(argv[1]);
     

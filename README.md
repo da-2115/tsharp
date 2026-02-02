@@ -26,7 +26,7 @@ Install and use by doing the following:
 ## Linux (Coming Soon)
 
 # Docs (Coming Soon)
-All documentation for T# is currently stored in the `docs/` folder in the T# repo. There are some very useful code examples in there aswell.
+All documentation for T# is currently stored in the `docs/` folder in the T# repo. There are some very useful code examples in there aswell (coming soon).
 
 # Credits
 Written and Founded by Dylan Armstrong in 2026.

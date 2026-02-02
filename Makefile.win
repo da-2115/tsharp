@@ -44,7 +44,7 @@ help:
 
 # Generate C++ files from ANTLR grammars
 generate: $(GENERATED_SOURCES)
-	@echo ^*^* Generated ANTLR C++ files
+	@echo Generated ANTLR C++ files
 
 $(GENERATED_SOURCES): $(LEXER_GRAMMAR) $(PARSER_GRAMMAR)
 	@echo Generating C++ code from ANTLR grammars...
@@ -56,13 +56,13 @@ $(GENERATED_SOURCES): $(LEXER_GRAMMAR) $(PARSER_GRAMMAR)
 build: $(EXECUTABLE)
 	@echo Copying ANTLR runtime DLL...
 	@copy "$(ANTLR4_RUNTIME_PREFIX)\bin\antlr4-runtime.dll" "$(BUILD_DIR)\" >nul
-	@echo ^*^* Build complete
+	@echo Build complete
 
 $(EXECUTABLE): $(GENERATED_OBJECTS)
 	@echo Building tsharp...
 	@if not exist "$(BUILD_DIR)" mkdir "$(BUILD_DIR)"
 	$(CXX) $(CXXFLAGS) $(GENERATED_OBJECTS) $(LDFLAGS) /Fe:$(EXECUTABLE)
-	@echo ^*^* Compilation complete
+	@echo Compilation complete
 
 # Compile individual source files
 $(OUTPUT_DIR)/%.obj: $(OUTPUT_DIR)/%.cpp
@@ -86,7 +86,7 @@ clean:
 	@if exist "$(BUILD_DIR)" rmdir /s /q "$(BUILD_DIR)"
 	@del /q main.obj 2>nul
 	@del /q src\*.obj 2>nul
-	@echo ^*^* Clean complete
+	@echo Clean complete
 
 # Phony targets for convenience
 .PHONY: all clean generate build test help
