@@ -17,13 +17,13 @@ ANTLR4_RUNTIME_PREFIX := $(shell if [ -d "$(BREW_PREFIX)/opt/antlr4-cpp-runtime"
 
 # C++ Compiler settings
 CXX = clang++
-CXXFLAGS = -std=c++17 -Wall -Wextra -I$(OUTPUT_DIR) -I$(ANTLR4_RUNTIME_PREFIX)/include/antlr4-runtime
+CXXFLAGS = -std=c++17 -Wall -Wextra -fPIC -I./generated -I./include -I$(ANTLR4_RUNTIME_PREFIX)/include/antlr4-runtime
 LDFLAGS = -L$(ANTLR4_RUNTIME_PREFIX)/lib -lantlr4-runtime
 
 # Source files
-GENERATED_SOURCES = $(OUTPUT_DIR)/tsharp_lexer.cpp $(OUTPUT_DIR)/tsharp_parser.cpp main.cpp
+GENERATED_SOURCES = $(OUTPUT_DIR)/tsharp_lexer.cpp $(OUTPUT_DIR)/tsharp_parser.cpp main.cpp src/tsharp_listener.cpp
 GENERATED_HEADERS = $(OUTPUT_DIR)/tsharp_lexer.h $(OUTPUT_DIR)/tsharp_parser.h $(OUTPUT_DIR)/tsharp_parserBaseListener.h
-GENERATED_OBJECTS = $(OUTPUT_DIR)/tsharp_lexer.o $(OUTPUT_DIR)/tsharp_parser.o main.o
+GENERATED_OBJECTS = $(OUTPUT_DIR)/tsharp_lexer.o $(OUTPUT_DIR)/tsharp_parser.o main.o src/tsharp_listener.o
 
 # Default target
 all: generate build
@@ -61,6 +61,9 @@ $(BUILD_DIR)/tsharp: $(GENERATED_OBJECTS)
 
 # Compile individual source files
 $(OUTPUT_DIR)/%.o: $(OUTPUT_DIR)/%.cpp
+	$(CXX) $(CXXFLAGS) -c $< -o $@
+
+src/%.o: src/%.cpp
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 # Test target

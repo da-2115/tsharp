@@ -18,7 +18,7 @@ private:
     std::map<std::string, float> floats;
     std::map<std::string, short> shorts;
     std::map<std::string, long> longs;
-    
+
 public:
     tsharp_listener();
 
@@ -29,4 +29,7 @@ public:
     void add_string(const std::string& index, const std::string& value);
 
     void enterPrintln_statement(tsharp_parser::Println_statementContext* ctx) override;
+    void enterPrint_statement(tsharp_parser::Print_statementContext* ctx) override;
+    
+    void enterAssignment(tsharp_parser::AssignmentContext* ctx) override;
 };

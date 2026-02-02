@@ -25,9 +25,10 @@ CXXFLAGS = -std=c++17 -Wall -Wextra -fPIC -I./generated -I$(ANTLR4_RUNTIME_PREFI
 LDFLAGS = -L$(ANTLR4_RUNTIME_PREFIX)/lib -lantlr4-runtime
 
 # Source files
-GENERATED_SOURCES = $(OUTPUT_DIR)/tsharp_lexer.cpp $(OUTPUT_DIR)/tsharp_parser.cpp main.cpp
-GENERATED_HEADERS = $(OUTPUT_DIR)/tsharp_lexer.h $(OUTPUT_DIR)/tsharp_parser.h $(OUTPUT_DIR)/tsharp_parserBaseListener.h
-GENERATED_OBJECTS = $(OUTPUT_DIR)/tsharp_lexer.o $(OUTPUT_DIR)/tsharp_parser.o main.o
+GENERATED_SOURCES = $(OUTPUT_DIR)/tsharp_lexer.cpp $(OUTPUT_DIR)/tsharp_parser.cpp main.cpp $(wildcard src/*.cpp)
+GENERATED_HEADERS = $(OUTPUT_DIR)/tsharp_lexer.h $(OUTPUT_DIR)/tsharp_parser.h $(OUTPUT_DIR)/tsharp_parserBaseListener.h $(wildcard include/*.h)
+SRC_OBJECTS = $(patsubst src/%.cpp,src/%.obj,$(wildcard src/*.cpp))
+GENERATED_OBJECTS = $(OUTPUT_DIR)/tsharp_lexer.obj $(OUTPUT_DIR)/tsharp_parser.obj main.obj $(SRC_OBJECTS)
 
 # Output executable
 EXECUTABLE = $(BUILD_DIR)/tsharp
