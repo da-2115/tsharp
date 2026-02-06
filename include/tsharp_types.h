@@ -8,7 +8,8 @@
 // Types in T#
 enum class tsharp_types {
     INT,
-    STRING
+    STRING,
+    FLOAT
 };
 
 // Convert type from enum to string in listener

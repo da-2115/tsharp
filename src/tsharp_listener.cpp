@@ -31,6 +31,14 @@ void tsharp_listener::add_string(const std::string& index, const std::string& va
     strings.emplace(index, value);
 }
 
+const float tsharp_listener::get_float(const std::string& index) const {
+    return floats.at(index);
+}
+
+void tsharp_listener::add_float(const std::string& index, const float value) {
+    floats.emplace(index, value);
+}
+
 // Println statement
 void tsharp_listener::enterPrintln_statement(tsharp_parser::Println_statementContext* ctx) {
     // If the message is NOT a nullptr
@@ -49,9 +57,18 @@ void tsharp_listener::enterPrintln_statement(tsharp_parser::Println_statementCon
             std::cout << ints.at(ctx->VAR->getText()) << std::endl;
         }
 
-        else if(strings.find(ctx->VAR->getText()) != strings.end()) {
+        else if (strings.find(ctx->VAR->getText()) != strings.end()) {
             std::cout << strings.at(ctx->VAR->getText()) << std::endl;
         }
+
+        else if (floats.find(ctx->VAR->getText()) != floats.end()) {
+            std::cout << floats.at(ctx->VAR->getText()) << std::endl;
+        }
+    }
+
+    // Println for pi (3.14159). NOTE: Prints as type double by default
+    else if (ctx->PI_CONST) {
+        std::cout << tsharp_math::pi<double>() << std::endl;
     }
 }
 
@@ -104,13 +121,28 @@ void tsharp_listener::enterAssignment(tsharp_parser::AssignmentContext* ctx) {
 void tsharp_listener::enterSquare_root(tsharp_parser::Square_rootContext* ctx) {
     // If has come from println statement
     if (dynamic_cast<tsharp_parser::Println_statementContext*>(ctx->parent)) {
-        std::cout << tsharp_math::sqrt<int>(std::stoi(ctx->NUMBER->getText())) << std::endl;
+        std::string number = ctx->NUMBER->getText();
+        if (ctx->NUMBER && number.find('f') != std::string::npos) {
+            std::cout << tsharp_math::sqrt<float>(std::stof(number)) << std::endl;
+        }
+
+        else if (ctx->NUMBER) {
+            std::cout << tsharp_math::sqrt<int>(std::stoi(number)) << std::endl;
+        }
+
+        else if (ctx->VAR) {
+            std::cout << tsharp_math::sqrt<int>(ints.at(ctx->VAR->getText())) << std::endl;
+        }
     }
 
-    //If being assigned to a variable
+    // If being assigned to a variable
     else if (auto* assignment = dynamic_cast<tsharp_parser::AssignmentContext*>(ctx->parent)) {
         if (assignment->TYPE->getText() == type_to_string(tsharp_types::INT)) {
             ints.emplace(assignment->NAME->getText(), tsharp_math::sqrt<int>(std::stoi(ctx->NUMBER->getText())));
+        }
+
+        else if (assignment->TYPE->getText() == type_to_string(tsharp_types::FLOAT)) {
+            floats.emplace(assignment->NAME->getText(), tsharp_math::sqrt<float>(std::stof(ctx->NUMBER->getText())));
         }
     }
 }

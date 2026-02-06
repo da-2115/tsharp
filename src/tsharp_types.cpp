@@ -10,5 +10,9 @@ std::string type_to_string(tsharp_types type) {
             return "int";
         case tsharp_types::STRING:
             return "string";
+        case tsharp_types::FLOAT:
+            return "float";
+        default:
+            return "any";
     }
 }

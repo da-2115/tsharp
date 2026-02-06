@@ -25,7 +25,7 @@ int main(int argc, const char* argv[]) {
     antlr4::CommonTokenStream tokens(&lexer);
     tsharp_parser parser(&tokens);
     
-    antlr4::tree::ParseTree *tree = parser.program();
+    antlr4::tree::ParseTree* tree = parser.program();
     tsharp_listener listener;
     antlr4::tree::ParseTreeWalker::DEFAULT.walk(&listener, tree);
 

@@ -19,4 +19,7 @@ namespace tsharp_math {
     T sqrt(const T& value) {
         return tsharp_math::exp<T, float>(value, 0.5);
     }
+
+    template<class T>
+    T pi() { return T(3.1415926); }
 }
