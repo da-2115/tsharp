@@ -100,6 +100,7 @@ void tsharp_listener::enterAssignment(tsharp_parser::AssignmentContext* ctx) {
     }
 }
 
+// Square root function
 void tsharp_listener::enterSquare_root(tsharp_parser::Square_rootContext* ctx) {
     // If has come from println statement
     if (dynamic_cast<tsharp_parser::Println_statementContext*>(ctx->parent)) {
