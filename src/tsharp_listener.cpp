@@ -2,6 +2,7 @@
 // Dylan Armstrong, 2026
 
 #include "tsharp_listener.h"
+#include "tsharp_types.h"
 
 #include <algorithm>
 #include <cstddef>
@@ -79,12 +80,12 @@ void tsharp_listener::enterPrint_statement(tsharp_parser::Print_statementContext
 // Variable assignment
 void tsharp_listener::enterAssignment(tsharp_parser::AssignmentContext* ctx) {
     // If type is int
-    if (ctx->TYPE->getText() == "int") {
+    if (ctx->TYPE->getText() == type_to_string(tsharp_types::INT)) {
         ints.emplace(ctx->NAME->getText(), std::stoi(ctx->VALUE->getText()));
     }
 
     // Else if type is string
-    else if (ctx->TYPE->getText() == "string") {
+    else if (ctx->TYPE->getText() == type_to_string(tsharp_types::STRING)) {
         std::string value = ctx->VALUE->getText();
 
         // Get rid of quotes from string
