@@ -41,7 +41,7 @@ help:
 
 # Generate C++ files from ANTLR grammars
 generate: $(GENERATED_SOURCES)
-	@echo "✓ Generated ANTLR C++ files"
+	@echo "Generated ANTLR C++ files"
 
 $(GENERATED_SOURCES): $(LEXER_GRAMMAR) $(PARSER_GRAMMAR)
 	@echo "Generating C++ code from ANTLR grammars..."
@@ -51,13 +51,13 @@ $(GENERATED_SOURCES): $(LEXER_GRAMMAR) $(PARSER_GRAMMAR)
 
 # Build the project
 build: $(BUILD_DIR)/tsharp
-	@echo "✓ Build complete"
+	@echo "Build complete"
 
 $(BUILD_DIR)/tsharp: $(GENERATED_OBJECTS)
 	@echo "Building tsharp..."
 	@mkdir -p $(BUILD_DIR)
 	$(CXX) $(CXXFLAGS) $(GENERATED_OBJECTS) $(LDFLAGS) -o $(BUILD_DIR)/tsharp
-	@echo "✓ Compilation complete"
+	@echo "Compilation complete"
 
 # Compile individual source files
 $(OUTPUT_DIR)/%.o: $(OUTPUT_DIR)/%.cpp
@@ -75,7 +75,7 @@ test:
 clean:
 	@echo "Cleaning..."
 	rm -rf $(OUTPUT_DIR) $(BUILD_DIR)
-	@echo "✓ Clean complete"
+	@echo "Clean complete"
 
 # Phony targets for convenience
 .PHONY: all clean generate build test help
