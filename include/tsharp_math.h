@@ -8,6 +8,12 @@
 
 // tsharp math functions namespace
 namespace tsharp_math {
+    // Exponent function, takes two types as argument list
+    template<class T, class U>
+    T exp(const T& value, const U& exponent) {
+        return std::pow(value, exponent);
+    }
+    
     // Square root function, raise value to the power of 1/2
     template<class T>
     T sqrt(const T& value) {
