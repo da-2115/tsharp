@@ -3,6 +3,7 @@
 
 #include "tsharp_listener.h"
 #include "tsharp_types.h"
+#include "tsharp_math.h"
 
 #include <algorithm>
 #include <cstddef>
@@ -79,8 +80,12 @@ void tsharp_listener::enterPrint_statement(tsharp_parser::Print_statementContext
 
 // Variable assignment
 void tsharp_listener::enterAssignment(tsharp_parser::AssignmentContext* ctx) {
+    if (!ctx || !ctx->TYPE || !ctx->NAME || !ctx->VALUE) {
+        return;
+    }
+
     // If type is int
-    if (ctx->TYPE->getText() == type_to_string(tsharp_types::INT)) {
+    if (ctx->TYPE->getText() == type_to_string(tsharp_types::INT)) {    
         ints.emplace(ctx->NAME->getText(), std::stoi(ctx->VALUE->getText()));
     }
 
@@ -92,5 +97,19 @@ void tsharp_listener::enterAssignment(tsharp_parser::AssignmentContext* ctx) {
         value.erase(std::remove(value.begin(), value.end(), '\"'), value.end());
 
         strings.emplace(ctx->NAME->getText(), value);
+    }
+}
+
+void tsharp_listener::enterSquare_root(tsharp_parser::Square_rootContext* ctx) {
+    // If has come from println statement
+    if (dynamic_cast<tsharp_parser::Println_statementContext*>(ctx->parent)) {
+        std::cout << tsharp_math::sqrt<int>(std::stoi(ctx->NUMBER->getText())) << std::endl;
+    }
+
+    //If being assigned to a variable
+    else if (auto* assignment = dynamic_cast<tsharp_parser::AssignmentContext*>(ctx->parent)) {
+        if (assignment->TYPE->getText() == type_to_string(tsharp_types::INT)) {
+            ints.emplace(assignment->NAME->getText(), tsharp_math::sqrt<int>(std::stoi(ctx->NUMBER->getText())));
+        }
     }
 }
