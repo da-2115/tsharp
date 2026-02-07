@@ -213,3 +213,24 @@ void tsharp_listener::enterExpression(tsharp_parser::ExpressionContext* ctx) {
         }
     }
 }
+
+void tsharp_listener::enterFunction(tsharp_parser::FunctionContext* ctx) {
+    std::vector<tsharp_argument> args;
+
+    for (auto* arg_ctx : ctx->ARGS) {
+        tsharp_argument arg{};
+        arg.var_name = arg_ctx->NAME->getText();
+        arg.type = arg_ctx->TYPE->getText();
+        args.push_back(arg);
+    }
+
+    tsharp_function function = tsharp_function(ctx->TYPE->getText(), args, ctx->BODY->return_statement()->VAL->getText());
+
+    functions.emplace(ctx->NAME->getText(), function);
+}
+
+void tsharp_listener::enterFunc_call(tsharp_parser::Func_callContext* ctx) {
+    if (dynamic_cast<tsharp_parser::Println_statementContext*>(ctx->parent) && functions.at(ctx->NAME->getText()).get_type() == type_to_string(tsharp_types::INT)) {
+        std::cout << functions.at(ctx->NAME->getText()).func_return<int>(functions.at(ctx->NAME->getText()).get_ret_value()) << std::endl;
+    }
+}

@@ -12,6 +12,8 @@ std::string type_to_string(tsharp_types type) {
             return "string";
         case tsharp_types::FLOAT:
             return "float";
+        case tsharp_types::VOID:
+            return "void";
         default:
             return "any";
     }

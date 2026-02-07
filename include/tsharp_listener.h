@@ -6,6 +6,7 @@
 #include <map>
 #include <string>
 
+#include "tsharp_function.h"
 #include "tsharp_parserBaseListener.h"
 
 class tsharp_listener : public tsharp_parserBaseListener {
@@ -19,6 +20,7 @@ private:
     std::map<std::string, float> floats;
     std::map<std::string, short> shorts;
     std::map<std::string, long> longs;
+    std::map<std::string, tsharp_function> functions;
 
 public:
     // Constructor
@@ -49,4 +51,8 @@ public:
 
     // Expressions
     void enterExpression(tsharp_parser::ExpressionContext* ctx) override;
+
+    // Functions
+    void enterFunction(tsharp_parser::FunctionContext* ctx) override;
+    void enterFunc_call(tsharp_parser::Func_callContext* ctx) override;
 };

@@ -17,10 +17,13 @@ int main(int argc, const char* argv[]) {
     }
 
     // Open file stream with .tsharp file
-    std::ifstream stream;
-    stream.open(argv[1]);
+    std::shared_ptr<std::ifstream> stream = std::make_unique<std::ifstream>(argv[1]);
+    if (!stream->is_open()) {
+        std::cerr << "Error: Cannot open file " << argv[1] << std::endl;
+        return 1;
+    }
     
-    antlr4::ANTLRInputStream input(stream);
+    antlr4::ANTLRInputStream input(*stream);
     tsharp_lexer lexer(&input);
     antlr4::CommonTokenStream tokens(&lexer);
     tsharp_parser parser(&tokens);

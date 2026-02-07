@@ -9,7 +9,8 @@
 enum class tsharp_types {
     INT,
     STRING,
-    FLOAT
+    FLOAT,
+    VOID
 };
 
 // Convert type from enum to string in listener
