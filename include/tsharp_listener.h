@@ -45,4 +45,8 @@ public:
 
     // Math functions
     void enterSquare_root(tsharp_parser::Square_rootContext* ctx) override;
+    void enterAbsolute_value(tsharp_parser::Absolute_valueContext* ctx) override;
+
+    // Expressions
+    void enterExpression(tsharp_parser::ExpressionContext* ctx) override;
 };

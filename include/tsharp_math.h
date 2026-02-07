@@ -21,5 +21,10 @@ namespace tsharp_math {
     }
 
     template<class T>
-    T pi() { return T(3.1415926); }
+    T pi() { return static_cast<T>(3.1415926); }
+
+    template<class T>
+    T abs(const T& value) {
+        return value;
+    }
 }

@@ -92,6 +92,15 @@ void tsharp_listener::enterPrint_statement(tsharp_parser::Print_statementContext
         else if(strings.find(ctx->VAR->getText()) != strings.end()) {
             std::cout << strings.at(ctx->VAR->getText()) << std::flush;
         }
+
+        else if (floats.find(ctx->VAR->getText()) != floats.end()) {
+            std::cout << floats.at(ctx->VAR->getText()) << std::flush;
+        }
+    }
+
+    // Print for pi (3.14159). NOTE: Prints as type double by default
+    else if (ctx->PI_CONST) {
+        std::cout << tsharp_math::pi<double>() << std::flush;
     }
 }
 
@@ -115,6 +124,11 @@ void tsharp_listener::enterAssignment(tsharp_parser::AssignmentContext* ctx) {
 
         strings.emplace(ctx->NAME->getText(), value);
     }
+
+    // Else if type is float
+    else if (ctx->TYPE->getText() == type_to_string(tsharp_types::FLOAT)) {
+        floats.emplace(ctx->NAME->getText(), std::stof(ctx->VALUE->getText()));
+    }
 }
 
 // Square root function
@@ -122,6 +136,7 @@ void tsharp_listener::enterSquare_root(tsharp_parser::Square_rootContext* ctx) {
     // If has come from println statement
     if (dynamic_cast<tsharp_parser::Println_statementContext*>(ctx->parent)) {
         std::string number = ctx->NUMBER->getText();
+
         if (ctx->NUMBER && number.find('f') != std::string::npos) {
             std::cout << tsharp_math::sqrt<float>(std::stof(number)) << std::endl;
         }
@@ -143,6 +158,58 @@ void tsharp_listener::enterSquare_root(tsharp_parser::Square_rootContext* ctx) {
 
         else if (assignment->TYPE->getText() == type_to_string(tsharp_types::FLOAT)) {
             floats.emplace(assignment->NAME->getText(), tsharp_math::sqrt<float>(std::stof(ctx->NUMBER->getText())));
+        }
+    }
+}
+
+void tsharp_listener::enterAbsolute_value(tsharp_parser::Absolute_valueContext* ctx) {
+    // If has come from println statement
+    if (dynamic_cast<tsharp_parser::Println_statementContext*>(ctx->parent)) {
+        std::string number = ctx->NUMBER->getText();
+
+        if (ctx->NUMBER && number.find('f') != std::string::npos) {
+            std::cout << tsharp_math::abs<float>(std::stof(number)) << std::endl;
+        }
+
+        else if (ctx->NUMBER) {
+            std::cout << tsharp_math::abs<int>(std::stoi(number)) << std::endl;
+        }
+
+        else if (ctx->VAR) {
+            std::cout << tsharp_math::abs<int>(ints.at(ctx->VAR->getText())) << std::endl;
+        }
+    }
+
+    // If being assigned to a variable
+    else if (auto* assignment = dynamic_cast<tsharp_parser::AssignmentContext*>(ctx->parent)) {
+        if (assignment->TYPE->getText() == type_to_string(tsharp_types::INT)) {
+            ints.emplace(assignment->NAME->getText(), tsharp_math::abs<int>(std::stoi(ctx->NUMBER->getText())));
+        }
+
+        else if (assignment->TYPE->getText() == type_to_string(tsharp_types::FLOAT)) {
+            floats.emplace(assignment->NAME->getText(), tsharp_math::abs<float>(std::stof(ctx->NUMBER->getText())));
+        }
+    }
+}
+
+void tsharp_listener::enterExpression(tsharp_parser::ExpressionContext* ctx) {
+    if (ctx->PLUS()) {
+        if (ints.find(ctx->NAME->getText()) != ints.end()) {
+            ints.at(ctx->NAME->getText()) = ints.at(ctx->VAR->getText()) + std::stoi(ctx->VALUE->getText());
+        }
+
+        else if (floats.find(ctx->NAME->getText()) != floats.end()) {
+            floats.at(ctx->NAME->getText()) = floats.at(ctx->VAR->getText()) + std::stof(ctx->VALUE->getText());
+        }
+    }
+
+    else if (ctx->MINUS()) {
+        if (ints.find(ctx->NAME->getText()) != ints.end()) {
+            ints.at(ctx->NAME->getText()) = ints.at(ctx->VAR->getText()) - std::stoi(ctx->VALUE->getText());
+        }
+
+        else if (floats.find(ctx->NAME->getText()) != floats.end()) {
+            floats.at(ctx->NAME->getText()) = floats.at(ctx->VAR->getText()) - std::stof(ctx->VALUE->getText());
         }
     }
 }
