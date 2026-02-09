@@ -5,9 +5,11 @@
 
 #include <map>
 #include <string>
+#include <memory>
 
 #include "tsharp_function.h"
 #include "tsharp_parserBaseListener.h"
+#include "tsharp_class.h"
 
 class tsharp_listener : public tsharp_parserBaseListener {
 private:
@@ -21,10 +23,22 @@ private:
     std::map<std::string, short> shorts;
     std::map<std::string, long> longs;
     std::map<std::string, tsharp_function> functions;
+    std::map<std::string, tsharp_class> classes;
+    std::map<std::string, std::shared_ptr<tsharp_class>> objects;
+
+    // Is executing? state
+    bool executing;
 
 public:
     // Constructor
     tsharp_listener();
+
+    // Destructor
+    ~tsharp_listener();
+
+    // Copy semantics
+    tsharp_listener(const tsharp_listener&) = delete;
+    tsharp_listener& operator=(const tsharp_listener&) = delete;
 
     // Integer methods
     const int get_int(const std::string& index) const;
@@ -55,4 +69,8 @@ public:
     // Functions
     void enterFunction(tsharp_parser::FunctionContext* ctx) override;
     void enterFunc_call(tsharp_parser::Func_callContext* ctx) override;
+
+    // OOP
+    void enterClass(tsharp_parser::ClassContext* ctx) override;
+    void enterObject_inst(tsharp_parser::Object_instContext* ctx) override;
 };

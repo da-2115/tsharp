@@ -13,6 +13,20 @@ tsharp_listener::tsharp_listener() :
     ints{}, strings{}, bools{}, chars{}, doubles{}, floats{}, shorts{}, longs{} {
 }
 
+tsharp_listener::~tsharp_listener() {
+    ints.clear();
+    strings.clear();
+    bools.clear();
+    chars.clear();
+    doubles.clear();
+    floats.clear();
+    shorts.clear();
+    longs.clear();
+    functions.clear();
+    classes.clear();
+    objects.clear();
+}
+
 // Integer methods
 const int tsharp_listener::get_int(const std::string& index) const {
     return ints.at(index);
@@ -233,4 +247,58 @@ void tsharp_listener::enterFunc_call(tsharp_parser::Func_callContext* ctx) {
     if (dynamic_cast<tsharp_parser::Println_statementContext*>(ctx->parent) && functions.at(ctx->NAME->getText()).get_type() == type_to_string(tsharp_types::INT)) {
         std::cout << functions.at(ctx->NAME->getText()).func_return<int>(functions.at(ctx->NAME->getText()).get_ret_value()) << std::endl;
     }
+}
+
+void tsharp_listener::enterClass(tsharp_parser::ClassContext* ctx) {
+    tsharp_class c;
+
+    for (auto* field : ctx->FIELDS) {
+        c.add_field(field->NAME->getText(), tsharp_value(field->NAME->getText()), field->ACCESS_IDENTIFIER->getText() == "private" ? true : false);
+    }
+
+    for (auto* constructor : ctx->CONSTRUCTORS) {
+        if (!constructor || !constructor->NAME) continue;
+        
+        std::vector<tsharp_argument> args;
+        if (!constructor->ARGS.empty()) {
+            for (auto* arg : constructor->ARGS) {
+                if (!arg || !arg->TYPE || !arg->NAME) continue;
+                
+                tsharp_argument tsharp_arg{};
+                tsharp_arg.type = arg->TYPE->getText();
+                tsharp_arg.var_name = arg->NAME->getText();
+                args.push_back(tsharp_arg);
+            }
+        }
+        c.add_constructor(constructor->NAME->getText(), constructor->NAME->getText(), args, "");
+    }
+
+    for (auto* methods : ctx->METHODS) {
+        // TODO
+    }
+
+    classes.emplace(ctx->NAME->getText(), c);
+}
+
+void tsharp_listener::enterObject_inst(tsharp_parser::Object_instContext* ctx) {
+    std::string class_name = ctx->NAME->getText();
+    std::string var_name = ctx->VAR->getText();
+    
+    objects.emplace(var_name, std::make_shared<tsharp_class>(classes.at(class_name)));
+    
+    std::shared_ptr<tsharp_class> object = objects.at(var_name);
+    
+    tsharp_constructor constructor = object->get_constructor(class_name);
+    
+    std::vector<tsharp_field> fields = object->get_fields();
+    
+    std::vector<tsharp_value> args;
+    if (!ctx->ARGS.empty()) {
+        for (auto* arg : ctx->ARGS) {
+            args.push_back(arg->getText());
+        }
+    }
+    
+    constructor.execute(args, fields);
+    
 }

@@ -4,6 +4,11 @@
 lexer grammar tsharp_lexer;
 
 WS : [ \t\r\n]+ -> skip ;
+CLASS: 'class';
+PUBLIC: 'public';
+PRIVATE: 'private';
+THIS: 'this';
+DOT: '.';
 INT: 'int';
 FLOAT: 'float';
 STRING: 'string';

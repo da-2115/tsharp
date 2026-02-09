@@ -21,9 +21,9 @@ CXXFLAGS = -std=c++17 -Wall -Wextra -fPIC -I./generated -I./include -I$(ANTLR4_R
 LDFLAGS = -L$(ANTLR4_RUNTIME_PREFIX)/lib -lantlr4-runtime
 
 # Source files
-GENERATED_SOURCES = $(OUTPUT_DIR)/tsharp_lexer.cpp $(OUTPUT_DIR)/tsharp_parser.cpp main.cpp src/tsharp_listener.cpp src/tsharp_types.cpp src/tsharp_function.cpp
-GENERATED_HEADERS = $(OUTPUT_DIR)/tsharp_lexer.h $(OUTPUT_DIR)/tsharp_parser.h $(OUTPUT_DIR)/tsharp_parserBaseListener.h include/tsharp_function.h include/tsharp_types.h include/tsharp_math.h
-GENERATED_OBJECTS = $(OUTPUT_DIR)/tsharp_lexer.o $(OUTPUT_DIR)/tsharp_parser.o main.o src/tsharp_listener.o src/tsharp_types.o src/tsharp_function.o
+GENERATED_SOURCES = $(OUTPUT_DIR)/tsharp_lexer.cpp $(OUTPUT_DIR)/tsharp_parser.cpp main.cpp src/tsharp_listener.cpp src/tsharp_types.cpp src/tsharp_function.cpp src/tsharp_class.cpp src/tsharp_constructor.cpp src/tsharp_field.cpp src/tsharp_value.cpp
+GENERATED_HEADERS = $(OUTPUT_DIR)/tsharp_lexer.h $(OUTPUT_DIR)/tsharp_parser.h $(OUTPUT_DIR)/tsharp_parserBaseListener.h include/tsharp_function.h include/tsharp_types.h include/tsharp_math.h include/tsharp_class.h include/tsharp_constructor.h include/tsharp_field.h include/tsharp_value.h
+GENERATED_OBJECTS = $(OUTPUT_DIR)/tsharp_lexer.o $(OUTPUT_DIR)/tsharp_parser.o main.o src/tsharp_listener.o src/tsharp_types.o src/tsharp_function.o src/tsharp_class.o src/tsharp_constructor.o src/tsharp_field.o src/tsharp_value.o
 
 # Default target
 all: generate build

@@ -44,7 +44,6 @@
 .antlr
 build
 generated
-*.tsharp
 
 # Visual Studio Code
 .vscode

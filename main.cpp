@@ -17,7 +17,7 @@ int main(int argc, const char* argv[]) {
     }
 
     // Open file stream with .tsharp file
-    std::shared_ptr<std::ifstream> stream = std::make_unique<std::ifstream>(argv[1]);
+    std::unique_ptr<std::ifstream> stream = std::make_unique<std::ifstream>(argv[1]);
     if (!stream->is_open()) {
         std::cerr << "Error: Cannot open file " << argv[1] << std::endl;
         return 1;
