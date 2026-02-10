@@ -2,12 +2,17 @@
 // Dylan Armstrong, 2026
 
 #include "tsharp_listener.h"
-#include "tsharp_types.h"
 #include "tsharp_math.h"
 
 #include <algorithm>
 #include <chrono>
 #include <cstddef>
+
+std::string tsharp_listener::remove_quotes_from_string(std::string& str) const {
+    str.erase(std::remove(str.begin(), str.end(), '\"'), str.end());
+
+    return str;
+}
 
 // Constructor, initialize all member variables with sensible default values.
 tsharp_listener::tsharp_listener() : 
@@ -30,7 +35,7 @@ tsharp_listener::~tsharp_listener() {
 }
 
 // Integer methods
-const int tsharp_listener::get_int(const std::string& index) const {
+const int& tsharp_listener::get_int(const std::string& index) const {
     return ints.at(index);
 }
 
@@ -39,7 +44,7 @@ void tsharp_listener::add_int(const std::string& index, const int value) {
 }
 
 // String methods
-const std::string tsharp_listener::get_string(const std::string& index) const {
+const std::string& tsharp_listener::get_string(const std::string& index) const {
     return strings.at(index);
 }
 
@@ -47,7 +52,7 @@ void tsharp_listener::add_string(const std::string& index, const std::string& va
     strings.emplace(index, value);
 }
 
-const float tsharp_listener::get_float(const std::string& index) const {
+const float& tsharp_listener::get_float(const std::string& index) const {
     return floats.at(index);
 }
 
@@ -60,10 +65,7 @@ void tsharp_listener::enterPrintln_statement(tsharp_parser::Println_statementCon
     // If the message is NOT a nullptr
     if (ctx->MESSAGE) {
         std::string message = ctx->MESSAGE->getText();
-
-        message.erase(std::remove(message.begin(), message.end(), '\"'), message.end());
-
-        std::cout << message << std::endl;
+        std::cout << remove_quotes_from_string(message) << std::endl;
     }
 
     // Else if the passed variable name to println is NOT a nullptr
@@ -93,10 +95,7 @@ void tsharp_listener::enterPrint_statement(tsharp_parser::Print_statementContext
     // If the message is NOT a nullptr
     if (ctx->MESSAGE) {
         std::string message = ctx->MESSAGE->getText();
-
-        message.erase(std::remove(message.begin(), message.end(), '\"'), message.end());
-
-        std::cout << message << std::flush;
+        std::cout << remove_quotes_from_string(message) << std::flush;
     }
 
     // Else if the passed variable name to println is NOT a nullptr
@@ -127,22 +126,19 @@ void tsharp_listener::enterAssignment(tsharp_parser::AssignmentContext* ctx) {
     }
 
     // If type is int
-    if (ctx->TYPE->getText() == type_to_string(tsharp_types::INT)) {    
+    if (ctx->TYPE->getText() == INT_TYPE) {    
         ints.emplace(ctx->NAME->getText(), std::stoi(ctx->VALUE->getText()));
     }
 
     // Else if type is string
-    else if (ctx->TYPE->getText() == type_to_string(tsharp_types::STRING)) {
-        std::string value = ctx->VALUE->getText();
+    else if (ctx->TYPE->getText() == STRING_TYPE) {
+        std::string message = ctx->VALUE->getText();
 
-        // Get rid of quotes from string
-        value.erase(std::remove(value.begin(), value.end(), '\"'), value.end());
-
-        strings.emplace(ctx->NAME->getText(), value);
+        strings.emplace(ctx->NAME->getText(), remove_quotes_from_string(message));
     }
 
     // Else if type is float
-    else if (ctx->TYPE->getText() == type_to_string(tsharp_types::FLOAT)) {
+    else if (ctx->TYPE->getText() == FLOAT_TYPE) {
         floats.emplace(ctx->NAME->getText(), std::stof(ctx->VALUE->getText()));
     }
 }
@@ -168,11 +164,11 @@ void tsharp_listener::enterSquare_root(tsharp_parser::Square_rootContext* ctx) {
 
     // If being assigned to a variable
     else if (auto* assignment = dynamic_cast<tsharp_parser::AssignmentContext*>(ctx->parent)) {
-        if (assignment->TYPE->getText() == type_to_string(tsharp_types::INT)) {
+        if (assignment->TYPE->getText() == INT_TYPE) {
             ints.emplace(assignment->NAME->getText(), tsharp_math::sqrt<int>(std::stoi(ctx->NUMBER->getText())));
         }
 
-        else if (assignment->TYPE->getText() == type_to_string(tsharp_types::FLOAT)) {
+        else if (assignment->TYPE->getText() == FLOAT_TYPE) {
             floats.emplace(assignment->NAME->getText(), tsharp_math::sqrt<float>(std::stof(ctx->NUMBER->getText())));
         }
     }
@@ -198,11 +194,11 @@ void tsharp_listener::enterAbsolute_value(tsharp_parser::Absolute_valueContext* 
 
     // If being assigned to a variable
     else if (auto* assignment = dynamic_cast<tsharp_parser::AssignmentContext*>(ctx->parent)) {
-        if (assignment->TYPE->getText() == type_to_string(tsharp_types::INT)) {
+        if (assignment->TYPE->getText() == INT_TYPE) {
             ints.emplace(assignment->NAME->getText(), tsharp_math::abs<int>(std::stoi(ctx->NUMBER->getText())));
         }
 
-        else if (assignment->TYPE->getText() == type_to_string(tsharp_types::FLOAT)) {
+        else if (assignment->TYPE->getText() == FLOAT_TYPE) {
             floats.emplace(assignment->NAME->getText(), tsharp_math::abs<float>(std::stof(ctx->NUMBER->getText())));
         }
     }
@@ -246,7 +242,7 @@ void tsharp_listener::enterFunction(tsharp_parser::FunctionContext* ctx) {
 }
 
 void tsharp_listener::enterFunc_call(tsharp_parser::Func_callContext* ctx) {
-    if (dynamic_cast<tsharp_parser::Println_statementContext*>(ctx->parent) && functions.at(ctx->NAME->getText()).get_type() == type_to_string(tsharp_types::INT)) {
+    if (dynamic_cast<tsharp_parser::Println_statementContext*>(ctx->parent) && functions.at(ctx->NAME->getText()).get_type() == INT_TYPE) {
         std::cout << functions.at(ctx->NAME->getText()).func_return<int>(functions.at(ctx->NAME->getText()).get_ret_value()) << std::endl;
     }
 }

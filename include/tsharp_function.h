@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include "tsharp_types.h"
+#include "tsharp_listener.h"
 
 #include <vector>
 
@@ -28,8 +28,8 @@ public:
 
     // Function return template function
     template<class T>
-    T func_return(const std::string& value) {
-        if (type == type_to_string(tsharp_types::INT)) {
+    T func_return(const std::string& value) const {
+        if (type == INT_TYPE) {
             return std::stoi(value);
         }
     }

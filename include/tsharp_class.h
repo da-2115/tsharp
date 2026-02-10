@@ -25,7 +25,7 @@ public:
     // Field methods
 
     // Getters
-    tsharp_field get_field(const std::string& index) const;
+    const tsharp_field& get_field(const std::string& index) const;
     std::vector<tsharp_field> get_fields() const;
     size_t field_count() const;
 

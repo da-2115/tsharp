@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <fstream>
+#include <chrono>
 
 #include "antlr4-runtime.h"
 #include "tsharp_lexer.h"

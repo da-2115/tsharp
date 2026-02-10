@@ -14,7 +14,7 @@ tsharp_class::tsharp_class(const tsharp_class& other)
     : fields(other.fields), constructors(other.constructors), methods(other.methods) {
 }
 
-tsharp_field tsharp_class::get_field(const std::string& index) const {
+const tsharp_field& tsharp_class::get_field(const std::string& index) const {
     return fields.at(index);
 }
 
@@ -40,7 +40,7 @@ void tsharp_class::set_field(const std::string& name, const tsharp_value&& new_v
 
 void tsharp_class::set_fields(const std::vector<tsharp_value>& values) {
     size_t i = 0;
-    
+
     for (auto& [name, field] : fields) {
         if (i < values.size()) {
             field.set_value(std::move(values[i++]));
