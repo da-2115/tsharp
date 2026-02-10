@@ -13,6 +13,7 @@ tsharp_listener::tsharp_listener() :
     ints{}, strings{}, bools{}, chars{}, doubles{}, floats{}, shorts{}, longs{} {
 }
 
+// Destructor, safely clear maps.
 tsharp_listener::~tsharp_listener() {
     ints.clear();
     strings.clear();
