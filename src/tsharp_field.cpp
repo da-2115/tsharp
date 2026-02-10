@@ -1,3 +1,6 @@
+// tsharp_field.cpp
+// Dylan Armstrong, 2026
+
 #include "tsharp_field.h"
 
 tsharp_field::tsharp_field(const tsharp_value& value, const bool is_private) 

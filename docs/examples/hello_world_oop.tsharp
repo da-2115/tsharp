@@ -1,10 +1,12 @@
+// hello_world_oop.tsharp
+// Dylan Armstrong, 2026
+
 class HelloWorld {
-    private string message
-    public HelloWorld(string message) { 
-        println("Hello")
+    public HelloWorld() { 
+        println("Hello World")
     }
 }
 
 void main() {
-    
+    HelloWorld hw = ()
 }

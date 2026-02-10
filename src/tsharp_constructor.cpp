@@ -1,9 +1,13 @@
+// tsharp_constructor.cpp
+// Dylan Armstrong, 2026
+
 #include "tsharp_constructor.h"
 
 tsharp_constructor::tsharp_constructor(const std::string& type, const std::vector<tsharp_argument>& arguments, const std::string& return_value) 
     : tsharp_function(type, arguments, return_value) {
 }
 
+// Execute constructor: set fields, execute methods
 void tsharp_constructor::execute(const std::vector<tsharp_value>& args, std::vector<tsharp_field>& fields) {
     // Set fields
     if (fields.empty()) {

@@ -7,6 +7,7 @@
 
 #include <vector>
 
+// tsharp_argument struct
 struct tsharp_argument {
     std::string type;
     std::string var_name;
@@ -25,6 +26,7 @@ public:
     const std::string get_type() const;
     const std::string get_ret_value() const;
 
+    // Function return template function
     template<class T>
     T func_return(const std::string& value) {
         if (type == type_to_string(tsharp_types::INT)) {

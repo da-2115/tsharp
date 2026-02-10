@@ -3,7 +3,12 @@
 
 lexer grammar tsharp_lexer;
 
+
+// Skip whitespace and comments (tabs, newlines, etc.)
 WS : [ \t\r\n]+ -> skip ;
+COMMENT: '//' ~[\r\n]* -> skip;
+
+// Tokens in tsharp
 CLASS: 'class';
 PUBLIC: 'public';
 PRIVATE: 'private';
@@ -24,7 +29,7 @@ RETURN: 'return';
 COMMA: ',';
 PLUS: '+';
 MINUS: '-';
-ID: [a-zA-Z] [a-zA-Z0-9]*;
+ID: [a-zA-Z] [a-zA-Z0-9'_']*;
 NUM: [-]?[0-9]+;
 FLOAT_LIT: NUM+ ([.,] NUM+)?'f' ;
 STRING_LIT: '"' ~["]* '"';

@@ -1,4 +1,4 @@
-// tsharp_class.h
+// tsharp_field.h
 // Dylan Armstrong, 2026
 
 #pragma once
@@ -9,7 +9,7 @@
 
 class tsharp_field {
 private:
-    tsharp_value value;
+    tsharp_value value; // Use tsharp_value here, not std::string
     bool is_private;
 
 public:

@@ -20,9 +20,11 @@ namespace tsharp_math {
         return tsharp_math::exp<T, float>(value, 0.5);
     }
 
+    // Pi
     template<class T>
-    T pi() { return static_cast<T>(3.1415926); }
+    constexpr T pi = T(3.1415926);
 
+    // Absolute value function
     template<class T>
     T abs(const T& value) {
         return value;

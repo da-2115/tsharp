@@ -10,6 +10,7 @@
 #include "tsharp_value.h"
 #include "tsharp_field.h"
 
+// Inherits from tsharp_function due to similiar behaviour
 class tsharp_constructor : public tsharp_function {
 public:
     tsharp_constructor(const std::string& type, const std::vector<tsharp_argument>& arguments, const std::string& return_value);

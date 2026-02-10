@@ -1,3 +1,6 @@
+// tsharp_class.cpp
+// Dylan Armstrong, 2026
+
 #include "tsharp_class.h"
 
 #include <algorithm>
@@ -6,6 +9,7 @@ tsharp_class::tsharp_class()
     : fields{}, constructors{}, methods{} {
 }
 
+// Copy constructor implementation
 tsharp_class::tsharp_class(const tsharp_class& other) 
     : fields(other.fields), constructors(other.constructors), methods(other.methods) {
 }
@@ -14,9 +18,11 @@ const tsharp_field tsharp_class::get_field(const std::string& index) const {
     return fields.at(index);
 }
 
+// Get ALL fields as std::vector with tsharp_field objects as the items in the vector
 std::vector<tsharp_field> tsharp_class::get_fields() const {
     std::vector<tsharp_field> vec;
 
+    // Iterate over the map of fields
     for (std::map<std::string, tsharp_field>::const_iterator it = fields.begin(); it != fields.end(); ++it) {
         vec.push_back(it->second);
     }
@@ -32,6 +38,7 @@ void tsharp_class::set_field(const std::string& name, const tsharp_value& new_va
     fields.at(name).set_value(new_value);
 }
 
+// Return number of fields
 size_t tsharp_class::field_count() const {
     return fields.size();
 }

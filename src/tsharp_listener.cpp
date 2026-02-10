@@ -82,7 +82,7 @@ void tsharp_listener::enterPrintln_statement(tsharp_parser::Println_statementCon
 
     // Println for pi (3.14159). NOTE: Prints as type double by default
     else if (ctx->PI_CONST) {
-        std::cout << tsharp_math::pi<double>() << std::endl;
+        std::cout << tsharp_math::pi<double> << std::endl;
     }
 }
 
@@ -114,7 +114,7 @@ void tsharp_listener::enterPrint_statement(tsharp_parser::Print_statementContext
 
     // Print for pi (3.14159). NOTE: Prints as type double by default
     else if (ctx->PI_CONST) {
-        std::cout << tsharp_math::pi<double>() << std::flush;
+        std::cout << tsharp_math::pi<double> << std::flush;
     }
 }
 
