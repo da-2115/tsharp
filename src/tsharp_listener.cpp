@@ -6,6 +6,7 @@
 #include "tsharp_math.h"
 
 #include <algorithm>
+#include <chrono>
 #include <cstddef>
 
 // Constructor, initialize all member variables with sensible default values.
@@ -292,7 +293,7 @@ void tsharp_listener::enterObject_inst(tsharp_parser::Object_instContext* ctx) {
     tsharp_constructor constructor = object->get_constructor(class_name);
     
     std::vector<tsharp_field> fields = object->get_fields();
-    
+
     std::vector<tsharp_value> args;
     if (!ctx->ARGS.empty()) {
         for (const antlr4::Token* arg : ctx->ARGS) {
@@ -300,6 +301,5 @@ void tsharp_listener::enterObject_inst(tsharp_parser::Object_instContext* ctx) {
         }
     }
     
-    constructor.execute(args, fields);
-    
+    constructor.execute(args, *object);
 }

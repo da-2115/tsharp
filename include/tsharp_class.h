@@ -25,13 +25,14 @@ public:
     // Field methods
 
     // Getters
-    const tsharp_field get_field(const std::string& index) const;
+    tsharp_field get_field(const std::string& index) const;
     std::vector<tsharp_field> get_fields() const;
     size_t field_count() const;
 
     // Setters
-    void add_field(const std::string& name, const tsharp_value& value, const bool is_private);
+    void add_field(const std::string& name, const tsharp_value&& value, const bool is_private);
     void set_field(const std::string& name, const tsharp_value&& new_value);
+    void set_fields(const std::vector<tsharp_value>& values);
     
     // Constructor methods
     const tsharp_constructor& get_constructor(const std::string& index) const;

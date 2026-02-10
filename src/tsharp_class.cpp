@@ -14,7 +14,7 @@ tsharp_class::tsharp_class(const tsharp_class& other)
     : fields(other.fields), constructors(other.constructors), methods(other.methods) {
 }
 
-const tsharp_field tsharp_class::get_field(const std::string& index) const {
+tsharp_field tsharp_class::get_field(const std::string& index) const {
     return fields.at(index);
 }
 
@@ -30,12 +30,22 @@ std::vector<tsharp_field> tsharp_class::get_fields() const {
     return vec;
 }
 
-void tsharp_class::add_field(const std::string& name, const tsharp_value& value, const bool is_private) {
-    fields.emplace(name, tsharp_field(value, is_private));
+void tsharp_class::add_field(const std::string& name, const tsharp_value&& value, const bool is_private) {
+    fields.emplace(name, tsharp_field(std::move(value), is_private));
 }
 
 void tsharp_class::set_field(const std::string& name, const tsharp_value&& new_value) {
     fields.at(name).set_value(std::move(new_value));
+}
+
+void tsharp_class::set_fields(const std::vector<tsharp_value>& values) {
+    size_t i = 0;
+    
+    for (auto& [name, field] : fields) {
+        if (i < values.size()) {
+            field.set_value(std::move(values[i++]));
+        }
+    }
 }
 
 // Return number of fields
