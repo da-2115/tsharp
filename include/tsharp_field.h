@@ -15,7 +15,7 @@ private:
 public:
     tsharp_field(const tsharp_value& value, const bool is_private);
 
-    tsharp_value get_value() const;
-    void set_value(const tsharp_value& new_value);
+    const tsharp_value& get_value() const;
+    void set_value(const tsharp_value&& new_value);
     bool get_is_private() const;
 };

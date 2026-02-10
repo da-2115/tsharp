@@ -34,8 +34,8 @@ void tsharp_class::add_field(const std::string& name, const tsharp_value& value,
     fields.emplace(name, tsharp_field(value, is_private));
 }
 
-void tsharp_class::set_field(const std::string& name, const tsharp_value& new_value) {
-    fields.at(name).set_value(new_value);
+void tsharp_class::set_field(const std::string& name, const tsharp_value&& new_value) {
+    fields.at(name).set_value(std::move(new_value));
 }
 
 // Return number of fields
@@ -57,4 +57,9 @@ const tsharp_function& tsharp_class::get_method(const std::string& index) const 
 
 void tsharp_class::add_method(const std::string& name, const std::string& type, const std::vector<tsharp_argument>& arguments, const std::string& return_value) {
     methods.emplace(name, tsharp_function(type, arguments, return_value));
+}
+
+// Get size -> dereference this object
+size_t tsharp_class::get_size() const {
+    return sizeof(*this);
 }

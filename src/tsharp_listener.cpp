@@ -288,14 +288,14 @@ void tsharp_listener::enterObject_inst(tsharp_parser::Object_instContext* ctx) {
     objects.emplace(var_name, std::make_shared<tsharp_class>(classes.at(class_name)));
     
     std::shared_ptr<tsharp_class> object = objects.at(var_name);
-    
+
     tsharp_constructor constructor = object->get_constructor(class_name);
     
     std::vector<tsharp_field> fields = object->get_fields();
     
     std::vector<tsharp_value> args;
     if (!ctx->ARGS.empty()) {
-        for (auto* arg : ctx->ARGS) {
+        for (const antlr4::Token* arg : ctx->ARGS) {
             args.push_back(arg->getText());
         }
     }

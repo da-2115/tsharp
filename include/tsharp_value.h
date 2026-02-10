@@ -18,7 +18,7 @@ public:
     tsharp_value(bool v);
 
     template<class T>
-    T get() const { return value; }
+    T get() const { return static_cast<T>(value); }
 
     std::string get_type() const;
 };

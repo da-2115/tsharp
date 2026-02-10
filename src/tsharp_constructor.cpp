@@ -15,6 +15,6 @@ void tsharp_constructor::execute(const std::vector<tsharp_value>& args, std::vec
     }
 
     for (size_t i = 0; i < fields.size() && i < args.size(); ++i) {
-        fields.at(i).set_value(args[i]);
+        fields.at(i).set_value(std::move(args[i]));
     }
 }
