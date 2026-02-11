@@ -68,6 +68,16 @@ void tsharp_listener::enterPrintln_statement(tsharp_parser::Println_statementCon
         std::cout << remove_quotes_from_string(message) << std::endl;
     }
 
+    // If accessing an object's property within println
+    else if(ctx->OBJ_NAME) {
+        std::shared_ptr<tsharp_class> object = objects.at(ctx->OBJ_NAME->getText());
+        
+        tsharp_function f = object->get_method(ctx->PROPERTY_NAME->getText());
+        if (f.get_type() == INT_TYPE) {
+            std::cout << std::get<int>(object->get_field(f.get_ret_value()).get_value().get_value()) << std::endl;
+        }
+    }
+
     // Else if the passed variable name to println is NOT a nullptr
     else if(ctx->VAR) {
         // Check if the integer exists, and is not positioned at the end of the iterator of the map
@@ -251,7 +261,20 @@ void tsharp_listener::enterClass(tsharp_parser::ClassContext* ctx) {
     tsharp_class c;
 
     for (auto* field : ctx->FIELDS) {
-        c.add_field(field->NAME->getText(), tsharp_value(field->NAME->getText()), field->ACCESS_IDENTIFIER->getText() == "private" ? true : false);
+        // Create field with proper type based on field declaration
+        tsharp_value field_value(0);  // Default to int(0)
+        
+        if (field->TYPE && field->TYPE->getText() == "int") {
+            field_value = tsharp_value(0);
+        } else if (field->TYPE && field->TYPE->getText() == "float") {
+            field_value = tsharp_value(0.0f);
+        } else if (field->TYPE && field->TYPE->getText() == "string") {
+            field_value = tsharp_value(std::string(""));
+        } else if (field->TYPE && field->TYPE->getText() == "bool") {
+            field_value = tsharp_value(false);
+        }
+        
+        c.add_field(field->NAME->getText(), std::move(field_value), field->ACCESS_IDENTIFIER->getText() == "private" ? true : false);
     }
 
     for (auto* constructor : ctx->CONSTRUCTORS) {
@@ -271,8 +294,17 @@ void tsharp_listener::enterClass(tsharp_parser::ClassContext* ctx) {
         c.add_constructor(constructor->NAME->getText(), constructor->NAME->getText(), args, "");
     }
 
-    for (auto* methods : ctx->METHODS) {
-        // TODO
+    std::vector<tsharp_argument> args;
+    std::string return_val;
+    std::string func_type;
+
+    for (auto* method : ctx->METHODS) {
+        tsharp_argument arg{};
+        arg.var_name = method->NAME->getText();
+        arg.type = method->TYPE->getText();
+        args.push_back(arg);
+
+        c.add_method(method->NAME->getText(), method->TYPE->getText(), args, method->BODY->return_statement()->VAL->getText());
     }
 
     classes.emplace(ctx->NAME->getText(), c);
@@ -292,7 +324,7 @@ void tsharp_listener::enterObject_inst(tsharp_parser::Object_instContext* ctx) {
 
     std::vector<tsharp_value> args;
     if (!ctx->ARGS.empty()) {
-        for (const antlr4::Token* arg : ctx->ARGS) {
+        for (auto* arg : ctx->ARGS) {
             args.push_back(arg->getText());
         }
     }

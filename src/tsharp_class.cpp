@@ -2,8 +2,10 @@
 // Dylan Armstrong, 2026
 
 #include "tsharp_class.h"
+#include "tsharp_value.h"
 
 #include <algorithm>
+#include <variant>
 
 tsharp_class::tsharp_class()
     : fields{}, constructors{}, methods{} {
@@ -34,8 +36,44 @@ void tsharp_class::add_field(const std::string& name, const tsharp_value&& value
     fields.emplace(name, tsharp_field(std::move(value), is_private));
 }
 
-void tsharp_class::set_field(const std::string& name, const tsharp_value&& new_value) {
-    fields.at(name).set_value(std::move(new_value));
+void tsharp_class::set_field(const std::string& name, const tsharp_value& new_value) {
+    fields.at(name).set_value(new_value);
+}
+
+// Helper function to convert a value to match a target type
+tsharp_value tsharp_class::convert_to_type(const tsharp_value& target_template, const tsharp_value& input_value) {
+    auto target_variant = target_template.get_value();
+    auto input_variant = input_value.get_value();
+    
+    if (std::holds_alternative<int>(target_variant)) {
+        if (std::holds_alternative<int>(input_variant)) return input_value;
+        if (std::holds_alternative<float>(input_variant)) return tsharp_value((int)std::get<float>(input_variant));
+        if (std::holds_alternative<std::string>(input_variant)) return tsharp_value(std::stoi(std::get<std::string>(input_variant)));
+        if (std::holds_alternative<bool>(input_variant)) return tsharp_value((int)std::get<bool>(input_variant));
+    } 
+    else if (std::holds_alternative<float>(target_variant)) {
+        if (std::holds_alternative<float>(input_variant)) return input_value;
+        if (std::holds_alternative<int>(input_variant)) return tsharp_value((float)std::get<int>(input_variant));
+        if (std::holds_alternative<std::string>(input_variant)) return tsharp_value(std::stof(std::get<std::string>(input_variant)));
+        if (std::holds_alternative<bool>(input_variant)) return tsharp_value((float)std::get<bool>(input_variant));
+    } 
+    else if (std::holds_alternative<std::string>(target_variant)) {
+        if (std::holds_alternative<std::string>(input_variant)) return input_value;
+        if (std::holds_alternative<int>(input_variant)) return tsharp_value(std::to_string(std::get<int>(input_variant)));
+        if (std::holds_alternative<float>(input_variant)) return tsharp_value(std::to_string(std::get<float>(input_variant)));
+        if (std::holds_alternative<bool>(input_variant)) return tsharp_value(std::to_string(std::get<bool>(input_variant)));
+    } 
+    else if (std::holds_alternative<bool>(target_variant)) {
+        if (std::holds_alternative<bool>(input_variant)) return input_value;
+        if (std::holds_alternative<int>(input_variant)) return tsharp_value((bool)std::get<int>(input_variant));
+        if (std::holds_alternative<float>(input_variant)) return tsharp_value((bool)std::get<float>(input_variant));
+        if (std::holds_alternative<std::string>(input_variant)) {
+            bool bool_value = (std::get<std::string>(input_variant) == "true" || std::get<std::string>(input_variant) == "1");
+            return tsharp_value(bool_value);
+        }
+    }
+    
+    return input_value;
 }
 
 void tsharp_class::set_fields(const std::vector<tsharp_value>& values) {
@@ -43,7 +81,8 @@ void tsharp_class::set_fields(const std::vector<tsharp_value>& values) {
 
     for (auto& [name, field] : fields) {
         if (i < values.size()) {
-            field.set_value(std::move(values[i++]));
+            field.set_value(convert_to_type(field.get_value(), values[i]));
+            i++;
         }
     }
 }

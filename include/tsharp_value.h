@@ -16,6 +16,5 @@ public:
     tsharp_value(const std::string& v);
     tsharp_value(bool v);
 
-    template<class T>
-    T get() const { return static_cast<T>(value); }
+    std::variant<int, float, std::string, bool> get_value() const;
 };

@@ -7,15 +7,10 @@
 #include <string>
 #include <memory>
 
+#include "tsharp_types.h"
 #include "tsharp_function.h"
 #include "tsharp_parserBaseListener.h"
 #include "tsharp_class.h"
-
-static constexpr std::string_view INT_TYPE = "int";
-static constexpr std::string_view STRING_TYPE = "string";
-static constexpr std::string_view FLOAT_TYPE = "float";
-static constexpr std::string_view VOID_TYPE = "void";
-static constexpr std::string_view ANY_TYPE = "any";
 
 class tsharp_listener : public tsharp_parserBaseListener {
 private:

@@ -11,8 +11,8 @@ const tsharp_value& tsharp_field::get_value() const {
     return value;
 }
 
-void tsharp_field::set_value(const tsharp_value&& new_value) {
-    value = std::move(new_value);
+void tsharp_field::set_value(const tsharp_value& new_value) {
+    value = new_value;
 }
 
 bool tsharp_field::get_is_private() const {

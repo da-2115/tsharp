@@ -29,7 +29,7 @@ RETURN: 'return';
 COMMA: ',';
 PLUS: '+';
 MINUS: '-';
-ID: [a-zA-Z] [a-zA-Z0-9'_']*;
+ID: ['_']* [a-zA-Z] [a-zA-Z0-9'_']*;
 NUM: [-]?[0-9]+;
 FLOAT_LIT: NUM+ ([.,] NUM+)?'f' ;
 STRING_LIT: '"' ~["]* '"';

@@ -15,3 +15,7 @@ tsharp_value::tsharp_value(const std::string& v) : value(v) {
 
 tsharp_value::tsharp_value(bool v) : value(v) {
 }
+
+std::variant<int, float, std::string, bool> tsharp_value::get_value() const {
+    return value;
+}

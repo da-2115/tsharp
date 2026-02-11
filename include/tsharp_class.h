@@ -15,6 +15,9 @@ private:
     std::map<std::string, tsharp_constructor> constructors;
     std::map<std::string, tsharp_function> methods;
 
+    // Helper function to convert a value to match a target type
+    static tsharp_value convert_to_type(const tsharp_value& target_template, const tsharp_value& input_value);
+
 public:
     // Constructor
     tsharp_class();
@@ -31,7 +34,7 @@ public:
 
     // Setters
     void add_field(const std::string& name, const tsharp_value&& value, const bool is_private);
-    void set_field(const std::string& name, const tsharp_value&& new_value);
+    void set_field(const std::string& name, const tsharp_value& new_value);
     void set_fields(const std::vector<tsharp_value>& values);
     
     // Constructor methods
