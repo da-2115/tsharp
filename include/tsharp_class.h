@@ -40,6 +40,7 @@ public:
     // Constructor methods
     const tsharp_constructor& get_constructor(const std::string& index) const;
     void add_constructor(const std::string& name, const std::string& type, const std::vector<tsharp_argument>& arguments, const std::string& return_value);
+    const std::vector<tsharp_constructor> get_constructors() const;
 
     // Function methods
     const tsharp_function& get_method(const std::string& index) const;

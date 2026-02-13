@@ -51,18 +51,21 @@ tsharp_value tsharp_class::convert_to_type(const tsharp_value& target_template, 
         if (std::holds_alternative<std::string>(input_variant)) return tsharp_value(std::stoi(std::get<std::string>(input_variant)));
         if (std::holds_alternative<bool>(input_variant)) return tsharp_value((int)std::get<bool>(input_variant));
     } 
+    
     else if (std::holds_alternative<float>(target_variant)) {
         if (std::holds_alternative<float>(input_variant)) return input_value;
         if (std::holds_alternative<int>(input_variant)) return tsharp_value((float)std::get<int>(input_variant));
         if (std::holds_alternative<std::string>(input_variant)) return tsharp_value(std::stof(std::get<std::string>(input_variant)));
         if (std::holds_alternative<bool>(input_variant)) return tsharp_value((float)std::get<bool>(input_variant));
     } 
+
     else if (std::holds_alternative<std::string>(target_variant)) {
         if (std::holds_alternative<std::string>(input_variant)) return input_value;
         if (std::holds_alternative<int>(input_variant)) return tsharp_value(std::to_string(std::get<int>(input_variant)));
         if (std::holds_alternative<float>(input_variant)) return tsharp_value(std::to_string(std::get<float>(input_variant)));
         if (std::holds_alternative<bool>(input_variant)) return tsharp_value(std::to_string(std::get<bool>(input_variant)));
     } 
+
     else if (std::holds_alternative<bool>(target_variant)) {
         if (std::holds_alternative<bool>(input_variant)) return input_value;
         if (std::holds_alternative<int>(input_variant)) return tsharp_value((bool)std::get<int>(input_variant));
@@ -98,6 +101,17 @@ const tsharp_constructor& tsharp_class::get_constructor(const std::string& index
 
 void tsharp_class::add_constructor(const std::string& name, const std::string& type, const std::vector<tsharp_argument>& arguments, const std::string& return_value) {
     constructors.emplace(name, tsharp_constructor(type, arguments, return_value));
+}
+
+const std::vector<tsharp_constructor> tsharp_class::get_constructors() const {
+    std::vector<tsharp_constructor> vec;
+
+    // Iterate over the map of fields
+    for (std::map<std::string, tsharp_constructor>::const_iterator it = constructors.begin(); it != constructors.end(); ++it) {
+        vec.push_back(it->second);
+    }
+
+    return vec;
 }
 
 const tsharp_function& tsharp_class::get_method(const std::string& index) const {

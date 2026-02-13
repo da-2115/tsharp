@@ -12,7 +12,7 @@ options {
 program: (class)* (function)* main_function EOF;
 
 // Functions
-main_function: VOID MAIN OPEN_BRACKET CLOSE_BRACKET OPEN_CURLY_BRACE (println_statement | print_statement | assignment | absolute_value | square_root | exponent_fn | func_call | expression | object_inst)* CLOSE_CURLY_BRACE;
+main_function: VOID MAIN OPEN_BRACKET CLOSE_BRACKET OPEN_CURLY_BRACE ( println_statement | print_statement | assignment | absolute_value | square_root | exponent_fn | func_call | expression | object_inst)* CLOSE_CURLY_BRACE;
 function: (PUBLIC|PRIVATE) TYPE=type NAME=ID OPEN_BRACKET (ARGS+=function_arg)* CLOSE_BRACKET OPEN_CURLY_BRACE BODY=func_body CLOSE_CURLY_BRACE;
 function_arg: TYPE=type NAME=ID;
 func_body: (println_statement | print_statement | assignment | absolute_value | square_root | exponent_fn | expression)* return_statement;

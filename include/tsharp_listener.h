@@ -11,6 +11,7 @@
 #include "tsharp_function.h"
 #include "tsharp_parserBaseListener.h"
 #include "tsharp_class.h"
+#include "tsharp_parser.h"
 
 class tsharp_listener : public tsharp_parserBaseListener {
 private:

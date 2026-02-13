@@ -2,31 +2,15 @@
 // Dylan Armstrong, 2026
 
 class HelloWorld {
-    private string message
+    //private string message
     public HelloWorld() { 
         println("Hello World")
     }
 }
 
-class BiggerClass {
-    private string s1
-    private string s2
-    private string s3
-    private string s4
-    private string s5
-
-    public BiggerClass() {
-
-    }
-
-    public BiggerClass() {
-
-    }
-}
-
 void main() {
-    HelloWorld hw = ()
-    BiggerClass chungus = ()
-    BiggerClass chungus2 = ()
-    BiggerClass chungus3 = ()
+    HelloWorld hw1 = ()
+    HelloWorld hw2 = ()
+    HelloWorld hw3 = ()
+    HelloWorld hw4 = ()
 }

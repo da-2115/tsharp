@@ -18,4 +18,6 @@ public:
     tsharp_constructor(const std::string& type, const std::vector<tsharp_argument>& arguments, const std::string& return_value);
 
     void execute(const std::vector<tsharp_value>& args, tsharp_class& obj);
+
+    bool operator==(const tsharp_constructor& other) const;
 };
