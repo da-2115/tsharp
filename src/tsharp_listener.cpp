@@ -16,7 +16,7 @@ std::string tsharp_listener::remove_quotes_from_string(std::string& str) const {
 
 // Constructor, initialize all member variables with sensible default values.
 tsharp_listener::tsharp_listener() : 
-    ints{}, strings{}, bools{}, chars{}, doubles{}, floats{}, shorts{}, longs{}, executing(true) {
+    ints{}, strings{}, bools{}, chars{}, doubles{}, floats{}, shorts{}, longs{}, executing(false) {
 }
 
 // Destructor, safely clear maps.
@@ -62,10 +62,7 @@ void tsharp_listener::add_float(const std::string& index, const float value) {
 
 // Println statement
 void tsharp_listener::enterPrintln_statement(tsharp_parser::Println_statementContext* ctx) {
-    if (!dynamic_cast<tsharp_parser::Constructor_bodyContext*>(ctx->parent)) {
-        executing = false;
-    }
-        if (executing) {
+    if (executing) {
          // If the message is NOT a nullptr
             if (ctx->MESSAGE) {
                 std::string message = ctx->MESSAGE->getText();
@@ -80,6 +77,15 @@ void tsharp_listener::enterPrintln_statement(tsharp_parser::Println_statementCon
 
                 if (f.get_type() == INT_TYPE) {
                     std::cout << std::get<int>(object->get_field(f.get_ret_value()).get_value().get_value()) << std::endl;
+                }
+
+                else if (f.get_type() == STRING_TYPE) {
+                    std::string message = std::get<std::string>(object->get_field(f.get_ret_value()).get_value().get_value());
+                    std::cout << remove_quotes_from_string(message) << std::endl;
+                }
+
+                else if (f.get_type() == FLOAT_TYPE) {
+                    std::cout << std::get<float>(object->get_field(f.get_ret_value()).get_value().get_value()) << std::endl;
                 }
             }
 
@@ -264,6 +270,7 @@ void tsharp_listener::enterFunc_call(tsharp_parser::Func_callContext* ctx) {
 }
 
 void tsharp_listener::enterClass(tsharp_parser::ClassContext* ctx) {
+    executing = false;
     tsharp_class c;
 
     for (auto* field : ctx->FIELDS) {
@@ -316,8 +323,16 @@ void tsharp_listener::enterClass(tsharp_parser::ClassContext* ctx) {
     classes.emplace(ctx->NAME->getText(), c);
 }
 
-void tsharp_listener::enterObject_inst(tsharp_parser::Object_instContext* ctx) {
+void tsharp_listener::enterMain_function(tsharp_parser::Main_functionContext* ctx) {
+    executing = true;
+}
+
+void tsharp_listener::exitMain_function(tsharp_parser::Main_functionContext* ctx) {
     executing = false;
+}
+
+void tsharp_listener::enterObject_inst(tsharp_parser::Object_instContext* ctx) {
+    //executing = false;
 
     std::string class_name = ctx->NAME->getText();
     std::string var_name = ctx->VAR->getText();
@@ -337,7 +352,7 @@ void tsharp_listener::enterObject_inst(tsharp_parser::Object_instContext* ctx) {
     }
     
     constructor.execute(args, *object);
-    executing = true;
+    //executing = true;
 
     auto* main_fn = dynamic_cast<tsharp_parser::Main_functionContext*>(ctx->parent);
     auto* program = dynamic_cast<tsharp_parser::ProgramContext*>(main_fn->parent);
@@ -355,9 +370,8 @@ void tsharp_listener::enterObject_inst(tsharp_parser::Object_instContext* ctx) {
     }
     
     tsharp_parser::ConstructorContext* matching_constructor;
-    auto it = object->get_constructor(class_name);
     for (size_t j = 0; j < object->get_constructors().size(); j++) {
-        if (object->get_constructors().at(j) == it) {
+        if (object->get_constructors().at(j) == constructor) {
             matching_constructor = dynamic_cast<tsharp_parser::ConstructorContext*>(matching_class->constructor(j));
         }
     }

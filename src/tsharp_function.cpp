@@ -11,6 +11,10 @@ const tsharp_argument& tsharp_function::get_argument_by_index(size_t index) cons
     return arguments.at(index);
 }
 
+const std::vector<tsharp_argument>& tsharp_function::get_arguments() const {
+    return arguments;
+}
+
 const std::string tsharp_function::get_type() const {
     return type;
 }

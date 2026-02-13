@@ -28,7 +28,7 @@ private:
     std::map<std::string, tsharp_class> classes;
     std::map<std::string, std::shared_ptr<tsharp_class>> objects;
 
-    // Is executing? state
+    // Execution state
     bool executing;
 
     std::string remove_quotes_from_string(std::string& str) const;
@@ -77,4 +77,8 @@ public:
     // OOP
     void enterClass(tsharp_parser::ClassContext* ctx) override;
     void enterObject_inst(tsharp_parser::Object_instContext* ctx) override;
+
+    // Main function
+    void enterMain_function(tsharp_parser::Main_functionContext* ctx) override;
+    void exitMain_function(tsharp_parser::Main_functionContext* ctx) override;
 };

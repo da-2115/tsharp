@@ -6,6 +6,7 @@
 
 #include <algorithm>
 #include <variant>
+#include <iostream>
 
 tsharp_class::tsharp_class()
     : fields{}, constructors{}, methods{} {
@@ -55,7 +56,14 @@ tsharp_value tsharp_class::convert_to_type(const tsharp_value& target_template, 
     else if (std::holds_alternative<float>(target_variant)) {
         if (std::holds_alternative<float>(input_variant)) return input_value;
         if (std::holds_alternative<int>(input_variant)) return tsharp_value((float)std::get<int>(input_variant));
-        if (std::holds_alternative<std::string>(input_variant)) return tsharp_value(std::stof(std::get<std::string>(input_variant)));
+        if (std::holds_alternative<std::string>(input_variant)) {
+            std::string float_str = std::get<std::string>(input_variant);
+            // Strip trailing 'f' or 'd' suffix if present
+            if (!float_str.empty() && (float_str.back() == 'f' || float_str.back() == 'd')) {
+                float_str.pop_back();
+            }
+            return tsharp_value(std::stof(float_str));
+        }
         if (std::holds_alternative<bool>(input_variant)) return tsharp_value((float)std::get<bool>(input_variant));
     } 
 
@@ -87,6 +95,21 @@ void tsharp_class::set_fields(const std::vector<tsharp_value>& values) {
             field.set_value(convert_to_type(field.get_value(), values[i]));
             i++;
         }
+    }
+}
+
+void tsharp_class::set_field_by_name(const std::string& name, const tsharp_value& value) {
+    // Try to find field with exact name
+    if (fields.find(name) != fields.end()) {
+        fields.at(name).set_value(convert_to_type(fields.at(name).get_value(), value));
+        return;
+    }
+    
+    // Try with underscore prefix if not found
+    std::string underscore_name = "_" + name;
+    if (fields.find(underscore_name) != fields.end()) {
+        fields.at(underscore_name).set_value(convert_to_type(fields.at(underscore_name).get_value(), value));
+        return;
     }
 }
 

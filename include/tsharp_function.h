@@ -23,6 +23,7 @@ public:
     tsharp_function(const std::string& type, const std::vector<tsharp_argument>& arguments, const std::string& return_value);
 
     const tsharp_argument& get_argument_by_index(size_t index) const;
+    const std::vector<tsharp_argument>& get_arguments() const;
     const std::string get_type() const;
     const std::string get_ret_value() const;
 

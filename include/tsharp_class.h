@@ -35,6 +35,7 @@ public:
     // Setters
     void add_field(const std::string& name, const tsharp_value&& value, const bool is_private);
     void set_field(const std::string& name, const tsharp_value& new_value);
+    void set_field_by_name(const std::string& name, const tsharp_value& value);
     void set_fields(const std::vector<tsharp_value>& values);
     
     // Constructor methods

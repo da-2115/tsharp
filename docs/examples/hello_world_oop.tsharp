@@ -2,15 +2,33 @@
 // Dylan Armstrong, 2026
 
 class HelloWorld {
-    //private string message
-    public HelloWorld() { 
-        println("Hello World")
+    private string _message
+    // Height in cm
+    private float _height
+
+    public HelloWorld(string message, float height) { 
+        _message = message
+        _height = height
+    }
+
+    public string Message() {
+        return _message
+    }
+
+    public float Height() {
+        return _height
     }
 }
 
 void main() {
+    println("test 1")
+
     HelloWorld hw1 = ()
     HelloWorld hw2 = ()
-    HelloWorld hw3 = ()
+    HelloWorld hw3 = ("Test Message" 155.6f)
     HelloWorld hw4 = ()
+
+    println("Hello again from main fn")
+    println(hw3.Message())
+    println(hw3.Height())
 }
