@@ -18,15 +18,22 @@ private:
 	// Helper function to convert a value to match a target type
 	static tsharp_value convert_to_type(const tsharp_value& target_template, const tsharp_value& input_value);
 
+    // Swap (for move semantics)
+    void swap(tsharp_class& other);
+
 public:
 	// Constructor
 	tsharp_class();
 
-	// Copy constructor
+	// Copy semantics
 	tsharp_class(const tsharp_class& other);
+    tsharp_class& operator=(const tsharp_class& other);
+
+    // Move semantics
+    tsharp_class(tsharp_class&& other);
+    tsharp_class& operator=(tsharp_class&& other);
 
 	// Field methods
-
 	// Getters
 	const tsharp_field& get_field(const std::string& index) const;
 	std::vector<tsharp_field> get_fields() const;

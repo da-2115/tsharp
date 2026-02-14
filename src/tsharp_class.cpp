@@ -15,6 +15,31 @@ tsharp_class::tsharp_class() : fields{}, constructors{}, methods{} {
 tsharp_class::tsharp_class(const tsharp_class& other) : fields(other.fields), constructors(other.constructors), methods(other.methods) {
 }
 
+// Copy assignment operator implementation
+tsharp_class& tsharp_class::operator=(const tsharp_class& other) {
+	if (this != &other) {
+        fields = other.fields;
+        constructors = other.constructors;
+        methods = other.methods;
+    }
+
+    return *this;
+}
+
+// Move constructor implementation
+tsharp_class::tsharp_class(tsharp_class&& other) {
+    swap(other);
+}
+
+// Move assignment operator implementation
+tsharp_class& tsharp_class::operator=(tsharp_class&& other) {
+	if (this != &other) {
+        swap(other);
+    }
+
+    return *this;
+}
+
 const tsharp_field& tsharp_class::get_field(const std::string& index) const {
 	return fields.at(index);
 }
@@ -96,7 +121,43 @@ tsharp_value tsharp_class::convert_to_type(const tsharp_value& target_template, 
 		}
 	}
 
+	// Handle std::any for complex/composition types
+	else if (std::holds_alternative<std::any>(target_variant)) {
+		// For complex types, just pass through the input value
+		// The std::any template constructor will handle the conversion
+		return input_value;
+	}
+
+	else if (std::holds_alternative<std::any>(input_variant)) {
+		// If input is std::any and target is primitive, try to extract and convert
+		const std::any& any_val = std::get<std::any>(input_variant);
+		
+		if (std::holds_alternative<int>(target_variant)) {
+			if (any_val.type() == typeid(int)) {
+				return tsharp_value(std::any_cast<int>(any_val));
+			}
+		} else if (std::holds_alternative<float>(target_variant)) {
+			if (any_val.type() == typeid(float)) {
+				return tsharp_value(std::any_cast<float>(any_val));
+			}
+		} else if (std::holds_alternative<std::string>(target_variant)) {
+			if (any_val.type() == typeid(std::string)) {
+				return tsharp_value(std::any_cast<std::string>(any_val));
+			}
+		} else if (std::holds_alternative<bool>(target_variant)) {
+			if (any_val.type() == typeid(bool)) {
+				return tsharp_value(std::any_cast<bool>(any_val));
+			}
+		}
+	}
+
 	return input_value;
+}
+
+void tsharp_class::swap(tsharp_class& other) {
+    std::swap(fields, other.fields);
+    std::swap(constructors, other.constructors);
+    std::swap(methods, other.methods);
 }
 
 void tsharp_class::set_fields(const std::vector<tsharp_value>& values) {

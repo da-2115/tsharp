@@ -12,7 +12,7 @@ tsharp_constructor::tsharp_constructor(const std::string& type, const std::vecto
 void tsharp_constructor::execute(const std::vector<tsharp_value>& args, tsharp_class& obj) {
 	// Match arguments to fields using the constructor's formal parameter names
 	for (size_t i = 0; i < get_arguments().size() && i < args.size(); i++) {
-		const tsharp_argument& param = get_argument_by_index(i);
+        const tsharp_argument& param = get_argument_by_index(i);
 		obj.set_field_by_name(param.var_name, args[i]);
 	}
 }

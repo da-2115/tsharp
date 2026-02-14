@@ -13,27 +13,29 @@ program: (class)* (function)* main_function EOF;
 
 // Functions
 main_function: VOID MAIN OPEN_BRACKET CLOSE_BRACKET OPEN_CURLY_BRACE ( println_statement | print_statement | assignment | absolute_value | square_root | exponent_fn | func_call | expression | object_inst)* CLOSE_CURLY_BRACE;
-function: (PUBLIC|PRIVATE) TYPE=type NAME=ID OPEN_BRACKET (ARGS+=function_arg)* CLOSE_BRACKET OPEN_CURLY_BRACE BODY=func_body CLOSE_CURLY_BRACE;
-function_arg: TYPE=type NAME=ID (COMMA)?;
+function: (PUBLIC|PRIVATE) TYPE=any_type NAME=ID OPEN_BRACKET (ARGS+=function_arg)* CLOSE_BRACKET OPEN_CURLY_BRACE BODY=func_body CLOSE_CURLY_BRACE;
+function_arg: TYPE=any_type NAME=ID (COMMA)?;
 func_body: (println_statement | print_statement | assignment | absolute_value | square_root | exponent_fn | expression)* return_statement;
 func_call: NAME=ID OPEN_BRACKET (func_call_arg)* CLOSE_BRACKET;
 func_call_arg: VALUE=(ID|FLOAT_LIT|STRING_LIT|NUM|PI) (COMMA)?;
-return_statement: RETURN VAL=(ID|NUM|FLOAT_LIT|PI);
+return_statement: RETURN (VAL=(ID|NUM|FLOAT_LIT|PI)|(OBJ_NAME=ID DOT PROPERTY_NAME=func_call));
 
 // OOP
 class: CLASS NAME=ID OPEN_CURLY_BRACE (FIELDS+=field)* (CONSTRUCTORS+=constructor)+ (METHODS+=function)* CLOSE_CURLY_BRACE;
-field: ACCESS_IDENTIFIER=(PUBLIC|PRIVATE) TYPE=type NAME=ID;
+field: ACCESS_IDENTIFIER=(PUBLIC|PRIVATE) TYPE=any_type NAME=ID;
 constructor: ACCESS_IDENTIFIER=(PUBLIC|PRIVATE) NAME=ID OPEN_BRACKET (ARGS+=function_arg)* CLOSE_BRACKET OPEN_CURLY_BRACE (constructor_body)? CLOSE_CURLY_BRACE;
 constructor_body: (println_statement | print_statement | assignment | absolute_value | square_root | exponent_fn | expression)*;
 object_inst: NAME=ID VAR=ID EQUALS OPEN_BRACKET (ARGS+=func_call_arg)* CLOSE_BRACKET;
 // A function is a method in terms of nodes in the AST (parser rules)
 
 // Variable assignment
-assignment: TYPE=type NAME=ID EQUALS (VALUE=(STRING_LIT|NUM|FLOAT_LIT|PI)|SQUARE_ROOT=square_root|absolute_value);
-expression: (THIS DOT)? NAME=ID EQUALS (VAR=ID OP=(PLUS|MINUS))? (VAR=ID)|(VALUE=STRING_LIT|NUM|FLOAT_LIT|PI|square_root|absolute_value);
+assignment: TYPE=any_type NAME=ID EQUALS (VALUE=(STRING_LIT|NUM|FLOAT_LIT|PI)|SQUARE_ROOT=square_root|absolute_value);
+expression: (THIS DOT)? NAME=ID EQUALS (VAR=ID OP=(PLUS|MINUS))? (THIS|(VAR=ID)|(VALUE=STRING_LIT|NUM|FLOAT_LIT|PI|square_root|absolute_value));
 
 // Types
 type: (INT|STRING|FLOAT|VOID);
+custom_type: ID;
+any_type: type | custom_type;
 
 // Math constants
 pi_constant: PI;

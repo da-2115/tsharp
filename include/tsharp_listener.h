@@ -14,6 +14,9 @@
 #include "tsharp_types.h"
 
 class tsharp_listener : public tsharp_parserBaseListener {
+public:
+    using tsharp_object = std::shared_ptr<tsharp_class>;
+
 private:
 	// Variable state in T# (of different types)
 	std::map<std::string, int> ints;
@@ -26,7 +29,7 @@ private:
 	std::map<std::string, long> longs;
 	std::map<std::string, tsharp_function> functions;
 	std::map<std::string, tsharp_class> classes;
-	std::map<std::string, std::shared_ptr<tsharp_class>> objects;
+	std::map<std::string, tsharp_object> objects;
 
 	// Execution state
 	bool executing;

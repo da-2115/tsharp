@@ -3,7 +3,6 @@
 
 #include "tsharp_value.h"
 
-// Four different constructors -> for different types
 tsharp_value::tsharp_value(int v) : value(v) {
 }
 
@@ -16,6 +15,6 @@ tsharp_value::tsharp_value(const std::string& v) : value(v) {
 tsharp_value::tsharp_value(bool v) : value(v) {
 }
 
-std::variant<int, float, std::string, bool> tsharp_value::get_value() const {
+std::variant<int, float, std::string, bool, std::any> tsharp_value::get_value() const {
 	return value;
 }

@@ -1,34 +1,54 @@
 // hello_world_oop.tsharp
 // Dylan Armstrong, 2026
 
-class HelloWorld {
-    private string _message
-    // Height in cm
-    private float _height
+class TypeOfHuman {
+    private string _type
 
-    public HelloWorld(string message, float height) { 
-        _message = message
-        _height = height
+    public TypeOfHuman(string type) {
+        _type = type
     }
 
-    public string Message() {
-        return _message
+    public string Type() {
+        return _type
+    }
+}
+
+class Human {
+    private string _name
+    private float _height // in cm
+    private int _age
+    private TypeOfHuman _typeOfHuman
+
+
+    public Human(string name, float height, int age, TypeOfHuman typeOfHuman) { 
+        _name = name
+        _height = height
+        _age = age
+        _typeOfHuman = typeOfHuman
+    }
+
+    public string Name() {
+        return _name
     }
 
     public float Height() {
         return _height
     }
+
+    public int Age() {
+        return _age
+    }
+
+    public TypeOfHuman TypeOf() {
+        return _typeOfHuman
+    }
 }
 
 void main() {
-    println("test 1")
-
-    HelloWorld hw1 = ()
-    HelloWorld hw2 = ()
-    HelloWorld hw3 = ("Test Message" 155.6f)
-    HelloWorld hw4 = ()
-
-    println("Hello again from main fn")
-    println(hw3.Message())
-    println(hw3.Height())
+    TypeOfHuman t = ("Smart")
+    Human h = ("Dylan", 159.3f, 23, t)
+    println(h.Name())
+    println(h.Height())
+    println(h.Age())
+    println(h.TypeOf())
 }

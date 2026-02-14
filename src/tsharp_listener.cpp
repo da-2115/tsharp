@@ -68,23 +68,79 @@ void tsharp_listener::enterPrintln_statement(tsharp_parser::Println_statementCon
 			std::cout << remove_quotes_from_string(message) << std::endl;
 		}
 
-		// If accessing an object's property within println
+		// If accessing an object's property/method within println
 		else if (ctx->OBJ_NAME) {
-			std::shared_ptr<tsharp_class> object = objects.at(ctx->OBJ_NAME->getText());
+			try {
+				tsharp_object object = objects.at(ctx->OBJ_NAME->getText());
 
-			tsharp_function f = object->get_method(ctx->PROPERTY_NAME->getText());
+				std::string method_name = ctx->PROPERTY_NAME->getText();
+				
+				tsharp_function f = object->get_method(method_name);
+				std::string return_spec = f.get_ret_value();
+				
+				// Check if return value is a method call (contains a dot)
+				size_t dot_pos = return_spec.find('.');
+				if (dot_pos != std::string::npos) {
+					// This is a nested method call like "_typeOfHuman.Type()"
+					std::string field_name = return_spec.substr(0, dot_pos);
+					std::string nested_method_full = return_spec.substr(dot_pos + 1);
+					
+					// Remove trailing () from method name if present
+					std::string nested_method = nested_method_full;
+					if (nested_method.length() >= 2 && nested_method.substr(nested_method.length() - 2) == "()") {
+						nested_method = nested_method.substr(0, nested_method.length() - 2);
+					}
+					
+					try {
+						// Get the field object - the field contains a variable name string
+						tsharp_field field = object->get_field(field_name);
+						
+						// Extract the variable name from the field using the same method as strings
+						std::string obj_var_name = std::get<std::string>(field.get_value().get_value());
+						
+						// Look up the actual object from the objects map
+						if (objects.find(obj_var_name) == objects.end()) {
+							throw std::runtime_error("Object not found: " + obj_var_name);
+						}
+						
+						tsharp_object field_obj = objects.at(obj_var_name);
+						
+						tsharp_function nested_f = field_obj->get_method(nested_method);
+						
+						// Call the nested method and print result
+						if (nested_f.get_type() == STRING_TYPE) {
+							std::string result = std::get<std::string>(field_obj->get_field(nested_f.get_ret_value()).get_value().get_value());
+							std::cout << remove_quotes_from_string(result) << std::endl;
+						} else if (nested_f.get_type() == INT_TYPE) {
+							std::cout << std::get<int>(field_obj->get_field(nested_f.get_ret_value()).get_value().get_value()) << std::endl;
+						} else if (nested_f.get_type() == FLOAT_TYPE) {
+							std::cout << std::get<float>(field_obj->get_field(nested_f.get_ret_value()).get_value().get_value()) << std::endl;
+						}
+					} catch (const std::exception& ex) {
+						std::cerr << "ERROR in println object access: " << ex.what() << std::endl;
+						throw;
+					}
+				} else {
+					// Simple field reference - original code
+					if (f.get_type() == INT_TYPE) {
+						std::cout << std::get<int>(object->get_field(f.get_ret_value()).get_value().get_value()) << std::endl;
+					}
 
-			if (f.get_type() == INT_TYPE) {
-				std::cout << std::get<int>(object->get_field(f.get_ret_value()).get_value().get_value()) << std::endl;
-			}
+					else if (f.get_type() == STRING_TYPE) {
+						std::string message = std::get<std::string>(object->get_field(f.get_ret_value()).get_value().get_value());
+						std::cout << remove_quotes_from_string(message) << std::endl;
+					}
 
-			else if (f.get_type() == STRING_TYPE) {
-				std::string message = std::get<std::string>(object->get_field(f.get_ret_value()).get_value().get_value());
-				std::cout << remove_quotes_from_string(message) << std::endl;
-			}
+					else if (f.get_type() == FLOAT_TYPE) {
+						std::cout << std::get<float>(object->get_field(f.get_ret_value()).get_value().get_value()) << std::endl;
+					}
 
-			else if (f.get_type() == FLOAT_TYPE) {
-				std::cout << std::get<float>(object->get_field(f.get_ret_value()).get_value().get_value()) << std::endl;
+                    else {
+                        std::cout << ctx->OBJ_NAME->getText() << std::endl;
+                    }
+				}
+			} catch (const std::exception& e) {
+				std::cerr << "ERROR in println object access: " << e.what() << std::endl;
 			}
 		}
 
@@ -249,6 +305,12 @@ void tsharp_listener::enterExpression(tsharp_parser::ExpressionContext* ctx) {
 }
 
 void tsharp_listener::enterFunction(tsharp_parser::FunctionContext* ctx) {
+	// Skip if this function is actually a method inside a class
+	auto class_parent = dynamic_cast<tsharp_parser::ClassContext*>(ctx->parent);
+	if (class_parent) {
+		return;
+	}
+	
 	std::vector<tsharp_argument> args;
 
 	for (auto* arg_ctx : ctx->ARGS) {
@@ -256,6 +318,10 @@ void tsharp_listener::enterFunction(tsharp_parser::FunctionContext* ctx) {
 		arg.var_name = arg_ctx->NAME->getText();
 		arg.type = arg_ctx->TYPE->getText();
 		args.push_back(arg);
+	}
+
+	if (!ctx->TYPE || !ctx->BODY || !ctx->BODY->return_statement() || !ctx->BODY->return_statement()->VAL) {
+		return;
 	}
 
 	tsharp_function function = tsharp_function(ctx->TYPE->getText(), args, ctx->BODY->return_statement()->VAL->getText());
@@ -272,7 +338,6 @@ void tsharp_listener::enterFunc_call(tsharp_parser::Func_callContext* ctx) {
 void tsharp_listener::enterClass(tsharp_parser::ClassContext* ctx) {
 	executing = false;
 	tsharp_class c;
-
 	for (auto* field : ctx->FIELDS) {
 		// Create field with proper type based on field declaration
 		tsharp_value field_value(0); // Default to int(0)
@@ -285,6 +350,9 @@ void tsharp_listener::enterClass(tsharp_parser::ClassContext* ctx) {
 			field_value = tsharp_value(std::string(""));
 		} else if (field->TYPE && field->TYPE->getText() == "bool") {
 			field_value = tsharp_value(false);
+		} else if (field->TYPE) {
+			// For complex types, use std::any with nullptr placeholder
+			field_value = tsharp_value(std::any());
 		}
 
 		c.add_field(field->NAME->getText(), std::move(field_value), field->ACCESS_IDENTIFIER->getText() == "private" ? true : false);
@@ -309,24 +377,36 @@ void tsharp_listener::enterClass(tsharp_parser::ClassContext* ctx) {
 		c.add_constructor(constructor->NAME->getText(), constructor->NAME->getText(), args, "");
 	}
 
-	std::vector<tsharp_argument> args;
-	std::string return_val;
-	std::string func_type;
-
 	for (auto* method : ctx->METHODS) {
-		tsharp_argument arg{};
-		arg.var_name = method->NAME->getText();
-		arg.type = method->TYPE->getText();
-		args.push_back(arg);
-
-		c.add_method(method->NAME->getText(), method->TYPE->getText(), args, method->BODY->return_statement()->VAL->getText());
+		if (!method->TYPE) {
+			continue;
+		}
+		
+		std::string method_type = method->TYPE->getText();
+		auto ret_stmt = method->BODY->return_statement();
+		
+		std::string return_value = "";
+		if (ret_stmt->VAL) {
+			return_value = ret_stmt->VAL->getText();
+		} else if (ret_stmt->OBJ_NAME) {
+			// For method calls like obj.method(), construct the return value
+			return_value = ret_stmt->OBJ_NAME->getText() + "." + ret_stmt->PROPERTY_NAME->getText();
+		}
+		
+		std::vector<tsharp_argument> empty_args;
+		c.add_method(method->NAME->getText(), method_type, empty_args, return_value);
 	}
 
 	classes.emplace(ctx->NAME->getText(), c);
 }
+// End of enterClass function
 
 void tsharp_listener::enterMain_function(tsharp_parser::Main_functionContext* ctx) {
-	executing = true;
+	try {
+		executing = true;
+	} catch (const std::exception& e) {
+		std::cerr << "ERROR in enterMain_function: " << e.what() << std::endl;
+	}
 }
 
 void tsharp_listener::exitMain_function(tsharp_parser::Main_functionContext* ctx) {
@@ -334,53 +414,76 @@ void tsharp_listener::exitMain_function(tsharp_parser::Main_functionContext* ctx
 }
 
 void tsharp_listener::enterObject_inst(tsharp_parser::Object_instContext* ctx) {
-	// executing = false;
+	try {
+		std::string class_name = ctx->NAME->getText();
+		std::string var_name = ctx->VAR->getText();
 
-	std::string class_name = ctx->NAME->getText();
-	std::string var_name = ctx->VAR->getText();
+		objects.emplace(var_name, std::make_shared<tsharp_class>(classes.at(class_name)));
 
-	objects.emplace(var_name, std::make_shared<tsharp_class>(classes.at(class_name)));
+		tsharp_object object = objects.at(var_name);
+		tsharp_constructor constructor = object->get_constructor(class_name);
 
-	std::shared_ptr<tsharp_class> object = objects.at(var_name);
-	tsharp_constructor constructor = object->get_constructor(class_name);
+		std::vector<tsharp_field> fields = object->get_fields();
 
-	std::vector<tsharp_field> fields = object->get_fields();
-
-	std::vector<tsharp_value> args;
-	if (!ctx->ARGS.empty()) {
-		for (auto* arg : ctx->ARGS) {
-			args.push_back(arg->VALUE->getText());
-		}
-	}
-
-	constructor.execute(args, *object);
-	// executing = true;
-
-	auto* main_fn = dynamic_cast<tsharp_parser::Main_functionContext*>(ctx->parent);
-	auto* program = dynamic_cast<tsharp_parser::ProgramContext*>(main_fn->parent);
-
-	tsharp_parser::ClassContext* matching_class;
-	std::vector<tsharp_parser::ClassContext*> classes_vec = program->class_();
-
-	size_t i = 0;
-	for (std::map<std::string, tsharp_class>::iterator iter = classes.begin(); iter != classes.end(); ++iter) {
-		if (iter->first == classes_vec.at(i)->NAME->getText()) {
-			matching_class = dynamic_cast<tsharp_parser::ClassContext*>(program->class_(i));
+		std::vector<tsharp_value> args;
+		if (!ctx->ARGS.empty()) {
+			for (auto* arg : ctx->ARGS) {
+				std::string arg_text = arg->VALUE->getText();
+				
+				// Check if this is a variable reference to an object
+				if (objects.find(arg_text) != objects.end()) {
+					// It's an object variable - store the variable name as a string
+					// The field will contain the name, which we can resolve later
+					args.push_back(arg_text);
+				} else {
+					// It's a literal value
+					args.push_back(arg_text);
+				}
+			}
 		}
 
-		++i;
-	}
+		constructor.execute(args, *object);
 
-	tsharp_parser::ConstructorContext* matching_constructor;
-	for (size_t j = 0; j < object->get_constructors().size(); j++) {
-		if (object->get_constructors().at(j) == constructor) {
-			matching_constructor = dynamic_cast<tsharp_parser::ConstructorContext*>(matching_class->constructor(j));
+		auto* main_fn = dynamic_cast<tsharp_parser::Main_functionContext*>(ctx->parent);
+		auto* program = dynamic_cast<tsharp_parser::ProgramContext*>(main_fn->parent);
+
+		std::vector<tsharp_parser::ClassContext*> classes_vec = program->class_();
+
+		size_t i = 0;
+		tsharp_parser::ClassContext* matching_class = nullptr;
+		for (std::map<std::string, tsharp_class>::iterator iter = classes.begin(); iter != classes.end(); ++iter) {
+			if (iter->first == class_name) {
+				// Found our class
+				if (i < classes_vec.size()) {
+					matching_class = dynamic_cast<tsharp_parser::ClassContext*>(program->class_(i));
+				}
+				break;
+			}
+			++i;
 		}
-	}
+		
+		if (matching_class) {
+			tsharp_parser::ConstructorContext* matching_constructor = nullptr;
+			for (size_t j = 0; j < matching_class->constructor().size(); j++) {
+				auto* ctor = matching_class->constructor(j);
+				if (ctor && ctor->NAME->getText() == class_name) {
+					matching_constructor = ctor;
+					break;
+				}
+			}
 
-	auto* matching_con_body = dynamic_cast<tsharp_parser::Constructor_bodyContext*>(matching_constructor->constructor_body());
-
-	for (auto* println_statement : matching_con_body->println_statement()) {
-		enterPrintln_statement(println_statement);
+			if (matching_constructor) {
+				auto* matching_con_body = dynamic_cast<tsharp_parser::Constructor_bodyContext*>(matching_constructor->constructor_body());
+				if (matching_con_body) {
+					for (auto* println_statement : matching_con_body->println_statement()) {
+						enterPrintln_statement(println_statement);
+					}
+				}
+			}
+		}
+	} catch (const std::exception& e) {
+		std::cerr << "ERROR in enterObject_inst: " << e.what() << std::endl;
+	} catch (...) {
+		std::cerr << "ERROR: Unknown exception in enterObject_inst" << std::endl;
 	}
 }
