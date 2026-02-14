@@ -40,23 +40,22 @@ help:
 	@echo "  make all          - Generate and build (default)"
 
 # Generate C++ files from ANTLR grammars
-generate: $(GENERATED_SOURCES)
-	@echo "Generated ANTLR C++ files"
-
-$(GENERATED_SOURCES): $(LEXER_GRAMMAR) $(PARSER_GRAMMAR)
+.PHONY: generate
+generate: $(LEXER_GRAMMAR) $(PARSER_GRAMMAR)
 	@echo "Generating C++ code from ANTLR grammars..."
 	@mkdir -p $(OUTPUT_DIR)
 	$(ANTLR_CMD) -Dlanguage=Cpp -visitor -listener -o $(OUTPUT_DIR) -Xexact-output-dir $(LEXER_GRAMMAR)
 	$(ANTLR_CMD) -Dlanguage=Cpp -visitor -listener -o $(OUTPUT_DIR) -Xexact-output-dir $(PARSER_GRAMMAR)
+	@echo "Generated ANTLR C++ files"
 
 # Build the project
-build: $(BUILD_DIR)/tsharp
+build: generate $(BUILD_DIR)/tsharp
 	@echo "Build complete"
 
-$(BUILD_DIR)/tsharp: $(GENERATED_OBJECTS)
+$(BUILD_DIR)/tsharp: generate
 	@echo "Building tsharp..."
 	@mkdir -p $(BUILD_DIR)
-	$(CXX) $(CXXFLAGS) $(GENERATED_OBJECTS) $(LDFLAGS) -o $(BUILD_DIR)/tsharp
+	$(CXX) $(CXXFLAGS) $(shell find $(OUTPUT_DIR) -name '*.cpp') main.cpp $(wildcard src/*.cpp) $(LDFLAGS) -o $(BUILD_DIR)/tsharp
 	@echo "Compilation complete"
 
 # Compile individual source files
@@ -64,6 +63,9 @@ $(OUTPUT_DIR)/%.o: $(OUTPUT_DIR)/%.cpp
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 src/%.o: src/%.cpp
+	$(CXX) $(CXXFLAGS) -c $< -o $@
+
+%.o: %.cpp
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 # Test target
@@ -76,6 +78,3 @@ clean:
 	@echo "Cleaning..."
 	rm -rf $(OUTPUT_DIR) $(BUILD_DIR)
 	@echo "Clean complete"
-
-# Phony targets for convenience
-.PHONY: all clean generate build test help

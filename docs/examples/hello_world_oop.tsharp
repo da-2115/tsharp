@@ -39,8 +39,8 @@ class Human {
         return _age
     }
 
-    public TypeOfHuman TypeOf() {
-        return _typeOfHuman
+    public string TypeOf() {
+        return _typeOfHuman.Type()
     }
 }
 
@@ -51,4 +51,12 @@ void main() {
     println(h.Height())
     println(h.Age())
     println(h.TypeOf())
+
+    int i = 5
+    int j = 5
+    int k = 3
+
+    if i == j {
+        println("Yes they are equal")
+    }
 }

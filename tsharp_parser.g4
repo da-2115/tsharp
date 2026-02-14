@@ -12,10 +12,10 @@ options {
 program: (class)* (function)* main_function EOF;
 
 // Functions
-main_function: VOID MAIN OPEN_BRACKET CLOSE_BRACKET OPEN_CURLY_BRACE ( println_statement | print_statement | assignment | absolute_value | square_root | exponent_fn | func_call | expression | object_inst)* CLOSE_CURLY_BRACE;
+main_function: VOID MAIN OPEN_BRACKET CLOSE_BRACKET OPEN_CURLY_BRACE ( println_statement | print_statement | assignment | absolute_value | square_root | exponent_fn | func_call | expression | object_inst | if_statement | else_if_statement | else_statement)* CLOSE_CURLY_BRACE;
 function: (PUBLIC|PRIVATE) TYPE=any_type NAME=ID OPEN_BRACKET (ARGS+=function_arg)* CLOSE_BRACKET OPEN_CURLY_BRACE BODY=func_body CLOSE_CURLY_BRACE;
 function_arg: TYPE=any_type NAME=ID (COMMA)?;
-func_body: (println_statement | print_statement | assignment | absolute_value | square_root | exponent_fn | expression)* return_statement;
+func_body: (println_statement | print_statement | assignment | absolute_value | square_root | exponent_fn | expression)* return_statement?;
 func_call: NAME=ID OPEN_BRACKET (func_call_arg)* CLOSE_BRACKET;
 func_call_arg: VALUE=(ID|FLOAT_LIT|STRING_LIT|NUM|PI) (COMMA)?;
 return_statement: RETURN (VAL=(ID|NUM|FLOAT_LIT|PI)|(OBJ_NAME=ID DOT PROPERTY_NAME=func_call));
@@ -36,6 +36,11 @@ expression: (THIS DOT)? NAME=ID EQUALS (VAR=ID OP=(PLUS|MINUS))? (THIS|(VAR=ID)|
 type: (INT|STRING|FLOAT|VOID);
 custom_type: ID;
 any_type: type | custom_type;
+
+// If, else if, else statements
+if_statement: IF (LHS=ID|STRING_LIT|FLOAT_LIT|NUM) EQUIVALENCE (RHS=ID|STRING_LIT|FLOAT_LIT|NUM) OPEN_CURLY_BRACE BODY=func_body CLOSE_CURLY_BRACE;
+else_if_statement: ELSE if_statement;
+else_statement: ELSE OPEN_CURLY_BRACE BODY=func_body CLOSE_CURLY_BRACE;
 
 // Math constants
 pi_constant: PI;

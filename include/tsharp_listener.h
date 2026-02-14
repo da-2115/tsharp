@@ -84,4 +84,8 @@ public:
 	// Main function
 	void enterMain_function(tsharp_parser::Main_functionContext* ctx) override;
 	void exitMain_function(tsharp_parser::Main_functionContext* ctx) override;
+
+	// If, else if and else statements
+	void enterIf_statement(tsharp_parser::If_statementContext* ctx) override;
+	//void exitIf_statement(tsharp_parser::If_statementContext* ctx) override;
 };

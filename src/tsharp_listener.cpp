@@ -413,6 +413,29 @@ void tsharp_listener::exitMain_function(tsharp_parser::Main_functionContext* ctx
 	executing = false;
 }
 
+void tsharp_listener::enterIf_statement(tsharp_parser::If_statementContext* ctx) {
+	executing = true;
+
+	std::string lhs = ctx->LHS->getText();
+	std::string rhs = ctx->RHS->getText();
+	
+	if (ints.find(lhs) != ints.end() && ints.find(rhs) != ints.end()) {
+		if (ints.at(lhs) == ints.at(rhs)) {
+			if (!ctx->BODY->println_statement().empty()) {
+				for (auto* println_statement : ctx->BODY->println_statement()) {
+					enterPrintln_statement(println_statement);
+				}
+			}
+		}
+	}
+
+	executing = false;
+}
+
+// void tsharp_listener::exitIf_statement(tsharp_parser::If_statementContext* ctx) {
+// 	executing = false;
+// }
+
 void tsharp_listener::enterObject_inst(tsharp_parser::Object_instContext* ctx) {
 	try {
 		std::string class_name = ctx->NAME->getText();
