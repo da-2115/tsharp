@@ -1,34 +1,41 @@
 # Makefile
-# Dylan Armstrong, 2026
+# Dylan Armstrong, Kodo (newbee1905), 2026
+#
+# This Makefile delegates the build process to OS-specific files.
+# It detects the operating system and calls the appropriate Makefile.
 
-# Detect OS
-ifdef OS
-    # Windows_NT environment variable is set on Windows
-    OS_TYPE := Windows_NT
-else
-    UNAME_S := $(shell uname -s)
-    OS_TYPE := $(UNAME_S)
-endif
+# This file itself has no build targets, only delegation.
+.PHONY: help
 
 # Default target
 .DEFAULT_GOAL := all
 
-# If on Windows, delegate to Makefile.win
-ifeq ($(OS_TYPE),Windows_NT)
-    # Windows specific - delegate to Makefile.win
-    all clean generate build test help:
-		$(MAKE) -f Makefile.win $@
-else ifeq ($(OS_TYPE),Darwin)
-    # macOS specific - delegate to Makefile.mac
-    all clean generate build test help:
-		$(MAKE) -f Makefile.mac $@
-else ifeq ($(OS_TYPE),Linux)
-    # Linux specific - delegate to Makefile.linux
-    all clean generate build test help:
-		$(MAKE) -f Makefile.linux $@
+# Detect OS and set the appropriate Makefile
+ifeq ($(OS),Windows_NT)
+    OS_TYPE := Windows
+    MAKEFILE_TO_USE := Makefile.win
 else
-    # For other systems - add more specific rules here
-    $(error This system ($(OS_TYPE)) is not yet supported. Currently Windows, macOS, and Linux are supported.)
+    UNAME_S := $(shell uname -s)
+    ifeq ($(UNAME_S),Linux)
+        OS_TYPE := Linux
+        MAKEFILE_TO_USE := Makefile.unix
+    else ifeq ($(UNAME_S),Darwin)
+        OS_TYPE := macOS
+        MAKEFILE_TO_USE := Makefile.unix
+    else
+        $(error This system ($(UNAME_S)) is not supported. Only Windows, Linux, and macOS.)
+    endif
 endif
 
-.PHONY: all clean generate build test help
+# Help message for the root Makefile
+help:
+	@echo "Top-level Makefile. Using '$(MAKEFILE_TO_USE)' for $(OS_TYPE)."
+	@echo "Run 'make <target>' where target is one of the delegated commands."
+	@echo "------------------------------------------------------------"
+	@$(MAKE) -f $(MAKEFILE_TO_USE) help
+
+# Fallback rule to delegate any other target to the OS-specific Makefile.
+# This passes all targets (like 'build', 'clean', 'debug') and variables
+# (like 'MODE=debug') to the underlying Makefile.
+%:
+	@$(MAKE) -f $(MAKEFILE_TO_USE) $@
