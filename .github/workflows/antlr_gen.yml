@@ -1,0 +1,41 @@
+name: Generate ANTLR Lexer/Parser
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install ANTLR4 Tools
+        run: pip install antlr4-tools==0.2.2
+
+      - name: Generate C++ Files
+        run: |
+          mkdir -p generated
+          antlr4 -Dlanguage=Cpp -visitor -listener -o generated -Xexact-output-dir tsharp_lexer.g4
+          antlr4 -Dlanguage=Cpp -visitor -listener -o generated -Xexact-output-dir tsharp_parser.g4
+
+      - name: Push to Build Branch
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          
+          # Force create/reset the build branch from the current state
+          git checkout -B build
+          
+          # Force add the 'generated' folder (even if it is in .gitignore)
+          git add -f generated/
+          
+          git commit -m "Auto-generated ANTLR C++ files for ${{ github.sha }}"
+          git push origin build --force
