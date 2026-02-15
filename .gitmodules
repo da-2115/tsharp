@@ -1,0 +1,4 @@
+[submodule "deps/antlr4"]
+	path = deps/antlr4
+	url = https://github.com/antlr/antlr4
+	tag = v4.11.1

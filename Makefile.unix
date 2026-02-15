@@ -1,9 +1,11 @@
-# Makefile.window
+# Makefile.unix
 # Dylan Armstrong, Kodo (newbee1905), 2026
-# For Windows systems
+# For Linux and macOS systems
 
 .PHONY: all clean generate build test help debug release
 
+# Build mode: release (default) or debug.
+# Set with `make MODE=debug`.
 MODE ?= release
 
 # Variables 
@@ -20,38 +22,50 @@ SRC_DIR = ./src
 LEXER_GRAMMAR = tsharp_lexer.g4
 PARSER_GRAMMAR = tsharp_parser.g4
 
-# Windows-specific settings 
-CXX = cl.exe
-BASE_CXXFLAGS = /std:c++17 /W4 /EHsc /MD
+UNAME_S := $(shell uname -s)
+ifeq ($(UNAME_S),Linux)
+    OS_TYPE := Linux
+endif
+ifeq ($(UNAME_S),Darwin)
+    OS_TYPE := macOS
+endif
+
+# Default and OS-specific settings
 CXXFLAGS = -I$(INCLUDE_DIR) -I$(OUTPUT_DIR)
 LDFLAGS =
 ANTLR4_INC = $(ANTLR_DIR)/runtime/Cpp/runtime/src
 ANTLR4_LIB_DIR_BASE = $(ANTLR_DIR)/runtime/Cpp/build
-CXXFLAGS += /I"$(ANTLR4_INC)"
+CXXFLAGS += -I$(ANTLR4_INC)
+OBJ_EXT = o
+MAKE_CMD = $(MAKE)
+RM = rm -rf
+MKDIR_P = mkdir -p
 
-ifeq ($(MODE),release)
-	CMAKE_BUILD_TYPE := Release
-else
-	CMAKE_BUILD_TYPE := Debug
+# Platform Specifics 
+BASE_CXXFLAGS = -std=c++17 -Wall -Wextra -fPIC
+ANTLR4_LIB_DIR = $(ANTLR4_LIB_DIR_BASE)/runtime
+ANTLR4_LIB_FILE = $(ANTLR4_LIB_DIR)/libantlr4-runtime.so
+EXECUTABLE = $(BUILD_DIR)/tsharp
+
+ifeq ($(OS_TYPE),Linux)
+	CXX = g++
+	LDFLAGS += -L$(ANTLR4_LIB_DIR) -lantlr4-runtime -Wl,-rpath,$(ANTLR4_LIB_DIR)
 endif
 
-ANTLR4_LIB_DIR = $(ANTLR4_LIB_DIR_BASE)/runtime/$(CMAKE_BUILD_TYPE)
-ANTLR4_LIB_FILE = $(ANTLR4_LIB_DIR)/antlr4-runtime.lib
-LDFLAGS += $(ANTLR4_LIB_FILE)
-EXECUTABLE = $(BUILD_DIR)/tsharp.exe
-OBJ_EXT = obj
-MAKE_CMD = cmake --build . --config $(CMAKE_BUILD_TYPE)
-RM = rmdir /s /q
-MKDIR_P = if not exist "$(subst /,\,$(1))" mkdir "$(subst /,\,$(1))"
-DLL_COPY_CMD = copy "$(ANTLR4_LIB_DIR)\antlr4-runtime.dll" "$(BUILD_DIR)" >nul
+ifeq ($(OS_TYPE),macOS)
+	CXX = clang++
+	LDFLAGS += -L$(ANTLR4_LIB_DIR) -lantlr4-runtime
+endif
 
 CXXFLAGS += $(BASE_CXXFLAGS)
 
 # Build Mode Flags (Debug/Release) 
 ifeq ($(MODE),release)
-	CXXFLAGS += /O2 /DNDEBUG
+    CMAKE_BUILD_TYPE ?= Release
+    CXXFLAGS += -O2 -DNDEBUG
 else
-	CXXFLAGS += /Zi /Od
+    CMAKE_BUILD_TYPE ?= Debug
+    CXXFLAGS += -g -O0
 endif
 
 # Source and Object Files 
@@ -75,33 +89,33 @@ ALL_OBJECTS = $(GENERATED_OBJ) $(APP_OBJ) $(MAIN_OBJ)
 all: build
 
 debug:
-	@$(MAKE) -f Makefile.window all MODE=debug
+	@$(MAKE) all MODE=debug
 
 release:
-	@$(MAKE) -f Makefile.window all MODE=release
+	@$(MAKE) all MODE=release
 
 help:
-	@echo "tsharp ANTLR C++ Language Makefile (Windows)"
+	@echo "tsharp ANTLR C++ Language Makefile (Unix - Linux/macOS)"
+	@echo "Detected OS: $(OS_TYPE)"
 	@echo ""
 	@echo "Usage: make [TARGET] [MODE=<release|debug>]"
 	@echo ""
 	@echo "Targets:"
-	@echo "  all/build	- Build the project (default: release mode)."
-	@echo "  generate	 - Generate C++ files from ANTLR grammars."
-	@echo "  clean		- Remove all generated and built files."
-	@echo "  test		 - Run tests (not yet implemented)."
-	@echo "  help		 - Show this help message."
+	@echo "  all/build    - Build the project (default: release mode)."
+	@echo "  generate     - Generate C++ files from ANTLR grammars."
+	@echo "  clean        - Remove all generated and built files."
+	@echo "  test         - Run tests (not yet implemented)."
+	@echo "  help         - Show this help message."
 	@echo ""
 	@echo "Modes:"
-	@echo "  release	  - Build with optimizations (default)."
-	@echo "  debug		- Build with debug symbols."
+	@echo "  release      - Build with optimizations (default)."
+	@echo "  debug        - Build with debug symbols."
 	@echo "  (e.g., 'make debug' or 'make build MODE=debug')"
-
 
 $(ANTLR4_LIB_FILE):
 	@echo "Building ANTLR C++ Runtime (Mode: $(MODE))"
 	git submodule update --init --recursive
-	$(call MKDIR_P,$(ANTLR4_LIB_DIR_BASE))
+	$(MKDIR_P) $(BUILD_OBJ_DIR)
 	cd $(ANTLR4_LIB_DIR_BASE) && cmake .. -DCMAKE_BUILD_TYPE=$(CMAKE_BUILD_TYPE) -DANTLR_BUILD_CPP_TESTS=OFF
 	cd $(ANTLR4_LIB_DIR_BASE) && $(MAKE_CMD)
 
@@ -111,7 +125,7 @@ generate: $(GENERATED_SRC)
 # Rule to build ANTLR files if they're missing or the grammar is newer.
 $(GENERATED_SRC): $(LEXER_GRAMMAR) $(PARSER_GRAMMAR) $(ANTLR_JAR)
 	@echo "Generating C++ code from ANTLR grammars"
-	$(call MKDIR_P,$(OUTPUT_DIR))
+	$(MKDIR_P) $(OUTPUT_DIR)
 	$(ANTLR_CMD) -Dlanguage=Cpp -visitor -listener -o $(OUTPUT_DIR) -Xexact-output-dir $(LEXER_GRAMMAR)
 	$(ANTLR_CMD) -Dlanguage=Cpp -visitor -listener -o $(OUTPUT_DIR) -Xexact-output-dir $(PARSER_GRAMMAR)
 
@@ -119,46 +133,35 @@ $(GENERATED_SRC): $(LEXER_GRAMMAR) $(PARSER_GRAMMAR) $(ANTLR_JAR)
 # The dependency chain will automatically trigger generation if needed.
 build: $(EXECUTABLE)
 	@echo ""
-	@echo "Build complete for Windows in $(MODE) mode"
+	@echo "Build complete for $(OS_TYPE) in $(MODE) mode" 
 	@echo "Executable available at: $(EXECUTABLE)"
-	@echo "Copying ANTLR runtime DLL to build directory..."
-	$(DLL_COPY_CMD)
 
 $(EXECUTABLE): $(ALL_OBJECTS) $(ANTLR4_LIB_FILE)
 	@echo "Linking executable"
-	$(call MKDIR_P,$(BUILD_DIR))
-	$(CXX) $(CXXFLAGS) $(ALL_OBJECTS) /link $(LDFLAGS) /Fe:$(EXECUTABLE)
+	$(MKDIR_P) $(BUILD_DIR)
+	$(CXX) $(ALL_OBJECTS) $(CXXFLAGS) $(LDFLAGS) -o $(EXECUTABLE)
 
 # Compilation Rules 
 $(BUILD_OBJ_DIR)/main.$(OBJ_EXT): $(MAIN_SRC)
 	@echo "Compiling $<"
-	$(call MKDIR_P,$(BUILD_OBJ_DIR))
-	$(CXX) $(CXXFLAGS) /c $< /Fo$@
+	$(MKDIR_P) $(BUILD_OBJ_DIR)
+	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 $(BUILD_OBJ_DIR)/src_%.$(OBJ_EXT): $(SRC_DIR)/%.cpp
 	@echo "Compiling $<"
-	$(call MKDIR_P,$(BUILD_OBJ_DIR))
-	$(CXX) $(CXXFLAGS) /c $< /Fo$@
+	$(MKDIR_P) $(BUILD_OBJ_DIR)
+	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 $(BUILD_OBJ_DIR)/gen_%.$(OBJ_EXT): $(OUTPUT_DIR)/%.cpp
 	@echo "Compiling $<"
-	$(call MKDIR_P,$(BUILD_OBJ_DIR))
-	$(CXX) $(CXXFLAGS) /c $< /Fo$@
-
+	$(MKDIR_P) $(BUILD_OBJ_DIR)
+	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 test:
-	@echo "Running tests" 
+	@echo "Running tests"
 	@echo "No tests configured yet"
 
 clean:
 	@echo "Cleaning"
-	@if exist "$(subst /,\,$(OUTPUT_DIR))" $(RM) "$(subst /,\,$(OUTPUT_DIR))" >nul 2>nul
-	@if exist "$(subst /,\,$(BUILD_DIR))" $(RM) "$(subst /,\,$(BUILD_DIR))" >nul 2>nul
+	$(RM) $(OUTPUT_DIR) $(BUILD_DIR)
 	@echo "Clean complete."
-
-$(ANTLR_JAR):
-	@if not exist "$(subst /,\,$(ANTLR_JAR))" ( 
-		echo ANTLR4 JAR not found at $(ANTLR_JAR). && 
-		echo Please build it by running 'mvn install -DskipTests' in the '$(ANTLR_DIR)' directory. && 
-		exit /b 1 
-	)
