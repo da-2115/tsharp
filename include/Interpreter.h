@@ -45,6 +45,7 @@ public:
     antlrcpp::Any visitFunctionDecl(TSharpParser::FunctionDeclContext* ctx) override;
     antlrcpp::Any visitClassDecl(TSharpParser::ClassDeclContext* ctx) override;
     antlrcpp::Any visitInterfaceDecl(TSharpParser::InterfaceDeclContext* ctx) override;
+    antlrcpp::Any visitEnumDecl(TSharpParser::EnumDeclContext* ctx) override;
     antlrcpp::Any visitVariableStatement(TSharpParser::VariableStatementContext* ctx) override;
     antlrcpp::Any visitVariableDecl(TSharpParser::VariableDeclContext* ctx) override;
     antlrcpp::Any visitAssignment(TSharpParser::AssignmentContext* ctx) override;

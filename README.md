@@ -1,4 +1,4 @@
-# tsharp
+# tsharp v1.0.0-alpha1
 The T# Programming Language - Written by Dylan Armstrong, 2026 in C++ with the ANTLR framework.
 
 # How to Run?

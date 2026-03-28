@@ -348,7 +348,7 @@ bool values_equal(const Value& a, const Value& b) {
     }
 
     if (a.is_number() && b.is_number()) {
-        return std::abs(a.is_double() - b.is_double()) < 1e-9;
+        return std::abs(a.as_double() - b.as_double()) < 1e-9;
     }
 
     if (std::holds_alternative<bool>(a.raw()) && std::holds_alternative<bool>(b.raw())) {

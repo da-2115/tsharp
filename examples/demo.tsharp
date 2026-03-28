@@ -1,0 +1,297 @@
+// demo.tsharp
+// Tests all T# features
+// Dylan Armstrong, 2026
+
+// Global variables and constants
+static int globalCounter = 0
+static string globalName = "T# Demo"
+
+// Interfaces
+public interface Drawable {
+    void Draw()
+    string GetDescription()
+}
+
+public interface Serializable {
+    string Serialize()
+}
+
+// Classes with generics
+
+// Generic Pair implementation
+public class Pair<T> {
+    protected T first
+    protected T second
+
+    public (T f, T s) {
+        this.first = f
+        this.second = s
+    }
+
+    public T First -> this.first
+
+    public T Second -> this.second
+}
+
+// Regular class with inheritance
+public class Shape : Drawable {
+    protected float width
+    protected float height
+
+    public (float w, float h) {
+        this.width = w
+        this.height = h
+    }
+
+    public void Draw() {
+        println("Drawing shape...")
+    }
+
+    public string GetDescription() {
+        return "I am a shape"
+    }
+
+    public float Area() {
+        return width * height
+    }
+}
+
+// Derived class with override
+public class Rectangle : Shape {
+    private string color
+
+    public (float w, float h, string c) {
+        this.width = w
+        this.height = h
+        this.color = c
+    }
+
+    public override void Draw() {
+        println("Drawing rectangle in " + color)
+    }
+
+    public override string GetDescription() {
+        return "Rectangle: " + width + "x" + height
+    }
+}
+
+// Another implementation
+public class Circle : Drawable {
+    private float radius
+
+    public (float r) {
+        this.radius = r
+    }
+
+    public void Draw() {
+        println("Drawing circle with radius " + radius)
+    }
+
+    public string GetDescription() {
+        return "Circle with radius " + radius
+    }
+
+    public float Circumference() {
+        return 2 * pi * radius
+    }
+}
+
+// Container class using generics
+public class Container<T> : Serializable {
+    private T data
+    private string label
+
+    public (T d, string l) {
+        this.data = d
+        this.label = l
+    }
+
+    public T GetData -> data
+
+    public string Serialize() {
+        return label + ": " + data
+    }
+}
+
+// Functions with various features
+
+// Simple function
+int Add(int a, int b) {
+    return a + b
+}
+
+// Function with math operations
+float MathDemo(float x) {
+    return sqrt(x) + abs(sin(x)) + cos(x)
+}
+
+// Function demonstrating factorials and power
+int FactorialPower(int n) {
+    return factorial(n) + pow(2, n)
+}
+
+// Function with conditional logic
+string CheckNumber(int n) {
+    if (n < 0) {
+        return "Negative"
+    } else if (n == 0) {
+        return "Zero"
+    } else {
+        return "Positive"
+    }
+}
+
+// Function demonstrating loops
+int SumRange(int start, int end) {
+    int sum = 0
+    for (int i = start; i <= end; i++) {
+        sum = sum + i
+    }
+    return sum
+}
+
+// Function with do-while
+void CountDown(int n) {
+    do {
+        println(n)
+        n = n - 1
+    } while (n > 0)
+}
+
+// Function with switch
+string DayOfWeek(int day) {
+    switch (day) {
+        case 1:
+            return "Monday"
+        case 2:
+            return "Tuesday"
+        case 3:
+            return "Wednesday"
+        default:
+            return "Other"
+    }
+}
+
+// Main function of demonstration
+void main() {
+    println("T# Feature Demo")
+    println("")
+
+    // Data types
+    println("Data Types")
+    int intVal = 42
+    float floatVal = 3.14
+    double doubleVal = 2.718
+    string strVal = "Hello, T#!"
+    char charVal = 'A'
+    bool boolVal = true
+    println("int: " + intVal)
+    println("float: " + floatVal)
+    println("double: " + doubleVal)
+    println("string: " + strVal)
+    println("char: " + charVal)
+    println("bool: " + boolVal)
+    println("")
+
+    // Math constants
+    println("Math constants")
+    println("pi: " + pi)
+    println("e: " + e)
+    println("tau: " + tau)
+    println("golden_ratio: " + golden_ratio)
+    println("")
+
+    // Math functions
+    println("Math functions")
+    println("sqrt(16): " + sqrt(16))
+    println("abs(-5): " + abs(-5))
+    println("sin(pi): " + sin(pi))
+    println("cos(0): " + cos(0))
+    println("factorial(5): " + factorial(5))
+    println("pow(2, 8): " + pow(2, 8))
+    println("floor(3.7): " + floor(3.7))
+    println("ceil(3.2): " + ceil(3.2))
+    println("round(3.5): " + round(3.5))
+    println("min(5, 3): " + min(5, 3))
+    println("max(5, 3): " + max(5, 3))
+    println("")
+
+    // Functions
+    println("Functions")
+    println("Add(10, 20): " + Add(10, 20))
+    println("MathDemo(1.0): " + MathDemo(1.0))
+    println("CheckNumber(5): " + CheckNumber(5))
+    println("SumRange(1, 10): " + SumRange(1, 10))
+    println("DayOfWeek(2): " + DayOfWeek(2))
+    println("")
+
+    // Loops & control flow
+    println("Loops")
+    print("For loop (1-5): ")
+    for (int i = 1; i <= 5; i++) {
+        print(i + " ")
+    }
+    println("")
+    
+    println("Do-while countdown (3-1):")
+    CountDown(3)
+    println("")
+
+    // while loop
+    int j = 0
+    print("While loop: ")
+    while (j < 5) {
+        print(j + " ")
+        j++
+    }
+    println("")
+    println("")
+
+    // Arrays and generics
+    println("Arrays & Generics")
+    int numbers[5]
+    numbers[0] = 10
+    numbers[1] = 20
+    numbers[2] = 30
+    numbers[3] = 40
+    numbers[4] = 50
+    println("Array initialized")
+
+    Pair<int> intPair(1, 2)
+    println("Pair first: " + intPair.First)
+    println("Pair second: " + intPair.Second)
+
+    // Classes & inheritance
+    println("Classes & inheritance")
+    Rectangle rect(5.0, 10.0, "blue")
+    rect.Draw()
+    println(rect.GetDescription())
+    println("Area: " + rect.Area())
+    println("")
+
+    Circle circle(7.5)
+    circle.Draw()
+    println(circle.GetDescription())
+    println("Circumference: " + circle.Circumference())
+    println("")
+
+    // Interfaces and containers
+    println("Interfaces and containers")
+    Container<int> intContainer(42, "The Answer")
+    println(intContainer.Serialize())
+
+    Container<string> strContainer("T#", "Language")
+    println(strContainer.Serialize())
+    println("")
+
+    // Complex demo!
+    println("Complex demo!")
+
+    for (int i = 1; i <= 5; i++) {
+        println("i=" + i + ", factorial=" + factorial(i) + ", pow(2,i)=" + pow(2, i))
+    }
+
+    println("")
+    
+    println("Done.")
+}

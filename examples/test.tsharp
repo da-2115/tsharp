@@ -15,5 +15,11 @@ class A
 void main()
 {
     A a("Test")
-    println(a.T())
+    println(a.t)
+
+    float x = pi + e
+    println(x)
+
+    any a = "Hello"
+    println(a)
 }

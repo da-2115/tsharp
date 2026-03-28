@@ -10,6 +10,7 @@ topLevelDecl
     : functionDecl
     | classDecl
     | interfaceDecl
+    | enumDecl
     | globalVarDecl
     ;
 
@@ -41,6 +42,14 @@ classDecl
 
 interfaceDecl
     : modifiers? INTERFACE IDENTIFIER NEWLINE* genericParams? inheritanceClause? interfaceBody
+    ;
+
+enumDecl
+    : modifiers? ENUM IDENTIFIER NEWLINE* LBRACE NEWLINE* enumMember (COMMA? NEWLINE* enumMember)* COMMA? NEWLINE* RBRACE NEWLINE*
+    ;
+
+enumMember
+    : IDENTIFIER (ASSIGN INTEGER_LITERAL)?
     ;
 
 inheritanceClause
@@ -230,10 +239,10 @@ doWhileStatement
     : DO NEWLINE* block WHILE LPAREN expression RPAREN NEWLINE+
     ;
 
-// No semicolons, so for uses pipes:
-// for (init | condition | update)
+// For loop uses semicolons (only T# feature with semicolons)
+// for (init; condition; update)
 forStatement
-    : FOR LPAREN forInit? PIPE expression? PIPE forUpdate? RPAREN NEWLINE* block
+    : FOR LPAREN forInit? SEMICOLON expression? SEMICOLON forUpdate? RPAREN NEWLINE* block
     ;
 
 forInit
@@ -359,6 +368,7 @@ literal
 
 CLASS      : 'class';
 INTERFACE  : 'interface';
+ENUM       : 'enum';
 ABSTRACT   : 'abstract';
 STATIC     : 'static';
 PUBLIC     : 'public';
@@ -439,6 +449,7 @@ RBRACK     : ']';
 COMMA      : ',';
 DOT        : '.';
 COLON      : ':';
+SEMICOLON  : ';';
 PIPE       : '|';
 
 IDENTIFIER

@@ -167,6 +167,14 @@ std::shared_ptr<FunctionValue> Interpreter::build_method(TSharpParser::MethodDec
 			fn->is_virtual = fn->is_virtual || text == "virtual";
 			fn->is_override = fn->is_override || text == "override";
 			fn->is_abstract = fn->is_abstract || text == "abstract";
+			if (text == "private") {
+				fn->is_private = true;
+				fn->is_public = false;
+			}
+			if (text == "protected") {
+				fn->is_protected = true;
+				fn->is_public = false;
+			}
 		}
 	}
 	return fn;
@@ -183,11 +191,28 @@ std::vector<Value> Interpreter::eval_arguments(TSharpParser::ArgumentListContext
 
 // Get a member
 Value Interpreter::get_member(const Value& target, const std::string& name, bool from_base) {
+	
 	if (target.is_instance()) {
 		auto inst = target.as_instance();
 
+		// Check if accessing from within the same instance (internal access allowed)
+		bool is_internal_access = false;
+		try {
+			Value this_val = env->get("this");
+			if (this_val.is_instance() && this_val.as_instance().get() == inst.get()) {
+				is_internal_access = true;
+			}
+		} catch (...) {}
+
 		auto fit = inst->fields.find(name);
 		if (fit != inst->fields.end()) {
+			// Check field access modifiers (but allow private access from within the class)
+			auto meta_it = inst->class_val->field_metadata.find(name);
+			if (meta_it != inst->class_val->field_metadata.end()) {
+				if (meta_it->second.is_private && !is_internal_access) {
+					throw RuntimeError("Cannot access private field: " + name);
+				}
+			}
 			return fit->second;
 		}
 
@@ -207,14 +232,21 @@ Value Interpreter::get_member(const Value& target, const std::string& name, bool
 		while (class_val) {
 			auto mit = class_val->methods.find(name);
 			if (mit != class_val->methods.end()) {
+				if (mit->second->is_private && !is_internal_access) {
+					throw RuntimeError("Cannot access private method: " + name);
+				}
 				return Value(mit->second);
 			}
 
 			auto pit = class_val->properties.find(name);
 			if (pit != class_val->properties.end()) {
+				if (pit->second.is_private && !is_internal_access) {
+					throw RuntimeError("Cannot access private property: " + name);
+				}
 				auto previous = env;
 				auto prop_env = std::make_shared<Environment>(env);
 				prop_env->define("this", target);
+
 				if (!inst->class_val->base_class_name.empty()) {
 					prop_env->define("base", target);
 				}
@@ -328,16 +360,31 @@ antlrcpp::Any Interpreter::visitClassDecl(TSharpParser::ClassDeclContext* ctx) {
 			auto name = field->IDENTIFIER()->getText();
 			Value initial = field->expression() ? evaluate(field->expression()) : Value();
 			bool is_static = false;
+			bool is_private = false;
+			bool is_protected = false;
 			if (field->modifiers()) {
 				for (auto* mod : field->modifiers()->modifier()) {
-					if (mod->getText() == "static")
+					auto text = mod->getText();
+					if (text == "static")
 						is_static = true;
+					if (text == "private")
+						is_private = true;
+					if (text == "protected")
+						is_protected = true;
 				}
 			}
 			if (is_static)
 				class_val->static_fields[name] = initial;
 			else
 				class_val->field_defaults[name] = initial;
+			
+			FieldInfo field_info;
+			field_info.type_name = field->typeRef()->getText();
+			field_info.is_static = is_static;
+			field_info.is_private = is_private;
+			field_info.is_protected = is_protected;
+			field_info.is_public = !is_private && !is_protected;
+			class_val->field_metadata[name] = field_info;
 		}
 		if (auto* prop = member->propertyDecl()) {
 			PropertyValue p;
@@ -348,6 +395,19 @@ antlrcpp::Any Interpreter::visitClassDecl(TSharpParser::ClassDeclContext* ctx) {
 				p.expr_node = prop->expression();
 			} else {
 				p.body_node = prop->block();
+			}
+			if (prop->modifiers()) {
+				for (auto* mod : prop->modifiers()->modifier()) {
+					auto text = mod->getText();
+					if (text == "private") {
+						p.is_private = true;
+						p.is_public = false;
+					}
+					if (text == "protected") {
+						p.is_protected = true;
+						p.is_public = false;
+					}
+				}
 			}
 			class_val->properties[p.name] = p;
 		}
@@ -381,6 +441,13 @@ antlrcpp::Any Interpreter::visitInterfaceDecl(TSharpParser::InterfaceDeclContext
 	class_val->is_interface = true;
 	register_class(class_val);
 	return Value(class_val);
+}
+
+// Visit enum declaration
+antlrcpp::Any Interpreter::visitEnumDecl(TSharpParser::EnumDeclContext* ctx) {
+	// TODO: Implement enum declarations
+	// For now, just parse and discard
+	return Value();
 }
 
 // Visit variable statement
@@ -893,7 +960,11 @@ antlrcpp::Any Interpreter::visitAdditiveExpression(TSharpParser::AdditiveExpress
 			if (result.is_string() || rhs.is_string()) {
 				result = Value(result.as_string() + rhs.as_string());
 			} else if (result.is_number() && rhs.is_number()) {
-				result = Value(result.as_int() + rhs.as_int());
+				if (result.is_double() || result.is_float() || rhs.is_double() || rhs.is_float()) {
+					result = Value(result.as_double() + rhs.as_double());
+				} else {
+					result = Value(result.as_int() + rhs.as_int());
+				}
 			} else {
 				result = Value(result.as_double() + rhs.as_double());
 			}
@@ -1081,7 +1152,13 @@ antlrcpp::Any Interpreter::visitPrimary(TSharpParser::PrimaryContext* ctx) {
 			try {
 				Value thisValue = env->get("this");
 				return get_member(thisValue, name);
-			} catch (const RuntimeError&) {
+			} catch (const RuntimeError& e) {
+				// Only convert "Unknown member" to "Undefined variable"
+				// Allow access errors to propagate
+				std::string msg = e.what();
+				if (msg.find("Cannot access") != std::string::npos) {
+					throw;
+				}
 				throw RuntimeError("Undefined variable: " + name);
 			}
 		}

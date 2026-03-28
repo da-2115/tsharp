@@ -32,6 +32,9 @@ struct FunctionValue {
     bool is_virtual = false;
     bool is_override = false;
     bool is_abstract = false;
+    bool is_private = false;
+    bool is_protected = false;
+    bool is_public = true;
     void* body_node = nullptr;
     std::shared_ptr<Environment> closure;
     std::function<Value(Interpreter&, const std::vector<Value>&, const Value&)> native;
@@ -42,8 +45,20 @@ struct PropertyValue {
     std::string name;
     std::string type_name;
     bool is_arrow = false;
+    bool is_private = false;
+    bool is_protected = false;
+    bool is_public = true;
     void* body_node = nullptr;
     void* expr_node = nullptr;
+};
+
+// Field info struct for tracking field access modifiers
+struct FieldInfo {
+    std::string type_name;
+    bool is_static = false;
+    bool is_private = false;
+    bool is_protected = false;
+    bool is_public = true;
 };
 
 // Class value struct
@@ -58,6 +73,7 @@ struct ClassValue {
     std::unordered_map<std::string, std::shared_ptr<FunctionValue>> methods;
     std::unordered_map<std::string, std::shared_ptr<FunctionValue>> constructors;
     std::unordered_map<std::string, PropertyValue> properties;
+    std::unordered_map<std::string, FieldInfo> field_metadata;
     std::vector<std::string> interfaces;
 };
 
