@@ -1,6 +1,0 @@
-// hello_world.tsharp
-// Dylan Armstrong, 2026
-
-void main() {
-    println("Hello World")
-}

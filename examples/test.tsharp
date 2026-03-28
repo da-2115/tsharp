@@ -1,0 +1,19 @@
+class A
+{
+    private string t
+
+    public (string t)
+    {
+        this.t = t
+    }
+
+    public string T() {
+        return t
+    }
+}
+
+void main()
+{
+    A a("Test")
+    println(a.T())
+}

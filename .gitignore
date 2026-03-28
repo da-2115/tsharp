@@ -44,6 +44,13 @@
 .antlr
 build
 generated
+tsharp
 
 # Visual Studio Code
 .vscode
+
+# CMake
+Makefile
+CMakeFiles
+CMakeCache.txt
+cmake_install.cmake
