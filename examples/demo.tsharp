@@ -7,19 +7,19 @@ static int globalCounter = 0
 static string globalName = "T# Demo"
 
 // Interfaces
-public interface Drawable {
-    void Draw()
-    string GetDescription()
+interface Drawable {
+    public void Draw()
+    public string GetDescription()
 }
 
-public interface Serializable {
-    string Serialize()
+interface Serializable {
+    public string Serialize()
 }
 
 // Classes with generics
 
 // Generic Pair implementation
-public class Pair<T> {
+class Pair<T> {
     protected T first
     protected T second
 
@@ -34,7 +34,7 @@ public class Pair<T> {
 }
 
 // Regular class with inheritance
-public class Shape : Drawable {
+class Shape : Drawable {
     protected float width
     protected float height
 
@@ -57,7 +57,7 @@ public class Shape : Drawable {
 }
 
 // Derived class with override
-public class Rectangle : Shape {
+class Rectangle : Shape {
     private string color
 
     public (float w, float h, string c) {
@@ -76,7 +76,7 @@ public class Rectangle : Shape {
 }
 
 // Another implementation
-public class Circle : Drawable {
+class Circle : Drawable {
     private float radius
 
     public (float r) {
@@ -97,7 +97,7 @@ public class Circle : Drawable {
 }
 
 // Container class using generics
-public class Container<T> : Serializable {
+class Container<T> : Serializable {
     private T data
     private string label
 
@@ -145,7 +145,7 @@ string CheckNumber(int n) {
 int SumRange(int start, int end) {
     int sum = 0
     for (int i = start; i <= end; i++) {
-        sum = sum + i
+        sum += i
     }
     return sum
 }
@@ -256,6 +256,9 @@ void main() {
     numbers[3] = 40
     numbers[4] = 50
     println("Array initialized")
+
+    int s[] = {1, 2, 3}
+    println(s[0])
 
     Pair<int> intPair(1, 2)
     println("Pair first: " + intPair.First)

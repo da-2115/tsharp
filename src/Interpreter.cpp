@@ -1082,7 +1082,42 @@ antlrcpp::Any Interpreter::visitPostfixExpression(TSharpParser::PostfixExpressio
             current = get_member(current, part->IDENTIFIER()->getText(), from_base);
             from_base = false;
         } else if (part->LPAREN()) {
-            current = call_function(current, eval_arguments(part->argumentList()), pending_this);
+            if (from_base && current.is_instance()) {
+                // base() constructor call
+                auto inst = current.as_instance();
+                auto class_val = inst->class_val;
+                
+                if (class_val->base_class_name.empty()) {
+                    throw RuntimeError("No base class to call constructor for");
+                }
+                
+                auto base_class_it = classes.find(class_val->base_class_name);
+                if (base_class_it == classes.end()) {
+                    throw RuntimeError("Unknown base class: " + class_val->base_class_name);
+                }
+                
+                auto base_class = base_class_it->second;
+                auto args = eval_arguments(part->argumentList());
+                
+                // Find matching constructor by arity
+                std::shared_ptr<FunctionValue> base_ctor = nullptr;
+                for (const auto& [name, fn] : base_class->constructors) {
+                    if (fn && fn->params.size() == args.size()) {
+                        base_ctor = fn;
+                        break;
+                    }
+                }
+                
+                if (!base_ctor) {
+                    throw RuntimeError("No matching base constructor with " + std::to_string(args.size()) + " arguments");
+                }
+                
+                // Call the base constructor with the instance as 'this'
+                call_function(Value(base_ctor), args, current);
+                current = Value();
+            } else {
+                current = call_function(current, eval_arguments(part->argumentList()), pending_this);
+            }
             pending_this = Value();
             from_base = false;
         } else if (part->LBRACK()) {

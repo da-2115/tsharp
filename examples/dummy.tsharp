@@ -18,7 +18,7 @@ class AnotherTest<T> {
     public Test<T> TestObj -> testObj
 }
 
-void test_shit() {
+void test() {
     Test<int> test(5)
     println(test.Value)
 
@@ -27,6 +27,8 @@ void test_shit() {
 }
 
 void main() {
-    println(e)
-    test_shit()
+    int z = 1
+    println(z)
+    println((e + pi) / tau)
+    test()
 }

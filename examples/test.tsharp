@@ -1,25 +1,20 @@
-class A
-{
+class A {
     private string t
 
-    public (string t)
-    {
+    public (string t) {
         this.t = t
     }
 
-    public string T() {
-        return t
+    public string T -> t
+}
+
+class B : A {
+    public (string u) {
+        base(u)
     }
 }
 
-void main()
-{
-    A a("Test")
-    println(a.t)
-
-    float x = pi + e
-    println(x)
-
-    any a = "Hello"
-    println(a)
+void main() {
+    C c("Hello World!")
+    println(c.T)
 }

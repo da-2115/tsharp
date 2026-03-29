@@ -1,0 +1,19 @@
+// dylan_fn_oop.tsharp
+// Dylan Armstrong, 2026
+
+class DylanFunction {
+    private int x
+
+    public (int x) {
+        this.x = x
+    }
+
+    public int Answer -> pow(this.x, factorial(this.x))
+}
+
+void main() {
+    for (int i = 0; i < 6; i++) {
+        DylanFunction d(i)
+        println(i + "=" + d.Answer)
+    }
+}
