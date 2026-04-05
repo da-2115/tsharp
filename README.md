@@ -7,7 +7,7 @@ The T# Programming Language - Written by Dylan Armstrong, 2026 in C++ with the A
 
 1. `cmake .`
 2. `make`
-3. `./tsharp ./your_file_name_here.tsharp`
+3. `./tsharp ./your_file_name_here.tsharp` OR `tsharp --version`
 
 There are three current examples in the `examples/` folder.
 
