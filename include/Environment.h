@@ -25,4 +25,4 @@ private:
     std::shared_ptr<Environment> parent_;
 };
 
-} // namespace tsharp
+}

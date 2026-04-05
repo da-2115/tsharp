@@ -67,9 +67,18 @@ Value Interpreter::call_function(const Value& callee, const std::vector<Value>& 
 	env = local;
 	try {
 		auto* block = static_cast<TSharpParser::BlockContext*>(fn->body_node);
+		exec_result.flow = ControlFlow::NORMAL;  // Optimization #4: Initialize control flow
 		visit(block);
+		Value result_value;
+		// Optimization #4: Check control flow status instead of relying on exceptions
+		if (exec_result.flow == ControlFlow::RETURN_VALUE) {
+			result_value = exec_result.value;
+			exec_result.flow = ControlFlow::NORMAL;  // Reset for next function call
+		} else {
+			result_value = Value();
+		}
 		env = previous;
-		return Value();
+		return result_value;
 	} catch (const ReturnSignal& r) {
 		env = previous;
 		return r.value;
@@ -180,13 +189,12 @@ std::shared_ptr<FunctionValue> Interpreter::build_method(TSharpParser::MethodDec
 	return fn;
 }
 
-std::vector<Value> Interpreter::eval_arguments(TSharpParser::ArgumentListContext* ctx) {
-	std::vector<Value> args;
+// Optimization #8: Fill arguments vector by reference instead of returning
+void Interpreter::eval_arguments(TSharpParser::ArgumentListContext* ctx, std::vector<Value>& out_args) {
 	if (!ctx)
-		return args;
+		return;
 	for (auto* expr : ctx->expression())
-		args.push_back(evaluate(expr));
-	return args;
+		out_args.push_back(evaluate(expr));
 }
 
 // Get a member
@@ -230,46 +238,47 @@ Value Interpreter::get_member(const Value& target, const std::string& name, bool
 		}
 
 		while (class_val) {
-			auto mit = class_val->methods.find(name);
-			if (mit != class_val->methods.end()) {
-				if (mit->second->is_private && !is_internal_access) {
-					throw RuntimeError("Cannot access private method: " + name);
+			// Optimization #3: Use unified member lookup instead of separate method/property searches
+			auto mem_it = class_val->member_lookup.find(name);
+			if (mem_it != class_val->member_lookup.end()) {
+				const MemberInfo& info = mem_it->second;
+				
+				// Check access modifiers
+				if (info.field_meta.is_private && !is_internal_access) {
+					throw RuntimeError("Cannot access private member: " + name);
 				}
-				return Value(mit->second);
-			}
+				
+				if (info.type == MemberInfo::METHOD) {
+					return Value(info.method);
+				} else if (info.type == MemberInfo::PROPERTY) {
+					auto previous = env;
+					auto prop_env = std::make_shared<Environment>(env);
+					prop_env->define("this", target);
 
-			auto pit = class_val->properties.find(name);
-			if (pit != class_val->properties.end()) {
-				if (pit->second.is_private && !is_internal_access) {
-					throw RuntimeError("Cannot access private property: " + name);
-				}
-				auto previous = env;
-				auto prop_env = std::make_shared<Environment>(env);
-				prop_env->define("this", target);
-
-				if (!inst->class_val->base_class_name.empty()) {
-					prop_env->define("base", target);
-				}
-				env = prop_env;
-
-				try {
-					Value result;
-					if (pit->second.is_arrow) {
-						result = evaluate(static_cast<antlr4::tree::ParseTree*>(pit->second.expr_node));
-					} else {
-						try {
-							visit(static_cast<TSharpParser::BlockContext*>(pit->second.body_node));
-							result = Value();
-						} catch (const ReturnSignal& r) {
-							result = r.value;
-						}
+					if (!inst->class_val->base_class_name.empty()) {
+						prop_env->define("base", target);
 					}
+					env = prop_env;
 
-					env = previous;
-					return result;
-				} catch (...) {
-					env = previous;
-					throw;
+					try {
+						Value result;
+						if (info.property.is_arrow) {
+							result = evaluate(static_cast<antlr4::tree::ParseTree*>(info.property.expr_node));
+						} else {
+							try {
+								visit(static_cast<TSharpParser::BlockContext*>(info.property.body_node));
+								result = Value();
+							} catch (const ReturnSignal& r) {
+								result = r.value;
+							}
+						}
+
+						env = previous;
+						return result;
+					} catch (...) {
+						env = previous;
+						throw;
+					}
 				}
 			}
 
@@ -298,17 +307,10 @@ Value Interpreter::construct_object(const std::string& type_name, const std::vec
 		instance->fields[name] = value;
 	}
 
-	// Find constructor by arity
-	std::shared_ptr<FunctionValue> ctor = nullptr;
-	for (const auto& [name, fn] : class_val->constructors) {
-		if (fn && fn->params.size() == args.size()) {
-			ctor = fn;
-			break;
-		}
-	}
-
-	if (ctor) {
-		call_function(Value(ctor), args, Value(instance));
+	// Optimization #2: O(1) constructor lookup by arity instead of O(n) search
+	auto ctor_it = class_val->constructors.find(args.size());
+	if (ctor_it != class_val->constructors.end()) {
+		call_function(Value(ctor_it->second), args, Value(instance));
 	}
 
 	return Value(instance);
@@ -410,14 +412,33 @@ antlrcpp::Any Interpreter::visitClassDecl(TSharpParser::ClassDeclContext* ctx) {
 				}
 			}
 			class_val->properties[p.name] = p;
+			
+			// Optimization #3: Populate member lookup for properties
+			MemberInfo member_info;
+			member_info.type = MemberInfo::PROPERTY;
+			member_info.property = p;
+			member_info.field_meta.type_name = p.type_name;
+			member_info.field_meta.is_private = p.is_private;
+			member_info.field_meta.is_protected = p.is_protected;
+			member_info.field_meta.is_public = p.is_public;
+			class_val->member_lookup[p.name] = member_info;
 		}
 		if (auto* method = member->methodDecl()) {
 			auto fn = build_method(method);
 			class_val->methods[fn->name] = fn;
+			
+			// Optimization #3: Populate member lookup for methods
+			MemberInfo member_info;
+			member_info.type = MemberInfo::METHOD;
+			member_info.method = fn;
+			member_info.field_meta.is_private = fn->is_private;
+			member_info.field_meta.is_protected = fn->is_protected;
+			member_info.field_meta.is_public = fn->is_public;
+			class_val->member_lookup[fn->name] = member_info;
 		}
 		if (auto* ctor = member->constructorDecl()) {
 			auto fn = std::make_shared<FunctionValue>();
-			fn->name = "__ctor_" + std::to_string(class_val->constructors.size());
+			fn->name = "__ctor";
 			fn->return_type = "void";
 			fn->closure = env;
 			fn->body_node = ctor->block();
@@ -427,7 +448,8 @@ antlrcpp::Any Interpreter::visitClassDecl(TSharpParser::ClassDeclContext* ctx) {
 					fn->params.push_back({p->typeRef()->getText(), p->IDENTIFIER()->getText()});
 				}
 			}
-			class_val->constructors[fn->name] = fn;
+			// Optimization #2: Store constructor by arity (parameter count)
+			class_val->constructors[fn->params.size()] = fn;
 		}
 	}
 
@@ -772,12 +794,19 @@ antlrcpp::Any Interpreter::visitIfStatement(TSharpParser::IfStatementContext* ct
 // Visit while statement
 antlrcpp::Any Interpreter::visitWhileStatement(TSharpParser::WhileStatementContext* ctx) {
 	while (evaluate(ctx->expression()).as_bool()) {
-		try {
-			visit(ctx->block());
-		} catch (const BreakSignal&) {
+		exec_result.flow = ControlFlow::NORMAL;  // Optimization #4: Reset flow status
+		visit(ctx->block());
+		// Optimization #4: Check status after block
+		if (exec_result.flow == ControlFlow::BREAK) {
+			exec_result.flow = ControlFlow::NORMAL;
 			break;
-		} catch (const ContinueSignal&) {
+		}
+		if (exec_result.flow == ControlFlow::CONTINUE) {
+			exec_result.flow = ControlFlow::NORMAL;
 			continue;
+		}
+		if (exec_result.flow == ControlFlow::RETURN_VALUE) {
+			break;  // Return out of loop
 		}
 	}
 	return Value();
@@ -786,11 +815,19 @@ antlrcpp::Any Interpreter::visitWhileStatement(TSharpParser::WhileStatementConte
 // Visit do while statement
 antlrcpp::Any Interpreter::visitDoWhileStatement(TSharpParser::DoWhileStatementContext* ctx) {
 	do {
-		try {
-			visit(ctx->block());
-		} catch (const BreakSignal&) {
+		exec_result.flow = ControlFlow::NORMAL;  // Optimization #4: Reset flow status
+		visit(ctx->block());
+		// Optimization #4: Check status after block
+		if (exec_result.flow == ControlFlow::BREAK) {
+			exec_result.flow = ControlFlow::NORMAL;
 			break;
-		} catch (const ContinueSignal&) {
+		}
+		if (exec_result.flow == ControlFlow::CONTINUE) {
+			exec_result.flow = ControlFlow::NORMAL;
+			// Continue to next iteration (check condition)
+		}
+		if (exec_result.flow == ControlFlow::RETURN_VALUE) {
+			break;  // Return out of loop
 		}
 	} while (evaluate(ctx->expression()).as_bool());
 	return Value();
@@ -803,11 +840,19 @@ antlrcpp::Any Interpreter::visitForStatement(TSharpParser::ForStatementContext* 
 	if (ctx->forInit())
 		visit(ctx->forInit());
 	while (!ctx->expression() || evaluate(ctx->expression()).as_bool()) {
-		try {
-			visit(ctx->block());
-		} catch (const BreakSignal&) {
+		exec_result.flow = ControlFlow::NORMAL;  // Optimization #4: Reset flow status
+		visit(ctx->block());
+		// Optimization #4: Check status after block
+		if (exec_result.flow == ControlFlow::BREAK) {
+			exec_result.flow = ControlFlow::NORMAL;
 			break;
-		} catch (const ContinueSignal&) {
+		}
+		if (exec_result.flow == ControlFlow::CONTINUE) {
+			exec_result.flow = ControlFlow::NORMAL;
+			// Fall through to update
+		}
+		if (exec_result.flow == ControlFlow::RETURN_VALUE) {
+			break;  // Return out of loop
 		}
 		if (ctx->forUpdate())
 			visit(ctx->forUpdate());
@@ -827,11 +872,16 @@ antlrcpp::Any Interpreter::visitSwitchStatement(TSharpParser::SwitchStatementCon
 		if (!matched && is_default)
 			matched = true;
 		if (matched) {
-			try {
-				for (auto* stmt : section->statement())
-					visit(stmt);
-			} catch (const BreakSignal&) {
+			exec_result.flow = ControlFlow::NORMAL;  // Optimization #4: Reset flow status
+			for (auto* stmt : section->statement())
+				visit(stmt);
+			// Optimization #4: Check status after statements
+			if (exec_result.flow == ControlFlow::BREAK) {
+				exec_result.flow = ControlFlow::NORMAL;
 				break;
+			}
+			if (exec_result.flow == ControlFlow::RETURN_VALUE) {
+				break;  // Return out of switch
 			}
 		}
 	}
@@ -840,16 +890,23 @@ antlrcpp::Any Interpreter::visitSwitchStatement(TSharpParser::SwitchStatementCon
 
 // Visit break statement
 antlrcpp::Any Interpreter::visitBreakStatement(TSharpParser::BreakStatementContext*) {
-	throw BreakSignal();
+	// Optimization #4: Use control flow status - don't throw exception
+	exec_result.flow = ControlFlow::BREAK;
+	return Value();
 }
 // Visit continue statement
 antlrcpp::Any Interpreter::visitContinueStatement(TSharpParser::ContinueStatementContext*) {
-	throw ContinueSignal();
+	// Optimization #4: Use control flow status - don't throw exception
+	exec_result.flow = ControlFlow::CONTINUE;
+	return Value();
 }
 
 // Visit return statement
 antlrcpp::Any Interpreter::visitReturnStatement(TSharpParser::ReturnStatementContext* ctx) {
-	throw ReturnSignal(ctx->expression() ? evaluate(ctx->expression()) : Value());
+	// Optimization #4: Use control flow status - don't throw exception
+	exec_result.value = ctx->expression() ? evaluate(ctx->expression()) : Value();
+	exec_result.flow = ControlFlow::RETURN_VALUE;
+	return Value();
 }
 
 // Visit throw statement
@@ -1097,26 +1154,22 @@ antlrcpp::Any Interpreter::visitPostfixExpression(TSharpParser::PostfixExpressio
                 }
                 
                 auto base_class = base_class_it->second;
-                auto args = eval_arguments(part->argumentList());
+                std::vector<Value> args;
+                eval_arguments(part->argumentList(), args);  // Optimization #8: Fill by reference
                 
-                // Find matching constructor by arity
-                std::shared_ptr<FunctionValue> base_ctor = nullptr;
-                for (const auto& [name, fn] : base_class->constructors) {
-                    if (fn && fn->params.size() == args.size()) {
-                        base_ctor = fn;
-                        break;
-                    }
-                }
-                
-                if (!base_ctor) {
+                // Optimization #2: O(1) constructor lookup by arity
+                auto ctor_it = base_class->constructors.find(args.size());
+                if (ctor_it == base_class->constructors.end()) {
                     throw RuntimeError("No matching base constructor with " + std::to_string(args.size()) + " arguments");
                 }
                 
                 // Call the base constructor with the instance as 'this'
-                call_function(Value(base_ctor), args, current);
+                call_function(Value(ctor_it->second), args, current);
                 current = Value();
             } else {
-                current = call_function(current, eval_arguments(part->argumentList()), pending_this);
+                std::vector<Value> args;  // Optimization #8: Prepare vector for by-reference fill
+                eval_arguments(part->argumentList(), args);
+                current = call_function(current, args, pending_this);
             }
             pending_this = Value();
             from_base = false;

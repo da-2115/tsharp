@@ -1,0 +1,92 @@
+// conways_game_of_life.tsharp
+// Ash Kollmorgen, 2026
+
+static int width = 30
+static int height = 20
+
+int cellToN(bool c) {
+	if (c) {
+		return 1
+	} else {
+		return 0
+	}
+}
+
+int posToIndex(int x, int y) {
+	return y * width + x
+}
+
+int wrap(int x, int m) {
+	return (x + m) % m
+}
+
+void main() {
+	bool board[width * height]
+
+	board[1] = true
+	board[width] = true
+	board[2 * width] = true
+	board[2 * width + 1] = true
+	board[2 * width + 2] = true
+
+	bool newBoard[width * height]
+
+	while (true) {
+		for (int x = 0; x < width; x++) {
+			print("=")
+		}
+
+		println("")
+
+		for (int y = 0; y < height; y++) {
+			for (int x = 0; x < width; x++) {
+				if (board[posToIndex(x, y)]) {
+					print("#")
+				} else {
+					print(" ")
+				}
+			}
+
+			println("|")
+		}
+
+		for (int x = 0; x < width; x++) {
+			print("=")
+		}
+
+		println("")
+
+		for (int y = 0; y < height; y++) {
+			for (int x = 0; x < width; x++) {
+				int total = 0
+
+				total += cellToN(board[posToIndex(wrap(x - 1, width), wrap(y - 1, height))])
+				total += cellToN(board[posToIndex(wrap(x, width), wrap(y - 1, height))])
+				total += cellToN(board[posToIndex(wrap(x + 1, width), wrap(y - 1, height))])
+
+				total += cellToN(board[posToIndex(wrap(x - 1, width), wrap(y, height))])
+				total += cellToN(board[posToIndex(wrap(x + 1, width), wrap(y, height))])
+
+				total += cellToN(board[posToIndex(wrap(x - 1, width), wrap(y + 1, height))])
+				total += cellToN(board[posToIndex(wrap(x, width), wrap(y + 1, height))])
+				total += cellToN(board[posToIndex(wrap(x + 1, width), wrap(y + 1, height))])
+
+				if (total == 3) {
+					newBoard[posToIndex(x, y)] = true
+				} else {
+					if (total == 2) {
+						newBoard[posToIndex(x, y)] = board[posToIndex(x, y)]
+					} else {
+						newBoard[posToIndex(x, y)] = false
+					}
+				}
+			}
+		}
+
+		board = newBoard
+
+		bool newNewBoard[width * height]
+
+		newBoard = newNewBoard
+	}
+}

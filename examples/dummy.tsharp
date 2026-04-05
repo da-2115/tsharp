@@ -29,6 +29,11 @@ void test() {
 void main() {
     int z = 1
     println(z)
-    println((e + pi) / tau)
+    
+    if ((pi + pi) == tau * 2) {
+        println("true")
+    }
+    
+    println((e + pi) / tau + sqrt(golden_ratio))
     test()
 }

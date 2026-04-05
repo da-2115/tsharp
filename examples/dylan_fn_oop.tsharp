@@ -11,9 +11,29 @@ class DylanFunction {
     public int Answer -> pow(this.x, factorial(this.x))
 }
 
-void main() {
-    for (int i = 0; i < 6; i++) {
-        DylanFunction d(i)
-        println(i + "=" + d.Answer)
+class DylanFunctionWithPrint : DylanFunction {
+    private int count
+
+    public (int count) {
+        this.count = count
+        base(count)
     }
+
+    public void print_to_screen() {
+        println("Now printing: " + this.count)
+        for (int i = 0; i < this.count; i++) {
+            println(i + "=" + base.Answer)
+        }
+    }
+}
+
+void main() {
+    DylanFunctionWithPrint d(2)
+    d.print_to_screen()
+
+    for (int i = 0; i < factorial(3); i++) {
+        println(i)
+    }
+
+    println("Yes")
 }

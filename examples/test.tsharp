@@ -1,20 +1,3 @@
-class A {
-    private string t
-
-    public (string t) {
-        this.t = t
-    }
-
-    public string T -> t
-}
-
-class B : A {
-    public (string u) {
-        base(u)
-    }
-}
-
 void main() {
-    C c("Hello World!")
-    println(c.T)
+    println("Hello World!")
 }

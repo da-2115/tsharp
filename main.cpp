@@ -12,8 +12,13 @@
 // Main function of T#
 int main(int argc, char** argv) {
     if (argc < 2) {
-        std::cerr << "Usage: tsharp <file.tsharp>\n";
+        std::cerr << "Usage: tsharp <file.tsharp> OR tsharp --version\n";
         return 1;
+    }
+
+    if (strcmp(argv[1], "--version") == 0) {
+        std::cout << "The T# Progamming Language v1.0.0-alpha2\nWritten by Dylan Armstrong, 2026" << std::endl;
+        return 0;
     }
 
     std::ifstream input(argv[1]);

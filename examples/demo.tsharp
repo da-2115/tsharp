@@ -94,6 +94,10 @@ class Circle : Drawable {
     public float Circumference() {
         return 2 * pi * radius
     }
+
+    public float Area() {
+        return pi * pow(radius, 2)
+    }
 }
 
 // Container class using generics
@@ -276,6 +280,7 @@ void main() {
     circle.Draw()
     println(circle.GetDescription())
     println("Circumference: " + circle.Circumference())
+    println("Area: " + circle.Area())
     println("")
 
     // Interfaces and containers

@@ -80,13 +80,14 @@ private:
     std::shared_ptr<Environment> env;
     std::unordered_map<std::string, std::shared_ptr<ClassValue>> classes;
     std::unordered_map<std::string, std::shared_ptr<FunctionValue>> functions;
+    ExecutionResult exec_result;  // Optimization #4: Track control flow without exceptions
 
     // Private member functions for building functions, methods...
     std::shared_ptr<FunctionValue> build_function(TSharpParser::FunctionDeclContext* ctx, bool is_method);
     std::shared_ptr<FunctionValue> build_method(TSharpParser::MethodDeclContext* ctx);
 
     // ...for evalulating arguments, getting and setting member variables, constructing objects and evaluating binary chain
-    std::vector<Value> eval_arguments(TSharpParser::ArgumentListContext* ctx);
+    void eval_arguments(TSharpParser::ArgumentListContext* ctx, std::vector<Value>& out_args);  // Optimization #8: Fill by reference
     Value get_member(const Value& target, const std::string& name, bool from_base = false);
     void set_member(const Value& target, const std::string& name, const Value& value);
     Value construct_object(const std::string& type_name, const std::vector<Value>& args);

@@ -1,3 +1,6 @@
+// TSharp.g4
+// Dylan Armstrong, 2026
+
 grammar TSharp;
 
 // Parser rules
