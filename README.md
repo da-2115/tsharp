@@ -107,8 +107,8 @@ T# is an open source and free language, now accepting pull requests (PRs). The l
 | `:`            | Delimiter     | Colon for inheritance clauses                                             |
 | `;`            | Delimiter     | Semicolon for loop separators                                             |
 
-# Full Documentation (Coming Soon)
-All documentation for T# is coming soon, and will be on the website https://dylanarmstrong.net once it is released. Potentially along with a full user manual PDF that you can download for free.
+# Full Documentation
+All documentation for T# is on: https://tsharp.dylanarmstrong.net
 
 # Credits
 Written and Founded by Dylan Armstrong in 2026.
