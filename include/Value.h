@@ -55,33 +55,33 @@ public:
     Value(std::any v);
 
     // Bool checking member functions -> is it (type here)?
-    bool is_null() const noexcept;
-    bool is_number() const noexcept;
-    bool is_int() const noexcept;
-    bool is_float() const noexcept;
-    bool is_double() const noexcept;
-    bool is_bool() const noexcept;
-    bool is_char() const noexcept;
-    bool is_string() const noexcept;
-    bool is_array() const noexcept;
-    bool is_instance() const noexcept;
-    bool is_class() const noexcept;
-    bool is_function() const noexcept;
+    bool is_null() const;
+    bool is_number() const;
+    bool is_int() const;
+    bool is_float() const;
+    bool is_double() const;
+    bool is_bool() const;
+    bool is_char() const;
+    bool is_string() const;
+    bool is_array() const;
+    bool is_instance() const;
+    bool is_class() const;
+    bool is_function() const;
 
     // Express as type member functions
-    double as_double() const noexcept;
-    float as_float() const noexcept;
-    int as_int() const noexcept;
-    char as_char() const noexcept;
-    bool as_bool() const noexcept;
-    std::string as_string() const noexcept;
-    std::shared_ptr<Array> as_array() const noexcept;
-    std::shared_ptr<InstanceValue> as_instance() const noexcept;
-    std::shared_ptr<ClassValue> as_class() const noexcept;
-    std::shared_ptr<FunctionValue> as_function() const noexcept;
+    double as_double() const;
+    float as_float() const;
+    int as_int() const;
+    char as_char() const;
+    bool as_bool() const;
+    std::string as_string() const;
+    std::shared_ptr<Array> as_array() const;
+    std::shared_ptr<InstanceValue> as_instance() const;
+    std::shared_ptr<ClassValue> as_class() const;
+    std::shared_ptr<FunctionValue> as_function() const;
 
     // Get raw data getters
-    const Variant& raw() const noexcept;
+    const Variant& raw() const;
     Variant& raw();
 
 private:

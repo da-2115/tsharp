@@ -60,7 +60,7 @@ Value Interpreter::call_function(const Value& callee, const std::vector<Value>& 
 
 	// Set parameters of function to arguments
 	for (size_t i = 0; i < fn->params.size(); ++i) {
-		local->define(fn->params[i].name, i < args.size() ? args[i] : Value());
+		local->define(fn->params.at(i).name, i < args.size() ? args.at(i) : Value());
 	}
 
 	auto previous = env;
@@ -128,23 +128,26 @@ std::shared_ptr<ClassValue> Interpreter::get_class_by_name(const std::string& na
 
 // Register class
 void Interpreter::register_class(const std::shared_ptr<ClassValue>& class_val) {
-	classes[class_val->name] = class_val;
+	classes.at(class_val->name) = class_val;
 	globals->define(class_val->name, Value(class_val));
 }
 
 
 std::shared_ptr<FunctionValue> Interpreter::build_function(TSharpParser::FunctionDeclContext* ctx, bool is_method) {
 	auto fn = std::make_shared<FunctionValue>();
+
 	fn->name = ctx->IDENTIFIER()->getText();
 	fn->return_type = ctx->returnType()->getText();
 	fn->closure = env;
 	fn->body_node = ctx->block();
 	fn->is_method = is_method;
+
 	if (ctx->parameterList()) {
 		for (auto* p : ctx->parameterList()->parameter()) {
 			fn->params.push_back({p->typeRef()->getText(), p->IDENTIFIER()->getText()});
 		}
 	}
+
 	if (ctx->modifiers()) {
 		for (auto* mod : ctx->modifiers()->modifier()) {
 			auto text = mod->getText();
@@ -154,6 +157,7 @@ std::shared_ptr<FunctionValue> Interpreter::build_function(TSharpParser::Functio
 			fn->is_abstract = fn->is_abstract || text == "abstract";
 		}
 	}
+
 	return fn;
 }
 
@@ -230,10 +234,13 @@ Value Interpreter::get_member(const Value& target, const std::string& name, bool
 			if (class_val->base_class_name.empty()) {
 				throw RuntimeError("No base class_val for member lookup: " + name);
 			}
+
 			auto it = classes.find(class_val->base_class_name);
+
 			if (it == classes.end()) {
 				throw RuntimeError("Unknown base class_val: " + class_val->base_class_name);
 			}
+
 			class_val = it->second;
 		}
 
@@ -342,12 +349,15 @@ antlrcpp::Any Interpreter::visitClassDecl(TSharpParser::ClassDeclContext* ctx) {
 				class_val->is_abstract = true;
 		}
 	}
+
 	if (ctx->genericParams()) {
 		for (auto* id : ctx->genericParams()->IDENTIFIER())
 			class_val->generic_names.push_back(id->getText());
 	}
+
 	if (ctx->inheritanceClause()) {
 		auto types = ctx->inheritanceClause()->typeRef();
+
 		if (!types.empty()) {
 			class_val->base_class_name = types[0]->getText();
 			for (size_t i = 1; i < types.size(); ++i)
@@ -376,9 +386,9 @@ antlrcpp::Any Interpreter::visitClassDecl(TSharpParser::ClassDeclContext* ctx) {
 				}
 			}
 			if (is_static)
-				class_val->static_fields[name] = initial;
+				class_val->static_fields.at(name) = initial;
 			else
-				class_val->field_defaults[name] = initial;
+				class_val->field_defaults.at(name) = initial;
 			
 			FieldInfo field_info;
 			field_info.type_name = field->typeRef()->getText();
@@ -388,30 +398,38 @@ antlrcpp::Any Interpreter::visitClassDecl(TSharpParser::ClassDeclContext* ctx) {
 			field_info.is_public = !is_private && !is_protected;
 			class_val->field_metadata[name] = field_info;
 		}
+
 		if (auto* prop = member->propertyDecl()) {
 			PropertyValue p;
 			p.name = prop->IDENTIFIER()->getText();
 			p.type_name = prop->typeRef()->getText();
+
 			if (prop->ARROW()) {
 				p.is_arrow = true;
 				p.expr_node = prop->expression();
-			} else {
+			} 
+			
+			else {
 				p.body_node = prop->block();
 			}
+
 			if (prop->modifiers()) {
 				for (auto* mod : prop->modifiers()->modifier()) {
 					auto text = mod->getText();
+
 					if (text == "private") {
 						p.is_private = true;
 						p.is_public = false;
 					}
+
 					if (text == "protected") {
 						p.is_protected = true;
 						p.is_public = false;
 					}
 				}
 			}
-			class_val->properties[p.name] = p;
+
+			class_val->properties.at(p.name) = p;
 			
 			// Optimization #3: Populate member lookup for properties
 			MemberInfo member_info;
@@ -421,7 +439,7 @@ antlrcpp::Any Interpreter::visitClassDecl(TSharpParser::ClassDeclContext* ctx) {
 			member_info.field_meta.is_private = p.is_private;
 			member_info.field_meta.is_protected = p.is_protected;
 			member_info.field_meta.is_public = p.is_public;
-			class_val->member_lookup[p.name] = member_info;
+			class_val->member_lookup.at(p.name) = member_info;
 		}
 		if (auto* method = member->methodDecl()) {
 			auto fn = build_method(method);
@@ -603,7 +621,8 @@ antlrcpp::Any Interpreter::visitAssignment(TSharpParser::AssignmentContext* ctx)
 			if (idx < 0 || idx >= static_cast<int>(arr->size())) {
 				throw RuntimeError("Array index out of range");
 			}
-			target = (*arr)[idx];
+			target = arr->at(idx);
+			//target = (*arr)[idx];
 		}
 	}
 
@@ -633,15 +652,21 @@ antlrcpp::Any Interpreter::visitAssignment(TSharpParser::AssignmentContext* ctx)
 				set_member(target, member_name, result);
 				return result;
 			}
-		} else if (op == "-=") {
+		} 
+		
+		else if (op == "-=") {
 			Value result = (current.is_int() && rhs.is_int()) ? Value(current.as_int() - rhs.as_int()) : Value(current.as_double() - rhs.as_double());
 			set_member(target, member_name, result);
 			return result;
-		} else if (op == "*=") {
+		} 
+		
+		else if (op == "*=") {
 			Value result = (current.is_int() && rhs.is_int()) ? Value(current.as_int() * rhs.as_int()) : Value(current.as_double() * rhs.as_double());
 			set_member(target, member_name, result);
 			return result;
-		} else if (op == "/=") {
+		} 
+		
+		else if (op == "/=") {
 			if (rhs.as_double() == 0.0) {
 				throw RuntimeError("Division by zero");
 			}

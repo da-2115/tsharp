@@ -37,76 +37,79 @@ Value::Value(std::shared_ptr<InstanceValue> v) : data(std::move(v)) {}
 Value::Value(std::any v) : data(std::move(v)) {}
 
 // Implementation of type checking member functions
-bool Value::is_null() const noexcept {
+bool Value::is_null() const {
     return std::holds_alternative<std::monostate>(data);
 }
 
-bool Value::is_number() const noexcept {
+bool Value::is_number() const {
     return std::holds_alternative<int>(data) || std::holds_alternative<float>(data) || std::holds_alternative<double>(data);
 }
 
-bool Value::is_bool() const noexcept {
+bool Value::is_bool() const {
     return std::holds_alternative<bool>(data);
 }
 
-bool Value::is_string() const noexcept {
+bool Value::is_string() const {
     return std::holds_alternative<std::string>(data);
 }
 
-bool Value::is_array() const noexcept {
+bool Value::is_array() const {
     return std::holds_alternative<std::shared_ptr<Array>>(data);
 }
 
-bool Value::is_instance() const noexcept {
+bool Value::is_instance() const {
     return std::holds_alternative<std::shared_ptr<InstanceValue>>(data);
 }
 
-bool Value::is_class() const noexcept {
+bool Value::is_class() const {
     return std::holds_alternative<std::shared_ptr<ClassValue>>(data);
 }
 
-bool Value::is_function() const noexcept {
+bool Value::is_function() const {
     return std::holds_alternative<std::shared_ptr<FunctionValue>>(data);
 }
 
-bool Value::is_int() const noexcept {
+bool Value::is_int() const {
     return std::holds_alternative<int>(data);
 }
 
-bool Value::is_float() const noexcept {
+bool Value::is_float() const {
     return std::holds_alternative<float>(data);
 }
 
-bool Value::is_double() const noexcept {
+bool Value::is_double() const {
     return std::holds_alternative<double>(data);
 }
 
-bool Value::is_char() const noexcept {
+bool Value::is_char() const {
     return std::holds_alternative<char>(data);
 }
 
 // Type conversion function implementations
-float Value::as_float() const noexcept {
+float Value::as_float() const {
     if (std::holds_alternative<float>(data)) {
         return std::get<float>(data);
     }
+
     if (std::holds_alternative<double>(data)) {
         return static_cast<float>(std::get<double>(data));
     }
+
     if (std::holds_alternative<int>(data)) {
         return static_cast<float>(std::get<int>(data));
     }
+
     throw RuntimeError("Value is not numeric");
 }
 
-char Value::as_char() const noexcept {
+char Value::as_char() const {
     if (std::holds_alternative<char>(data)) {
         return std::get<char>(data);
     }
     throw RuntimeError("Value is not a char");
 }
 
-double Value::as_double() const noexcept {
+double Value::as_double() const {
     if (std::holds_alternative<double>(data)) {
         return std::get<double>(data);
     }
@@ -122,10 +125,11 @@ double Value::as_double() const noexcept {
     if (std::holds_alternative<char>(data)) {
         return static_cast<double>(std::get<char>(data));
     }
+    
     throw RuntimeError("Value is not numeric");
 }
 
-int Value::as_int() const noexcept {
+int Value::as_int() const {
     if (std::holds_alternative<int>(data)) {
         return std::get<int>(data);
     }
@@ -144,7 +148,7 @@ int Value::as_int() const noexcept {
     throw RuntimeError("Value is not convertible to int");
 }
 
-bool Value::as_bool() const noexcept {
+bool Value::as_bool() const {
     if (std::holds_alternative<bool>(data)) {
         return std::get<bool>(data);
     }
@@ -169,7 +173,7 @@ bool Value::as_bool() const noexcept {
     return true;
 }
 
-std::string Value::as_string() const noexcept {
+std::string Value::as_string() const {
     if (std::holds_alternative<std::string>(data)) {
         return std::get<std::string>(data);
     }
@@ -259,37 +263,41 @@ std::string Value::as_string() const noexcept {
     throw RuntimeError("Value is not convertible to string");
 }
 
-std::shared_ptr<Array> Value::as_array() const noexcept {
+std::shared_ptr<Array> Value::as_array() const {
     if (std::holds_alternative<std::shared_ptr<Array>>(data)) {
         return std::get<std::shared_ptr<Array>>(data);
     }
+
     throw RuntimeError("Value is not an array");
 }
 
-std::shared_ptr<InstanceValue> Value::as_instance() const noexcept {
+std::shared_ptr<InstanceValue> Value::as_instance() const {
     if (std::holds_alternative<std::shared_ptr<InstanceValue>>(data)) {
         return std::get<std::shared_ptr<InstanceValue>>(data);
     }
+
     throw RuntimeError("Value is not an instance");
 }
 
-std::shared_ptr<ClassValue> Value::as_class() const noexcept {
+std::shared_ptr<ClassValue> Value::as_class() const {
     if (std::holds_alternative<std::shared_ptr<ClassValue>>(data)) {
         return std::get<std::shared_ptr<ClassValue>>(data);
     }
+
     throw RuntimeError("Value is not a class");
 }
 
-std::shared_ptr<FunctionValue> Value::as_function() const noexcept {
+std::shared_ptr<FunctionValue> Value::as_function() const {
     if (std::holds_alternative<std::shared_ptr<FunctionValue>>(data)) {
         return std::get<std::shared_ptr<FunctionValue>>(data);
     }
+
     throw RuntimeError("Value is not a function");
 }
 
 
 // Raw data getters
-const Value::Variant& Value::raw() const noexcept {
+const Value::Variant& Value::raw() const {
     return data;
 }
 
@@ -318,8 +326,7 @@ std::string value_type_name(const Value& v) {
 Value apply_binary_numeric_op(const Value& a, const Value& b, const std::function<double(double, double)>& fn) {
     // Preserve ints where possible
     if (std::holds_alternative<int>(a.raw()) && std::holds_alternative<int>(b.raw())) {
-        double result = fn(static_cast<double>(std::get<int>(a.raw())),
-                           static_cast<double>(std::get<int>(b.raw())));
+        double result = fn(static_cast<double>(std::get<int>(a.raw())), static_cast<double>(std::get<int>(b.raw())));
 
         // Only keep int if the result is mathematically integral
         if (std::floor(result) == result &&

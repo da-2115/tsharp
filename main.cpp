@@ -9,6 +9,9 @@
 #include <iostream>
 #include <sstream>
 
+// T# version string
+constexpr const char* tsharp_version = "v1.0.0-alpha3";
+
 // Main function of T#
 int main(int argc, char** argv) {
     if (argc < 2) {
@@ -17,7 +20,7 @@ int main(int argc, char** argv) {
     }
 
     if (strcmp(argv[1], "--version") == 0) {
-        std::cout << "The T# Progamming Language v1.0.0-alpha2\nWritten by Dylan Armstrong, 2026" << std::endl;
+        std::cout << "The T# Progamming Language " << tsharp_version << std::endl << "Written by Dylan Armstrong, 2026" << std::endl;
         return 0;
     }
 

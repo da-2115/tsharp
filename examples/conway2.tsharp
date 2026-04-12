@@ -1,0 +1,117 @@
+// conway2.tsharp
+// AshKmo, 2026
+
+static int width = 30
+static int height = 20
+
+static int delayCount = pow(2, 14)
+
+void main() {
+	any board[height]
+	any newBoard[height]
+
+	any temp[]
+
+	for (int y = 0; y < height; y++) {
+		int row[width]
+		int newRow[width]
+
+		for (int x = 0; x < width; x++) {
+			row[x] = 0
+			newRow[x] = 0
+		}
+
+		board[y] = row
+		newBoard[y] = newRow
+	}
+
+	board[0][1] = true
+	board[1][0] = true
+	board[2][0] = true
+	board[2][1] = true
+	board[2][2] = true
+
+	print("c")
+
+	while (true) {
+		int y = 0
+		int yp = 0
+		int ym = height - 1
+
+		print("+")
+
+		for (int x = 0; x < width; x++) {
+			print("-")
+		}
+
+		println("+")
+
+		do {
+			yp++
+
+			if (yp == height) {
+				yp = 0
+			}
+
+			int x = 0
+			int xp = 0
+			int xm = width - 1
+
+			print("|")
+
+			do {
+				xp++
+
+				if (xp == width) {
+					xp = 0
+				}
+
+				int total = board[ym][xm] + board[ym][x] + board[ym][xp] + board[y][xm] + board[y][xp] + board[yp][xm] + board[yp][x] + board[yp][xp]
+
+				int n = 0
+
+				if (total == 3) {
+					n = 1
+				} else {
+					if (total == 2) {
+						n = board[y][x]
+					} else {
+						n = 0
+					}
+				}
+
+				if (n) {
+					print("#")
+				} else {
+					print(" ")
+				}
+
+				newBoard[y][x] = n
+
+				xm = x
+				x = xp
+			} while (xp != 0)
+
+			println("|")
+
+			ym = y
+			y = yp
+		} while (yp != 0)
+
+		print("+")
+
+		for (int x = 0; x < width; x++) {
+			print("-")
+		}
+
+		println("+")
+
+		print("[H")
+
+		temp = board
+		board = newBoard
+		newBoard = temp
+
+		//for (int i = 0; i < delayCount; i++) {}
+	}
+}
