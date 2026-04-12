@@ -60,14 +60,15 @@ function Run-Test {
         # Run the T# program
         $output = & $Script:CompilerPath $tempFile 2>&1 | Out-String
         $output = $output -replace "`r`n$", ""  # Remove trailing newline
+        $output = $output -replace "`r`n", "`n"  # Normalize all line endings to LF only
         
         # Compare output
         if ($output -eq $Expected) {
-            Write-Status "✓ PASS: $TestName" -Color $Colors.Success
+            Write-Status "[PASS] $TestName" -Color $Colors.Success
             $Script:TestsPassed++
             $Script:PassedTests += $TestName
         } else {
-            Write-Status "✗ FAIL: $TestName" -Color $Colors.Error
+            Write-Status "[FAIL] $TestName" -Color $Colors.Error
             $Script:FailedTests += $TestName
             if ($Verbose) {
                 Write-Status "  Expected: '$Expected'" -Color $Colors.Warning
@@ -86,7 +87,7 @@ Write-Host ""
 
 # Build first
 Write-Status "Building T# Compiler..." -Color $Colors.Info
-& .\build.ps1
+& .\build.ps1 | Out-Null
 if ($LASTEXITCODE -ne 0) {
     Write-Status "Build failed!" -Color $Colors.Error
     exit 1
@@ -143,7 +144,7 @@ void main() {
 '@ "x is greater than 5"
 
 # Test 5: For loop
-Run-Test "For Loop (1 to 3)" @'
+Run-Test 'For Loop (1 to 3)' @'
 void main() {
     for (int i = 1; i <= 3; i++) {
         println(i)
@@ -188,13 +189,61 @@ void main() {
 '@ "42"
 
 # Test 10: Math - power
-Run-Test "Math - Power (2^3)" @'
+Run-Test 'Math - Power (2^3)' @'
 void main() {
     println(pow(2, 3))
 }
 '@ "8"
 
-# Test 11: Switch statement
+# Test 11: Multiple Statements
+Run-Test "Multiple Statements" @'
+void main() {
+    println("Line 1")
+    println("Line 2")
+    println("Line 3")
+}
+'@ "Line 1`nLine 2`nLine 3"
+
+# Test 12: Nested Loops
+Run-Test "Nested Loops" @'
+void main() {
+    for (int i = 1; i <= 2; i++) {
+        for (int j = 1; j <= 2; j++) {
+            println(i)
+        }
+    }
+}
+'@ "1`n1`n2`n2"
+
+# Test 13: Increment Operator
+Run-Test "Increment Operator" @'
+void main() {
+    int x = 5
+    x++
+    println(x)
+}
+'@ "6"
+
+# Test 14: Boolean Values
+Run-Test "Boolean Values" @'
+void main() {
+    bool flag = true
+    if (flag) {
+        println("true")
+    }
+}
+'@ "true"
+
+# Test 15: Comparison Operators with AND
+Run-Test "Comparison Operators with AND" @'
+void main() {
+    if (5 < 10 && 10 > 3) {
+        println("Both conditions true")
+    }
+}
+'@ "Both conditions true"
+
+# Test 16: Switch statement
 Run-Test "Switch Statement" @'
 void main() {
     int day = 2
@@ -211,7 +260,7 @@ void main() {
 }
 '@ "Tuesday"
 
-# Test 12: Array initialization
+# Test 17: Array initialization
 Run-Test "Array Initialization" @'
 void main() {
     int arr[3]
@@ -223,6 +272,17 @@ void main() {
     println(arr[2])
 }
 '@ "5`n10`n15"
+
+# Test 18: String Concatenation
+Run-Test "String Concatenation" @'
+void main() {
+    string s1 = "Hello"
+    string s2 = "World"
+    println(s1 + " " + s2)
+}
+'@ "Hello World"
+
+# Edge Cases
 
 # Edge Case: Zero values
 Run-Test "Edge Case - Zero Values" @'
@@ -244,14 +304,105 @@ void main() {
 }
 '@ "-10`n10`n10"
 
+# Edge Case: Large Numbers
+Run-Test "Edge Case - Large Numbers" @'
+void main() {
+    int large = 1000000
+    println(large)
+    println(large + 1)
+}
+'@ "1000000`n1000001"
+
+# Edge Case: Modulo Operations
+Run-Test "Edge Case - Modulo Operations" @'
+void main() {
+    println(10 % 3)
+    println(20 % 5)
+    println(7 % 2)
+}
+'@ "1`n0`n1"
+
+# Edge Case: Empty Loop
+Run-Test "Edge Case - Empty Loop" @'
+void main() {
+    for (int i = 0; i < 0; i++) {
+        println("Never runs")
+    }
+    println("After loop")
+}
+'@ "After loop"
+
+# Edge Case: Nested Conditionals
+Run-Test "Edge Case - Nested Conditionals" @'
+void main() {
+    int x = 5
+    if (x > 0) {
+        if (x < 10) {
+            if (x == 5) {
+                println("Five")
+            }
+        }
+    }
+}
+'@ "Five"
+
+# Edge Case: Complex Logic
+Run-Test "Edge Case - Complex Logic" @'
+void main() {
+    if ((5 > 3) && (10 < 20) && (2 == 2)) {
+        println("All true")
+    }
+}
+'@ "All true"
+
+# Edge Case: String Operations
+Run-Test "Edge Case - String Operations" @'
+void main() {
+    string empty = ""
+    string text = "T#"
+    println(empty + text)
+    println(text)
+}
+'@ "T#`nT#"
+
 # Edge Case: Factorial edge cases
-Run-Test "Edge Case - Factorial(0 and 1)" @'
+Run-Test 'Edge Case - Factorial(0 and 1)' @'
 void main() {
     println(factorial(0))
     println(factorial(1))
     println(factorial(3))
 }
 '@ "1`n1`n6"
+
+# Edge Case: Math Functions
+Run-Test "Edge Case - Math Functions" @'
+void main() {
+    println(sqrt(0))
+    println(sqrt(1))
+    println(abs(0))
+    println(min(5, 5))
+    println(max(5, 5))
+}
+'@ "0`n1`n0`n5`n5"
+
+# Example tests
+Write-Host ""
+Write-Status "Running example tests..." -Color $Colors.Info
+Write-Host ""
+
+if (Test-Path "examples/test.tsharp") {
+    Run-Test "Example - Hello World" @'
+void main() {
+    println("Hello World!")
+}
+'@ "Hello World!"
+}
+
+if (Test-Path "examples/dylan.tsharp") {
+    $dylanCode = Get-Content "examples/dylan.tsharp" -Raw
+    $dylanExpected = "1`n4`n729"
+    Run-Test "Example - Dylan Function" $dylanCode $dylanExpected
+}
 
 # Summary
 Write-Host ""
@@ -274,14 +425,14 @@ if ($Verbose -or $Script:TestsFailed -gt 0) {
     Write-Host ""
     Write-Status "=== Passed Tests ($($Script:PassedTests.Count)) ===" -Color $Colors.Info
     foreach ($test in $Script:PassedTests) {
-        Write-Status "✓ $test" -Color $Colors.Success
+        Write-Status "[OK] $test" -Color $Colors.Success
     }
     
     if ($Script:TestsFailed -gt 0) {
         Write-Host ""
         Write-Status "=== Failed Tests ($($Script:FailedTests.Count)) ===" -Color $Colors.Info
         foreach ($test in $Script:FailedTests) {
-            Write-Status "✗ $test" -Color $Colors.Error
+            Write-Status "[FAIL] $test" -Color $Colors.Error
         }
     }
 }
@@ -293,6 +444,6 @@ if ($Script:TestsFailed -gt 0) {
     Write-Status "Run with '-Verbose' flag for detailed output" -Color $Colors.Warning
     exit 1
 } else {
-    Write-Status "All tests passed! ✓" -Color $Colors.Success
+    Write-Status "All tests passed!" -Color $Colors.Success
     exit 0
 }

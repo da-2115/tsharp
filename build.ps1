@@ -1,4 +1,4 @@
-# Build script for T# Programming Language - Windows PowerShell
+﻿# Build script for T# Programming Language - Windows PowerShell
 # Dylan Armstrong, 2026
 
 param(
@@ -29,6 +29,18 @@ $deps = @{
 $hasMsvc = $null -ne (Get-Command cl.exe -ErrorAction SilentlyContinue)
 $hasClang = $null -ne (Get-Command clang.exe -ErrorAction SilentlyContinue)
 
+# Also check for Visual Studio installations directly
+if (-not ($hasMsvc -or $hasClang)) {
+    $vsVersions = @("2022", "2019", "2017")
+    foreach ($version in $vsVersions) {
+        $vsPath = "C:\Program Files\Microsoft Visual Studio\$version\*\VC\Tools\MSVC\*\bin\HostX64\x64\cl.exe"
+        if (Test-Path $vsPath) {
+            $hasMsvc = $true
+            break
+        }
+    }
+}
+
 foreach ($dep in $deps.GetEnumerator()) {
     if ($null -eq (Get-Command $dep.Key -ErrorAction SilentlyContinue)) {
         Write-Status "✗ $($dep.Key) not found" -Color $ErrorColor
@@ -50,6 +62,27 @@ Write-Host ""
 Write-Status "Building T# Compiler..." -Color $InfoColor
 Write-Host ""
 
+# Bootstrap vcpkg
+$vcpkgDir = (Get-Location).Path + "\vcpkg"
+if (-not (Test-Path "$vcpkgDir\vcpkg.exe")) {
+    Write-Status "Setting up vcpkg..." -Color $InfoColor
+    git clone https://github.com/Microsoft/vcpkg.git vcpkg
+    & "$vcpkgDir\bootstrap-vcpkg.bat"
+    Write-Status "✓ vcpkg ready" -Color $SuccessColor
+} else {
+    Write-Status "✓ Using cached vcpkg" -Color $SuccessColor
+}
+
+# Install dependencies with vcpkg
+Write-Status "Installing dependencies..." -Color $InfoColor
+& "$vcpkgDir\vcpkg.exe" install --triplet x64-windows
+if ($LASTEXITCODE -ne 0) {
+    Write-Status "✗ vcpkg install failed" -Color $ErrorColor
+    exit 1
+}
+
+Write-Host ""
+
 # Clean if requested
 if ($Clean) {
     Write-Status "Cleaning build directory..." -Color $WarningColor
@@ -65,7 +98,9 @@ if (-not (Test-Path "build")) {
 
 # Run CMake
 Write-Status "Running CMake..." -Color $WarningColor
-& cmake . -B build -G "Visual Studio 17 2022" 2>&1
+$toolchainPath = "$vcpkgDir\scripts\buildsystems\vcpkg.cmake" -replace '\\', '/'
+Write-Status "Using toolchain: $toolchainPath" -Color $InfoColor
+& cmake . -B build -G "Visual Studio 17 2022" "-DCMAKE_TOOLCHAIN_FILE=$toolchainPath" 2>&1
 
 if ($LASTEXITCODE -ne 0) {
     Write-Status "✗ CMake configuration failed" -Color $ErrorColor
@@ -74,7 +109,31 @@ if ($LASTEXITCODE -ne 0) {
 
 # Build with MSBuild
 Write-Status "Running MSBuild..." -Color $WarningColor
-& msbuild build\tsharp.sln /p:Configuration=Release /m 2>&1
+
+# Find MSBuild
+$msbuild = $null
+if (Get-Command msbuild -ErrorAction SilentlyContinue) {
+    $msbuild = "msbuild"
+} else {
+    # Search for MSBuild in Visual Studio installations
+    $vsVersions = @("2022", "2019", "2017")
+    foreach ($version in $vsVersions) {
+        $msPath = "C:\Program Files\Microsoft Visual Studio\$version\*\MSBuild\Current\Bin\MSBuild.exe"
+        $found = Get-Item $msPath -ErrorAction SilentlyContinue | Select-Object -First 1
+        if ($found) {
+            $msbuild = $found.FullName
+            break
+        }
+    }
+}
+
+if (-not $msbuild) {
+    Write-Status "✗ MSBuild not found" -Color $ErrorColor
+    Write-Status "Please ensure Visual Studio Build Tools are installed" -Color $WarningColor
+    exit 1
+}
+
+& $msbuild build\tsharp.sln /p:Configuration=Release /m 2>&1
 
 if ($LASTEXITCODE -ne 0) {
     Write-Status "✗ Build failed" -Color $ErrorColor

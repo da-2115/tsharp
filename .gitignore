@@ -46,6 +46,10 @@ build
 generated
 tsharp
 
+# vcpkg (package manager)
+vcpkg/
+vcpkg_installed/
+
 # Visual Studio Code
 .vscode
 
@@ -54,3 +58,6 @@ Makefile
 CMakeFiles
 CMakeCache.txt
 cmake_install.cmake
+
+.antlr4-runtime
+antlr4-temp.zip

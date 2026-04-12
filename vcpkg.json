@@ -1,0 +1,7 @@
+{
+  "name": "tsharp",
+  "version": "1.0.0",
+  "dependencies": [
+    "antlr4"
+  ]
+}
