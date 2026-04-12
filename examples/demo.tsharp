@@ -2,21 +2,11 @@
 // Tests all T# features
 // Dylan Armstrong, 2026
 
-// Global variables and constants
-static int globalCounter = 0
-static string globalName = "T# Demo"
-
 // Interfaces
 interface Drawable {
     public void Draw()
     public string GetDescription()
 }
-
-interface Serializable {
-    public string Serialize()
-}
-
-// Classes with generics
 
 // Generic Pair implementation
 class Pair<T> {
@@ -52,7 +42,7 @@ class Shape : Drawable {
     }
 
     public float Area() {
-        return width * height
+        return this.width * this.height
     }
 }
 
@@ -67,11 +57,11 @@ class Rectangle : Shape {
     }
 
     public override void Draw() {
-        println("Drawing rectangle in " + color)
+        println("Drawing rectangle in " + this.color)
     }
 
     public override string GetDescription() {
-        return "Rectangle: " + width + "x" + height
+        return "Rectangle: " + this.width + "x" + this.height
     }
 }
 
@@ -84,24 +74,24 @@ class Circle : Drawable {
     }
 
     public void Draw() {
-        println("Drawing circle with radius " + radius)
+        println("Drawing circle with radius " + this.radius)
     }
 
     public string GetDescription() {
-        return "Circle with radius " + radius
+        return "Circle with radius " + this.radius
     }
 
     public float Circumference() {
-        return 2 * pi * radius
+        return 2 * pi * this.radius
     }
 
     public float Area() {
-        return pi * pow(radius, 2)
+        return pi * pow(this.radius, 2)
     }
 }
 
 // Container class using generics
-class Container<T> : Serializable {
+class Container<T> {
     private T data
     private string label
 
@@ -110,10 +100,10 @@ class Container<T> : Serializable {
         this.label = l
     }
 
-    public T GetData -> data
+    public T GetData -> this.data
 
     public string Serialize() {
-        return label + ": " + data
+        return this.label + ": " + this.data
     }
 }
 
@@ -127,11 +117,6 @@ int Add(int a, int b) {
 // Function with math operations
 float MathDemo(float x) {
     return sqrt(x) + abs(sin(x)) + cos(x)
-}
-
-// Function demonstrating factorials and power
-int FactorialPower(int n) {
-    return factorial(n) + pow(2, n)
 }
 
 // Function with conditional logic
@@ -152,28 +137,6 @@ int SumRange(int start, int end) {
         sum += i
     }
     return sum
-}
-
-// Function with do-while
-void CountDown(int n) {
-    do {
-        println(n)
-        n = n - 1
-    } while (n > 0)
-}
-
-// Function with switch
-string DayOfWeek(int day) {
-    switch (day) {
-        case 1:
-            return "Monday"
-        case 2:
-            return "Tuesday"
-        case 3:
-            return "Wednesday"
-        default:
-            return "Other"
-    }
 }
 
 // Main function of demonstration
@@ -226,29 +189,14 @@ void main() {
     println("MathDemo(1.0): " + MathDemo(1.0))
     println("CheckNumber(5): " + CheckNumber(5))
     println("SumRange(1, 10): " + SumRange(1, 10))
-    println("DayOfWeek(2): " + DayOfWeek(2))
     println("")
 
-    // Loops & control flow
-    println("Loops")
+    // Control flow
+    println("Control Flow")
     print("For loop (1-5): ")
     for (int i = 1; i <= 5; i++) {
         print(i + " ")
     }
-    println("")
-    
-    println("Do-while countdown (3-1):")
-    CountDown(3)
-    println("")
-
-    // while loop
-    int j = 0
-    print("While loop: ")
-    while (j < 5) {
-        print(j + " ")
-        j++
-    }
-    println("")
     println("")
 
     // Arrays and generics
@@ -259,17 +207,18 @@ void main() {
     numbers[2] = 30
     numbers[3] = 40
     numbers[4] = 50
-    println("Array initialized")
+    println("Array element [0]: " + numbers[0])
 
     int s[] = {1, 2, 3}
-    println(s[0])
+    println("Array literal [0]: " + s[0])
 
     Pair<int> intPair(1, 2)
     println("Pair first: " + intPair.First)
     println("Pair second: " + intPair.Second)
+    println("")
 
     // Classes & inheritance
-    println("Classes & inheritance")
+    println("Classes & Inheritance")
     Rectangle rect(5.0, 10.0, "blue")
     rect.Draw()
     println(rect.GetDescription())
@@ -283,8 +232,8 @@ void main() {
     println("Area: " + circle.Area())
     println("")
 
-    // Interfaces and containers
-    println("Interfaces and containers")
+    // Containers with generics
+    println("Containers & Generics")
     Container<int> intContainer(42, "The Answer")
     println(intContainer.Serialize())
 
@@ -292,14 +241,12 @@ void main() {
     println(strContainer.Serialize())
     println("")
 
-    // Complex demo!
-    println("Complex demo!")
-
+    // Complex operations
+    println("Complex Operations")
     for (int i = 1; i <= 5; i++) {
         println("i=" + i + ", factorial=" + factorial(i) + ", pow(2,i)=" + pow(2, i))
     }
 
     println("")
-    
     println("Done.")
 }

@@ -128,7 +128,7 @@ std::shared_ptr<ClassValue> Interpreter::get_class_by_name(const std::string& na
 
 // Register class
 void Interpreter::register_class(const std::shared_ptr<ClassValue>& class_val) {
-	classes.at(class_val->name) = class_val;
+	classes[class_val->name] = class_val;
 	globals->define(class_val->name, Value(class_val));
 }
 
@@ -386,9 +386,9 @@ antlrcpp::Any Interpreter::visitClassDecl(TSharpParser::ClassDeclContext* ctx) {
 				}
 			}
 			if (is_static)
-				class_val->static_fields.at(name) = initial;
+				class_val->static_fields[name] = initial;
 			else
-				class_val->field_defaults.at(name) = initial;
+				class_val->field_defaults[name] = initial;
 			
 			FieldInfo field_info;
 			field_info.type_name = field->typeRef()->getText();
@@ -429,7 +429,7 @@ antlrcpp::Any Interpreter::visitClassDecl(TSharpParser::ClassDeclContext* ctx) {
 				}
 			}
 
-			class_val->properties.at(p.name) = p;
+			class_val->properties[p.name] = p;
 			
 			// Optimization #3: Populate member lookup for properties
 			MemberInfo member_info;
@@ -439,7 +439,7 @@ antlrcpp::Any Interpreter::visitClassDecl(TSharpParser::ClassDeclContext* ctx) {
 			member_info.field_meta.is_private = p.is_private;
 			member_info.field_meta.is_protected = p.is_protected;
 			member_info.field_meta.is_public = p.is_public;
-			class_val->member_lookup.at(p.name) = member_info;
+			class_val->member_lookup[p.name] = member_info;
 		}
 		if (auto* method = member->methodDecl()) {
 			auto fn = build_method(method);

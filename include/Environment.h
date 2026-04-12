@@ -13,7 +13,7 @@ namespace tsharp {
 class Environment : public std::enable_shared_from_this<Environment> {
 public:
     explicit Environment(std::shared_ptr<Environment> parent = nullptr);
-
+    
     void define(const std::string& name, const Value& value);
     void assign(const std::string& name, const Value& value);
     Value get(const std::string& name) const;
