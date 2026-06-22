@@ -47,8 +47,8 @@ generated
 tsharp
 
 # vcpkg (package manager)
-vcpkg/
-vcpkg_installed/
+vcpkg
+vcpkg_installed
 
 # Visual Studio Code
 .vscode

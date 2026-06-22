@@ -23,7 +23,7 @@ echo ""
 echo -e "${BLUE}Checking dependencies...${NC}"
 
 if ! command -v cmake &> /dev/null; then
-    echo -e "${RED}✗ CMake not found${NC}"
+    echo -e "${RED}CMake not found${NC}"
     echo "Install with:"
     if [ "$OS_TYPE" = "Darwin" ]; then
         echo "  brew install cmake"
@@ -32,10 +32,10 @@ if ! command -v cmake &> /dev/null; then
     fi
     exit 1
 fi
-echo -e "${GREEN}✓ CMake${NC}"
+echo -e "${GREEN}CMake${NC}"
 
 if ! command -v make &> /dev/null; then
-    echo -e "${RED}✗ Make not found${NC}"
+    echo -e "${RED}Make not found${NC}"
     echo "Install with:"
     if [ "$OS_TYPE" = "Darwin" ]; then
         echo "  brew install make"
@@ -44,10 +44,10 @@ if ! command -v make &> /dev/null; then
     fi
     exit 1
 fi
-echo -e "${GREEN}✓ Make${NC}"
+echo -e "${GREEN}Make${NC}"
 
 if ! command -v g++ &> /dev/null && ! command -v clang++ &> /dev/null; then
-    echo -e "${RED}✗ C++ compiler not found${NC}"
+    echo -e "${RED}C++ compiler not found${NC}"
     echo "Install with:"
     if [ "$OS_TYPE" = "Darwin" ]; then
         echo "  xcode-select --install"
@@ -56,10 +56,10 @@ if ! command -v g++ &> /dev/null && ! command -v clang++ &> /dev/null; then
     fi
     exit 1
 fi
-echo -e "${GREEN}✓ C++ Compiler${NC}"
+echo -e "${GREEN}C++ Compiler${NC}"
 
 if ! command -v java &> /dev/null; then
-    echo -e "${RED}✗ Java not found (required for ANTLR)${NC}"
+    echo -e "${RED}Java not found (required for ANTLR)${NC}"
     echo "Install with:"
     if [ "$OS_TYPE" = "Darwin" ]; then
         echo "  brew install openjdk"
@@ -68,7 +68,7 @@ if ! command -v java &> /dev/null; then
     fi
     exit 1
 fi
-echo -e "${GREEN}✓ Java${NC}"
+echo -e "${GREEN}Java${NC}"
 
 echo ""
 echo -e "${BLUE}Building T# Compiler...${NC}"
@@ -101,7 +101,7 @@ if [ -f "build/tsharp" ]; then
 fi
 
 if [ -f "./tsharp" ]; then
-    echo -e "${GREEN}✓ Build successful!${NC}"
+    echo -e "${GREEN}Build successful!${NC}"
     echo ""
     echo -e "${BLUE}T# compiler location:${NC} $(pwd)/tsharp"
     echo -e "${BLUE}Version:${NC}"
@@ -112,6 +112,6 @@ if [ -f "./tsharp" ]; then
     echo "  ./tsharp examples/test.tsharp  # Run example"
     exit 0
 else
-    echo -e "${RED}✗ Build failed - compiler binary not found${NC}"
+    echo -e "${RED}Build failed - compiler binary not found${NC}"
     exit 1
 fi

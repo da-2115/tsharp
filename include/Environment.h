@@ -18,11 +18,11 @@ public:
     void assign(const std::string& name, const Value& value);
     Value get(const std::string& name) const;
     bool exists_local(const std::string& name) const;
-    std::shared_ptr<Environment> parent() const;
+    std::shared_ptr<Environment> get_parent() const;
 
 private:
-    std::unordered_map<std::string, Value> values_;
-    std::shared_ptr<Environment> parent_;
+    std::unordered_map<std::string, Value> values;
+    std::shared_ptr<Environment> parent;
 };
 
 }

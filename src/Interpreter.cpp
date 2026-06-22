@@ -2,8 +2,12 @@
 // Dylan Armstrong, 2026
 
 #include "Interpreter.h"
+
 #include <any>
 #include <iostream>
+
+#include "FunctionValue.h"
+#include "InstanceValue.h"
 
 using namespace antlr4;
 
@@ -20,16 +24,20 @@ Interpreter::Interpreter() {
 // Call ANTLR visit method, with the program (root AST node in T#)
 void Interpreter::execute(TSharpParser::ProgramContext* program) {
 	visit(program);
+
 	auto main_value = globals->get("main");
+
 	call_function(main_value, {});
 }
 
 // Get base type name as string
 static std::string base_type_name(const std::string& type_name) {
 	auto pos = type_name.find('<');
+
 	if (pos == std::string::npos) {
 		return type_name;
 	}
+
 	return type_name.substr(0, pos);
 }
 
@@ -65,25 +73,37 @@ Value Interpreter::call_function(const Value& callee, const std::vector<Value>& 
 
 	auto previous = env;
 	env = local;
+
 	try {
 		auto* block = static_cast<TSharpParser::BlockContext*>(fn->body_node);
-		exec_result.flow = ControlFlow::NORMAL;  // Optimization #4: Initialize control flow
+		exec_result.flow = ControlFlow::NORMAL;
+
 		visit(block);
+
 		Value result_value;
-		// Optimization #4: Check control flow status instead of relying on exceptions
+		
 		if (exec_result.flow == ControlFlow::RETURN_VALUE) {
 			result_value = exec_result.value;
 			exec_result.flow = ControlFlow::NORMAL;  // Reset for next function call
-		} else {
+		} 
+		
+		else {
 			result_value = Value();
 		}
+
 		env = previous;
 		return result_value;
-	} catch (const ReturnSignal& r) {
+	} 
+	
+	catch (const ReturnSignal& r) {
 		env = previous;
+
 		return r.value;
-	} catch (...) {
+	} 
+	
+	catch (...) {
 		env = previous;
+
 		throw;
 	}
 }
@@ -91,8 +111,9 @@ Value Interpreter::call_function(const Value& callee, const std::vector<Value>& 
 // Evaluate parse tree node
 Value Interpreter::evaluate(tree::ParseTree* node) {
 	// If node is a nullptr
-	if (!node)
+	if (!node) {
 		return Value();
+	}
 	// Otherwise...
 	return std::any_cast<Value>(visit(node));
 }
@@ -151,6 +172,7 @@ std::shared_ptr<FunctionValue> Interpreter::build_function(TSharpParser::Functio
 	if (ctx->modifiers()) {
 		for (auto* mod : ctx->modifiers()->modifier()) {
 			auto text = mod->getText();
+
 			fn->is_static = fn->is_static || text == "static";
 			fn->is_virtual = fn->is_virtual || text == "virtual";
 			fn->is_override = fn->is_override || text == "override";
@@ -163,47 +185,70 @@ std::shared_ptr<FunctionValue> Interpreter::build_function(TSharpParser::Functio
 
 std::shared_ptr<FunctionValue> Interpreter::build_method(TSharpParser::MethodDeclContext* ctx) {
 	auto fn = std::make_shared<FunctionValue>();
+
 	fn->name = ctx->IDENTIFIER()->getText();
 	fn->return_type = ctx->returnType()->getText();
 	fn->closure = env;
 	fn->body_node = ctx->block();
 	fn->is_method = true;
+
 	if (ctx->parameterList()) {
 		for (auto* p : ctx->parameterList()->parameter()) {
 			fn->params.push_back({p->typeRef()->getText(), p->IDENTIFIER()->getText()});
 		}
 	}
+
 	if (ctx->modifiers()) {
 		for (auto* mod : ctx->modifiers()->modifier()) {
 			auto text = mod->getText();
+
 			fn->is_static = fn->is_static || text == "static";
 			fn->is_virtual = fn->is_virtual || text == "virtual";
 			fn->is_override = fn->is_override || text == "override";
 			fn->is_abstract = fn->is_abstract || text == "abstract";
+
 			if (text == "private") {
 				fn->is_private = true;
 				fn->is_public = false;
 			}
+
 			if (text == "protected") {
 				fn->is_protected = true;
 				fn->is_public = false;
 			}
 		}
 	}
+
 	return fn;
 }
 
-// Optimization #8: Fill arguments vector by reference instead of returning
 void Interpreter::eval_arguments(TSharpParser::ArgumentListContext* ctx, std::vector<Value>& out_args) {
-	if (!ctx)
+	if (!ctx) {
 		return;
-	for (auto* expr : ctx->expression())
+	}
+
+	for (auto* expr : ctx->expression()) {
 		out_args.push_back(evaluate(expr));
+	}
 }
 
 // Get a member
 Value Interpreter::get_member(const Value& target, const std::string& name, bool from_base) {
-	
+	// Handle enum member access
+    if (target.is_class()) {
+        auto class_val = target.as_class();
+
+        if (class_val->is_enum) {
+            auto it = class_val->static_fields.find(name);
+
+            if (it != class_val->static_fields.end()) {
+                return it->second;
+            }
+
+            throw RuntimeError("Unknown enum member: " + name);
+        }
+    }
+
 	if (target.is_instance()) {
 		auto inst = target.as_instance();
 
@@ -217,14 +262,17 @@ Value Interpreter::get_member(const Value& target, const std::string& name, bool
 		} catch (...) {}
 
 		auto fit = inst->fields.find(name);
+
 		if (fit != inst->fields.end()) {
 			// Check field access modifiers (but allow private access from within the class)
 			auto meta_it = inst->class_val->field_metadata.find(name);
+
 			if (meta_it != inst->class_val->field_metadata.end()) {
 				if (meta_it->second.is_private && !is_internal_access) {
 					throw RuntimeError("Cannot access private field: " + name);
 				}
 			}
+
 			return fit->second;
 		}
 
@@ -245,7 +293,7 @@ Value Interpreter::get_member(const Value& target, const std::string& name, bool
 		}
 
 		while (class_val) {
-			// Optimization #3: Use unified member lookup instead of separate method/property searches
+			// 3: Use unified member lookup instead of separate method/property searches
 			auto mem_it = class_val->member_lookup.find(name);
 			if (mem_it != class_val->member_lookup.end()) {
 				const MemberInfo& info = mem_it->second;
@@ -314,8 +362,8 @@ Value Interpreter::construct_object(const std::string& type_name, const std::vec
 		instance->fields[name] = value;
 	}
 
-	// Optimization #2: O(1) constructor lookup by arity instead of O(n) search
 	auto ctor_it = class_val->constructors.find(args.size());
+
 	if (ctor_it != class_val->constructors.end()) {
 		call_function(Value(ctor_it->second), args, Value(instance));
 	}
@@ -431,7 +479,6 @@ antlrcpp::Any Interpreter::visitClassDecl(TSharpParser::ClassDeclContext* ctx) {
 
 			class_val->properties[p.name] = p;
 			
-			// Optimization #3: Populate member lookup for properties
 			MemberInfo member_info;
 			member_info.type = MemberInfo::PROPERTY;
 			member_info.property = p;
@@ -441,11 +488,11 @@ antlrcpp::Any Interpreter::visitClassDecl(TSharpParser::ClassDeclContext* ctx) {
 			member_info.field_meta.is_public = p.is_public;
 			class_val->member_lookup[p.name] = member_info;
 		}
+
 		if (auto* method = member->methodDecl()) {
 			auto fn = build_method(method);
 			class_val->methods[fn->name] = fn;
 			
-			// Optimization #3: Populate member lookup for methods
 			MemberInfo member_info;
 			member_info.type = MemberInfo::METHOD;
 			member_info.method = fn;
@@ -454,6 +501,7 @@ antlrcpp::Any Interpreter::visitClassDecl(TSharpParser::ClassDeclContext* ctx) {
 			member_info.field_meta.is_public = fn->is_public;
 			class_val->member_lookup[fn->name] = member_info;
 		}
+
 		if (auto* ctor = member->constructorDecl()) {
 			auto fn = std::make_shared<FunctionValue>();
 			fn->name = "__ctor";
@@ -466,7 +514,7 @@ antlrcpp::Any Interpreter::visitClassDecl(TSharpParser::ClassDeclContext* ctx) {
 					fn->params.push_back({p->typeRef()->getText(), p->IDENTIFIER()->getText()});
 				}
 			}
-			// Optimization #2: Store constructor by arity (parameter count)
+
 			class_val->constructors[fn->params.size()] = fn;
 		}
 	}
@@ -485,9 +533,30 @@ antlrcpp::Any Interpreter::visitInterfaceDecl(TSharpParser::InterfaceDeclContext
 
 // Visit enum declaration
 antlrcpp::Any Interpreter::visitEnumDecl(TSharpParser::EnumDeclContext* ctx) {
-	// TODO: Implement enum declarations
-	// For now, just parse and discard
-	return Value();
+	auto enum_val = std::make_shared<ClassValue>();
+    enum_val->name = ctx->IDENTIFIER()->getText();
+    enum_val->is_enum = true;
+    
+    // Parse enum members with optional explicit values
+    int next_value = 0;
+    for (auto* member : ctx->enumMember()) {
+        std::string member_name = member->IDENTIFIER()->getText();
+        int member_value = next_value;
+        
+        // Check if member has explicit value assignment (INTEGER_LITERAL)
+        if (member->INTEGER_LITERAL()) {
+            member_value = std::stoi(member->INTEGER_LITERAL()->getText());
+        }
+        
+        // Store enum member as static field with integer value
+        enum_val->static_fields[member_name] = Value(member_value);
+        next_value = member_value + 1;
+    }
+    
+    // Register enum as a type
+    register_class(enum_val);
+    
+    return Value(enum_val);
 }
 
 // Visit variable statement
@@ -577,29 +646,45 @@ antlrcpp::Any Interpreter::visitAssignment(TSharpParser::AssignmentContext* ctx)
 			if (current.is_number() && rhs.is_number())
 				env->assign(name, Value(current.as_int() - rhs.as_int()));
 			else
-				env->assign(name, Value(current.as_double() - rhs.as_double()));
+				env->assign(name, Value(current.as_double() - rhs.as_double())); 
 		} else if (op == "*=") {
-			if (current.is_number() && rhs.is_number())
-				env->assign(name, Value(current.as_int() * rhs.as_int()));
-			else
-				env->assign(name, Value(current.as_double() * rhs.as_double()));
-		} else if (op == "/=") {
-			if (rhs.as_double() == 0.0)
-				throw RuntimeError("Division by zero");
+            if (current.is_number() && rhs.is_number()) {
+                if (current.is_double() || current.is_float() || rhs.is_double() || rhs.is_float()) {
+                    env->assign(name, Value(current.as_double() * rhs.as_double()));
+                } else {
+                    env->assign(name, Value(current.as_int() * rhs.as_int()));
+                }
+            } else {
+                env->assign(name, Value(current.as_double() * rhs.as_double()));
+            }
+        } else if (op == "/=") {
+            if (rhs.as_double() == 0.0)
+                throw RuntimeError("Division by zero");
 
-			if (current.is_number() && rhs.is_number())
-				env->assign(name, Value(static_cast<double>(current.as_int()) / rhs.as_int()));
-			else
-				env->assign(name, Value(current.as_double() / rhs.as_double()));
-		} else if (op == "%=") {
-			if (current.is_number() && rhs.is_number()) {
-				if (rhs.as_int() == 0)
-					throw RuntimeError("Modulo by zero");
-				env->assign(name, Value(current.as_int() % rhs.as_int()));
-			} else {
-				env->assign(name, Value(std::fmod(current.as_double(), rhs.as_double())));
-			}
-		}
+            if (current.is_number() && rhs.is_number()) {
+                if (current.is_double() || current.is_float() || rhs.is_double() || rhs.is_float()) {
+                    env->assign(name, Value(current.as_double() / rhs.as_double()));
+                } else {
+                    env->assign(name, Value(static_cast<double>(current.as_int()) / rhs.as_int()));
+                }
+            } else {
+                env->assign(name, Value(current.as_double() / rhs.as_double()));
+            }
+        } else if (op == "%=") {
+            if (current.is_number() && rhs.is_number()) {
+                if (current.is_double() || current.is_float() || rhs.is_double() || rhs.is_float()) {
+                    if (rhs.as_double() == 0.0)
+                        throw RuntimeError("Modulo by zero");
+                    env->assign(name, Value(std::fmod(current.as_double(), rhs.as_double())));
+                } else {
+                    if (rhs.as_int() == 0)
+                        throw RuntimeError("Modulo by zero");
+                    env->assign(name, Value(current.as_int() % rhs.as_int()));
+                }
+            } else {
+                env->assign(name, Value(std::fmod(current.as_double(), rhs.as_double())));
+            }
+        }
 
 		return env->get(name);
 	}
@@ -819,9 +904,9 @@ antlrcpp::Any Interpreter::visitIfStatement(TSharpParser::IfStatementContext* ct
 // Visit while statement
 antlrcpp::Any Interpreter::visitWhileStatement(TSharpParser::WhileStatementContext* ctx) {
 	while (evaluate(ctx->expression()).as_bool()) {
-		exec_result.flow = ControlFlow::NORMAL;  // Optimization #4: Reset flow status
+		exec_result.flow = ControlFlow::NORMAL;
 		visit(ctx->block());
-		// Optimization #4: Check status after block
+		// 4: Check status after block
 		if (exec_result.flow == ControlFlow::BREAK) {
 			exec_result.flow = ControlFlow::NORMAL;
 			break;
@@ -840,19 +925,22 @@ antlrcpp::Any Interpreter::visitWhileStatement(TSharpParser::WhileStatementConte
 // Visit do while statement
 antlrcpp::Any Interpreter::visitDoWhileStatement(TSharpParser::DoWhileStatementContext* ctx) {
 	do {
-		exec_result.flow = ControlFlow::NORMAL;  // Optimization #4: Reset flow status
+		exec_result.flow = ControlFlow::NORMAL;
+
 		visit(ctx->block());
-		// Optimization #4: Check status after block
+
 		if (exec_result.flow == ControlFlow::BREAK) {
 			exec_result.flow = ControlFlow::NORMAL;
 			break;
 		}
+
 		if (exec_result.flow == ControlFlow::CONTINUE) {
 			exec_result.flow = ControlFlow::NORMAL;
-			// Continue to next iteration (check condition)
+			
 		}
+
 		if (exec_result.flow == ControlFlow::RETURN_VALUE) {
-			break;  // Return out of loop
+			break;
 		}
 	} while (evaluate(ctx->expression()).as_bool());
 	return Value();
@@ -862,12 +950,15 @@ antlrcpp::Any Interpreter::visitDoWhileStatement(TSharpParser::DoWhileStatementC
 antlrcpp::Any Interpreter::visitForStatement(TSharpParser::ForStatementContext* ctx) {
 	auto previous = env;
 	env = std::make_shared<Environment>(previous);
-	if (ctx->forInit())
+
+	if (ctx->forInit()) {
 		visit(ctx->forInit());
+	}
+
 	while (!ctx->expression() || evaluate(ctx->expression()).as_bool()) {
-		exec_result.flow = ControlFlow::NORMAL;  // Optimization #4: Reset flow status
+		exec_result.flow = ControlFlow::NORMAL;  // 4: Reset flow status
 		visit(ctx->block());
-		// Optimization #4: Check status after block
+		// 4: Check status after block
 		if (exec_result.flow == ControlFlow::BREAK) {
 			exec_result.flow = ControlFlow::NORMAL;
 			break;
@@ -897,10 +988,10 @@ antlrcpp::Any Interpreter::visitSwitchStatement(TSharpParser::SwitchStatementCon
 		if (!matched && is_default)
 			matched = true;
 		if (matched) {
-			exec_result.flow = ControlFlow::NORMAL;  // Optimization #4: Reset flow status
+			exec_result.flow = ControlFlow::NORMAL;  // 4: Reset flow status
 			for (auto* stmt : section->statement())
 				visit(stmt);
-			// Optimization #4: Check status after statements
+			// 4: Check status after statements
 			if (exec_result.flow == ControlFlow::BREAK) {
 				exec_result.flow = ControlFlow::NORMAL;
 				break;
@@ -915,22 +1006,24 @@ antlrcpp::Any Interpreter::visitSwitchStatement(TSharpParser::SwitchStatementCon
 
 // Visit break statement
 antlrcpp::Any Interpreter::visitBreakStatement(TSharpParser::BreakStatementContext*) {
-	// Optimization #4: Use control flow status - don't throw exception
 	exec_result.flow = ControlFlow::BREAK;
+
 	return Value();
 }
+
 // Visit continue statement
 antlrcpp::Any Interpreter::visitContinueStatement(TSharpParser::ContinueStatementContext*) {
-	// Optimization #4: Use control flow status - don't throw exception
 	exec_result.flow = ControlFlow::CONTINUE;
+
 	return Value();
 }
 
 // Visit return statement
 antlrcpp::Any Interpreter::visitReturnStatement(TSharpParser::ReturnStatementContext* ctx) {
-	// Optimization #4: Use control flow status - don't throw exception
 	exec_result.value = ctx->expression() ? evaluate(ctx->expression()) : Value();
+
 	exec_result.flow = ControlFlow::RETURN_VALUE;
+
 	return Value();
 }
 
@@ -1064,42 +1157,50 @@ antlrcpp::Any Interpreter::visitAdditiveExpression(TSharpParser::AdditiveExpress
 
 // Visit multiplicative expression
 antlrcpp::Any Interpreter::visitMultiplicativeExpression(TSharpParser::MultiplicativeExpressionContext* ctx) {
-	Value result = evaluate(ctx->unaryExpression(0));
+    Value result = evaluate(ctx->unaryExpression(0));
 
-	for (size_t i = 1; i < ctx->unaryExpression().size(); ++i) {
-		std::string op = ctx->children[2 * i - 1]->getText();
-		Value rhs = evaluate(ctx->unaryExpression(i));
+    for (size_t i = 1; i < ctx->unaryExpression().size(); ++i) {
+        std::string op = ctx->children[2 * i - 1]->getText();
+        Value rhs = evaluate(ctx->unaryExpression(i));
 
-		if (op == "*") {
-			if (result.is_number() && rhs.is_number()) {
-				result = Value(result.as_int() * rhs.as_int());
-			} else {
-				result = Value(result.as_double() * rhs.as_double());
-			}
-		} else if (op == "/") {
-			if (rhs.as_double() == 0.0) {
-				throw RuntimeError("Division by zero");
-			}
+        if (op == "*") {
+            if (result.is_number() && rhs.is_number()) {
+                // If either operand is float/double, use double multiplication
+                if (result.is_double() || result.is_float() || rhs.is_double() || rhs.is_float()) {
+                    result = Value(result.as_double() * rhs.as_double());
+                } else {
+                    result = Value(result.as_int() * rhs.as_int());
+                }
+            } else {
+                result = Value(result.as_double() * rhs.as_double());
+            }
+        } else if (op == "/") {
+            if (rhs.as_double() == 0.0) {
+                throw RuntimeError("Division by zero");
+            }
 
-			// Keep this as real division
-			if (result.is_number() && rhs.is_number()) {
-				result = Value(static_cast<double>(result.as_int()) / rhs.as_int());
-			} else {
-				result = Value(result.as_double() / rhs.as_double());
-			}
-		} else {
-			if (result.is_number() && rhs.is_number()) {
-				if (rhs.as_int() == 0) {
-					throw RuntimeError("Modulo by zero");
-				}
-				result = Value(result.as_int() % rhs.as_int());
-			} else {
-				result = Value(std::fmod(result.as_double(), rhs.as_double()));
-			}
-		}
-	}
+            // If either operand is float/double, use double division
+            if (result.is_double() || result.is_float() || rhs.is_double() || rhs.is_float()) {
+                result = Value(result.as_double() / rhs.as_double());
+            } else {
+                result = Value(static_cast<double>(result.as_int()) / rhs.as_int());
+            }
+        } else if (op == "%") {
+            if (result.is_double() || result.is_float() || rhs.is_double() || rhs.is_float()) {
+                if (rhs.as_double() == 0.0) {
+                    throw RuntimeError("Modulo by zero");
+                }
+                result = Value(std::fmod(result.as_double(), rhs.as_double()));
+            } else {
+                if (rhs.as_int() == 0) {
+                    throw RuntimeError("Modulo by zero");
+                }
+                result = Value(result.as_int() % rhs.as_int());
+            }
+        }
+    }
 
-	return result;
+    return result;
 }
 
 // Visit unary expression
@@ -1180,9 +1281,9 @@ antlrcpp::Any Interpreter::visitPostfixExpression(TSharpParser::PostfixExpressio
                 
                 auto base_class = base_class_it->second;
                 std::vector<Value> args;
-                eval_arguments(part->argumentList(), args);  // Optimization #8: Fill by reference
+                eval_arguments(part->argumentList(), args);  // 8: Fill by reference
                 
-                // Optimization #2: O(1) constructor lookup by arity
+                // 2: O(1) constructor lookup by arity
                 auto ctor_it = base_class->constructors.find(args.size());
                 if (ctor_it == base_class->constructors.end()) {
                     throw RuntimeError("No matching base constructor with " + std::to_string(args.size()) + " arguments");
@@ -1192,7 +1293,7 @@ antlrcpp::Any Interpreter::visitPostfixExpression(TSharpParser::PostfixExpressio
                 call_function(Value(ctor_it->second), args, current);
                 current = Value();
             } else {
-                std::vector<Value> args;  // Optimization #8: Prepare vector for by-reference fill
+                std::vector<Value> args;  // 8: Prepare vector for by-reference fill
                 eval_arguments(part->argumentList(), args);
                 current = call_function(current, args, pending_this);
             }

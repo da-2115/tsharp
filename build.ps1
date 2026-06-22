@@ -43,20 +43,20 @@ if (-not ($hasMsvc -or $hasClang)) {
 
 foreach ($dep in $deps.GetEnumerator()) {
     if ($null -eq (Get-Command $dep.Key -ErrorAction SilentlyContinue)) {
-        Write-Status "✗ $($dep.Key) not found" -Color $ErrorColor
+        Write-Status "$($dep.Key) not found" -Color $ErrorColor
         Write-Status "Install $($dep.Value)" -Color $WarningColor
         exit 1
     }
-    Write-Status "✓ $($dep.Key)" -Color $SuccessColor
+    Write-Status "$($dep.Key)" -Color $SuccessColor
 }
 
 # Check for C++ compiler
 if (-not ($hasMsvc -or $hasClang)) {
-    Write-Status "✗ C++ compiler not found (MSVC or Clang)" -Color $ErrorColor
+    Write-Status "C++ compiler not found (MSVC or Clang)" -Color $ErrorColor
     Write-Status "Install Visual Studio Build Tools from: https://visualstudio.microsoft.com/" -Color $WarningColor
     exit 1
 }
-Write-Status "✓ C++ Compiler" -Color $SuccessColor
+Write-Status "C++ Compiler" -Color $SuccessColor
 
 Write-Host ""
 Write-Status "Building T# Compiler..." -Color $InfoColor
@@ -68,16 +68,16 @@ if (-not (Test-Path "$vcpkgDir\vcpkg.exe")) {
     Write-Status "Setting up vcpkg..." -Color $InfoColor
     git clone https://github.com/Microsoft/vcpkg.git vcpkg
     & "$vcpkgDir\bootstrap-vcpkg.bat"
-    Write-Status "✓ vcpkg ready" -Color $SuccessColor
+    Write-Status "vcpkg ready" -Color $SuccessColor
 } else {
-    Write-Status "✓ Using cached vcpkg" -Color $SuccessColor
+    Write-Status "Using cached vcpkg" -Color $SuccessColor
 }
 
 # Install dependencies with vcpkg
 Write-Status "Installing dependencies..." -Color $InfoColor
 & "$vcpkgDir\vcpkg.exe" install --triplet x64-windows
 if ($LASTEXITCODE -ne 0) {
-    Write-Status "✗ vcpkg install failed" -Color $ErrorColor
+    Write-Status "vcpkg install failed" -Color $ErrorColor
     exit 1
 }
 
@@ -103,7 +103,7 @@ Write-Status "Using toolchain: $toolchainPath" -Color $InfoColor
 & cmake . -B build -G "Visual Studio 17 2022" "-DCMAKE_TOOLCHAIN_FILE=$toolchainPath" 2>&1
 
 if ($LASTEXITCODE -ne 0) {
-    Write-Status "✗ CMake configuration failed" -Color $ErrorColor
+    Write-Status "CMake configuration failed" -Color $ErrorColor
     exit 1
 }
 
@@ -128,7 +128,7 @@ if (Get-Command msbuild -ErrorAction SilentlyContinue) {
 }
 
 if (-not $msbuild) {
-    Write-Status "✗ MSBuild not found" -Color $ErrorColor
+    Write-Status "MSBuild not found" -Color $ErrorColor
     Write-Status "Please ensure Visual Studio Build Tools are installed" -Color $WarningColor
     exit 1
 }
@@ -136,7 +136,7 @@ if (-not $msbuild) {
 & $msbuild build\tsharp.sln /p:Configuration=Release /m 2>&1
 
 if ($LASTEXITCODE -ne 0) {
-    Write-Status "✗ Build failed" -Color $ErrorColor
+    Write-Status "Build failed" -Color $ErrorColor
     exit 1
 }
 
@@ -158,7 +158,7 @@ foreach ($path in $binaryPaths) {
 }
 
 if ($compiler) {
-    Write-Status "✓ Build successful!" -Color $SuccessColor
+    Write-Status "Build successful!" -Color $SuccessColor
     Write-Host ""
     Write-Status "T# compiler location: $(Resolve-Path $compiler)" -Color $InfoColor
     Write-Host ""
@@ -168,6 +168,6 @@ if ($compiler) {
     Write-Host ""
     exit 0
 } else {
-    Write-Status "✗ Build failed - compiler binary not found" -Color $ErrorColor
+    Write-Status "Build failed - compiler binary not found" -Color $ErrorColor
     exit 1
 }

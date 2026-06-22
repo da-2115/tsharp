@@ -24,6 +24,7 @@ add_executable(tsharp
 
 target_include_directories(tsharp PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/include
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/runtime_model
     ${CMAKE_CURRENT_SOURCE_DIR}/generated
     ${CMAKE_CURRENT_SOURCE_DIR}/generated/grammar
 )
