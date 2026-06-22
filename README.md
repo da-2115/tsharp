@@ -1,15 +1,17 @@
-# tsharp v1.0.0-alpha3
+# tsharp v1.0.0-beta1
 The T# Programming Language - Written by Dylan Armstrong, 2026 in C++ with the ANTLR framework.
 
 # How to Run?
 
 **You must have ANTLR installed and T# uses the C++20 standard (CMake should automatically set the standard for you).**
 
-1. `cmake .`
-2. `make`
-3. `./tsharp ./your_file_name_here.tsharp` OR `tsharp --version`
+Windows:
+- Run `.\build.ps1`
 
-There are three current examples in the `examples/` folder.
+macOS / Linux:
+- Run `./build.sh`
+
+There are examples in the `examples/` folder.
 
 # Open Source and Free
 T# is an open source and free language, now accepting pull requests (PRs). The language is also free - there is no cost to use, run and contribute to T#.
