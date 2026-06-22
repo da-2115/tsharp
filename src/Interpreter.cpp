@@ -1259,11 +1259,59 @@ antlrcpp::Any Interpreter::visitPostfixExpression(TSharpParser::PostfixExpressio
     Value pending_this = Value();
     bool from_base = ctx->primary()->BASE() != nullptr;
 
-    for (auto* part : ctx->postfixSuffix()) {
+    auto suffixes = ctx->postfixSuffix();
+    for (size_t i = 0; i < suffixes.size(); ++i) {
+        auto* part = suffixes[i];
+        
         if (part->DOT() && part->IDENTIFIER()) {
-            pending_this = current;
-            current = get_member(current, part->IDENTIFIER()->getText(), from_base);
-            from_base = false;
+            std::string member_name = part->IDENTIFIER()->getText();
+            
+            // Check if next suffix is a function call (parentheses)
+            bool is_method_call = false;
+            if ((i + 1) < suffixes.size() && suffixes[i + 1]->LPAREN()) {
+                is_method_call = true;
+                i++; // Skip the next suffix since we're handling it here
+            }
+            
+            // Handle cast methods on primitives
+            if (current.is_number()) {
+                if (member_name == "to_int") {
+                    current = Value(current.as_int());
+                    continue;
+                } else if (member_name == "to_float") {
+                    current = Value(current.as_float());
+                    continue;
+                } else if (member_name == "to_double") {
+                    current = Value(current.as_double());
+                    continue;
+                } else if (member_name == "to_string") {
+                    current = Value(current.as_string());
+                    continue;
+                } else if (member_name == "to_bool") {
+                    current = Value(current.as_double() != 0.0);
+                    continue;
+                }
+            } else if (current.is_bool()) {
+                if (member_name == "to_int") {
+                    current = Value(current.as_bool() ? 1 : 0);
+                    continue;
+                } else if (member_name == "to_string") {
+                    current = Value(current.as_bool() ? std::string("true") : std::string("false"));
+                    continue;
+                }
+            } else if (current.is_string()) {
+                if (member_name == "to_int") {
+                    try {
+                        current = Value(std::stoi(current.as_string()));
+                    } catch (...) {
+                        throw RuntimeError("Cannot convert string to int");
+                    }
+                    continue;
+                }
+            }
+            
+            // Fall back to regular member access
+            current = get_member(current, member_name, from_base);
         } else if (part->LPAREN()) {
             if (from_base && current.is_instance()) {
                 // base() constructor call

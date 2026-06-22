@@ -176,6 +176,99 @@ void install_builtins(const std::shared_ptr<Environment>& global) {
 			               
 		return Value(std::pow(args[0].as_double(), args[1].as_double()));
 	})));
+
+	global->define("size", Value(native_fn("size", [](Interpreter&, const std::vector<Value>& args, const Value&) {
+        if (args.size() != 1) {
+            throw RuntimeError("size expects 1 argument");
+        }
+
+        const Value& v = args[0];
+
+        if (v.is_string()) {
+            return Value(static_cast<int>(v.as_string().size()));
+        }
+
+        if (v.is_array()) {
+            return Value(static_cast<int>(v.as_array()->size()));
+        }
+
+        return Value(static_cast<int>(sizeof(v)));
+    })));
+
+	global->define("typeof", Value(native_fn("typeof", [](Interpreter&, const std::vector<Value>& args, const Value&) {
+        if (args.size() != 1) {
+            throw RuntimeError("typeof expects 1 argument");
+        }
+
+        const Value& v = args[0];
+        if (v.is_null()) return Value("null");
+        if (v.is_int()) return Value("int");
+        if (v.is_float()) return Value("float");
+        if (v.is_double()) return Value("double");
+        if (v.is_bool()) return Value("bool");
+        if (v.is_char()) return Value("char");
+        if (v.is_string()) return Value("string");
+        if (v.is_array()) return Value("array");
+        if (v.is_instance()) return Value("instance");
+        if (v.is_class()) return Value("class");
+        if (v.is_function()) return Value("function");
+        return Value("unknown");
+    })));
+
+    global->define("push", Value(native_fn("push", [](Interpreter&, const std::vector<Value>& args, const Value&) {
+        if (args.size() != 2) {
+            throw RuntimeError("push expects 2 arguments");
+        }
+
+        if (!args[0].is_array()) {
+            throw RuntimeError("push expects first argument to be an array");
+        }
+
+        args[0].as_array()->push_back(args[1]);
+        return Value();
+    })));
+
+    global->define("pop", Value(native_fn("pop", [](Interpreter&, const std::vector<Value>& args, const Value&) {
+        if (args.size() != 1) {
+            throw RuntimeError("pop expects 1 argument");
+        }
+
+        if (!args[0].is_array()) {
+            throw RuntimeError("pop expects argument to be an array");
+        }
+
+        auto arr = args[0].as_array();
+        if (arr->empty()) {
+            throw RuntimeError("pop on empty array");
+        }
+
+        Value last = arr->back();
+        arr->pop_back();
+        return last;
+    })));
+
+    global->define("sort", Value(native_fn("sort", [](Interpreter&, const std::vector<Value>& args, const Value&) {
+        if (args.size() != 1) {
+            throw RuntimeError("sort expects 1 argument");
+        }
+
+        if (!args[0].is_array()) {
+            throw RuntimeError("sort expects argument to be an array");
+        }
+
+        auto arr = args[0].as_array();
+        std::sort(arr->begin(), arr->end(), [](const Value& a, const Value& b) {
+            if (a.is_number() && b.is_number()) {
+                return a.as_double() < b.as_double();
+            }
+            if (a.is_string() && b.is_string()) {
+                return a.as_string() < b.as_string();
+            }
+            return false;
+        });
+
+        return Value();
+    })));
 }
 
 }

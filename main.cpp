@@ -12,7 +12,7 @@
 #include <string_view>
 
 // T# version string
-constexpr std::string_view tsharp_version = "v1.0.0-beta1";
+constexpr std::string_view tsharp_version = "v1.0.0-beta2";
 
 // Main function of T#
 int main(int argc, const char* argv[]) {

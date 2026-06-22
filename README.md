@@ -1,5 +1,25 @@
-# tsharp v1.0.0-beta1
+# tsharp v1.0.0-beta2
 The T# Programming Language - Written by Dylan Armstrong, 2026 in C++ with the ANTLR framework.
+
+# Changelog
+
+## v1.0.0-beta2
+Added type casting and some more built in functions:
+
+**Type Casting Functions**:
+- `to_int()` - cast to an integer.
+- `to_string()` - cast to a string.
+- `to_bool()` - cast to a bool.
+- `to_double()` - cast to a double.
+- `to_float()` - cast to a float.
+
+**New Built-in Functions**:
+- Size function `size()` - returns the size (or length) of a string, an array, etc.
+- Sort function `sort()` - to sort arrays.
+- Push function `push()` - to push an element into the end of the array.
+- Pop function `pop()` - pops the last element from an array.
+- Typeof function `typeof()` - return a string of the type of a variable.
+
 
 # How to Run?
 
@@ -76,8 +96,18 @@ T# is an open source and free language, now accepting pull requests (PRs). The l
 | `min()`        | Function      | Returns minimum of two values                                             |
 | `max()`        | Function      | Returns maximum of two values                                             |
 | `factorial()`  | Function      | Returns factorial of n (n!)                                               |
+| `size()`       | Function      | Returns number of elements in array or string length                      |
+| `typeof()`     | Function      | Returns the type of a value as a string                                   |
+| `push()`       | Function      | Adds an element to the end of an array                                    |
+| `pop()`        | Function      | Removes and returns the last element of an array                          |
+| `sort()`       | Function      | Sorts an array in ascending order                                         |
 | `print()`      | Function      | Prints to console without newline                                         |
 | `println()`    | Function      | Prints to console with newline                                            |
+| `.to_int()`    | Method        | Converts a value to int                                                   |
+| `.to_float()`  | Method        | Converts a value to float                                                 |
+| `.to_double()` | Method        | Converts a value to double                                                |
+| `.to_string()` | Method        | Converts a value to string                                                |
+| `.to_bool()`   | Method        | Converts a value to bool                                                  |
 | `->`           | Operator      | Arrow operator for property expressions                                   |
 | `=`            | Operator      | Assignment operator                                                       |
 | `+=`           | Operator      | Add and assign                                                            |
@@ -101,9 +131,9 @@ T# is an open source and free language, now accepting pull requests (PRs). The l
 | `!`            | Operator      | Logical NOT                                                               |
 | `++`           | Operator      | Increment by one                                                          |
 | `--`           | Operator      | Decrement by one                                                          |
-| `(` `)`        | Delimiter     | Parentheses for grouping expressions and parameters                       |
-| `{` `}`        | Delimiter     | Braces for code blocks                                                    |
-| `[` `]`        | Delimiter     | Brackets for array access and array type declarations                     |
+| `(` `)`        | Delimiter     | Parentheses for grouping expressions and parameters                       |
+| `{` `}`        | Delimiter     | Braces for code blocks                                                    |
+| `[` `]`        | Delimiter     | Brackets for array access and array type declarations                     |
 | `,`            | Delimiter     | Comma for separating items                                                |
 | `.`            | Delimiter     | Dot for member access                                                     |
 | `:`            | Delimiter     | Colon for inheritance clauses                                             |
@@ -116,4 +146,3 @@ All documentation for T# is on: https://tsharp.dylanarmstrong.net
 Written and Founded by Dylan Armstrong in 2026.
 
 Have fun.
-
