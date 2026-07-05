@@ -89,7 +89,7 @@ void install_builtins(const std::shared_ptr<Environment>& global) {
 
 	global->define("print", Value(native_fn("print", [](Interpreter&, const std::vector<Value>& args, const Value&) {
 		for (const auto& a : args) {
-			std::cout << value_to_string(args[0]);	
+			std::cout << value_to_string(a);	
 		}
 
 		return Value();
@@ -97,7 +97,7 @@ void install_builtins(const std::shared_ptr<Environment>& global) {
 
 	global->define("println", Value(native_fn("println", [](Interpreter&, const std::vector<Value>& args, const Value&) {
 		for (const auto& a : args) {
-			std::cout << value_to_string(args[0]) << std::endl;
+			std::cout << value_to_string(a) << std::endl;
 		}
 
 		return Value();
@@ -193,6 +193,32 @@ void install_builtins(const std::shared_ptr<Environment>& global) {
         }
 
         return Value(static_cast<int>(sizeof(v)));
+    })));
+
+    global->define("address", Value(native_fn("address", [](Interpreter&, const std::vector<Value>& args, const Value&) {
+        if (args.size() != 1) {
+            throw RuntimeError("address expects 1 argument");
+        }
+
+        const Value& v = args[0];
+
+        std::ostringstream oss;
+        oss << "0x" << std::hex;
+
+        if (v.is_instance()) {
+            oss << reinterpret_cast<std::uintptr_t>(v.as_instance().get());
+        } else if (v.is_array()) {
+            oss << reinterpret_cast<std::uintptr_t>(v.as_array().get());
+        } else if (v.is_function()) {
+            oss << reinterpret_cast<std::uintptr_t>(v.as_function().get());
+        } else if (v.is_class()) {
+            oss << reinterpret_cast<std::uintptr_t>(v.as_class().get());
+        } else {
+            // For primitives, this is the address of the Value wrapper copy.
+            oss << reinterpret_cast<std::uintptr_t>(&v);
+        }
+
+        return Value(oss.str());
     })));
 
 	global->define("typeof", Value(native_fn("typeof", [](Interpreter&, const std::vector<Value>& args, const Value&) {

@@ -20,14 +20,19 @@ Interpreter::Interpreter() {
 	install_builtins(globals);
 }
 
-// Execute method
-// Call ANTLR visit method, with the program (root AST node in T#)
 void Interpreter::execute(TSharpParser::ProgramContext* program) {
-	visit(program);
+    load(program);
+    run_main();
+}
 
-	auto main_value = globals->get("main");
+void Interpreter::load(TSharpParser::ProgramContext* program) {
+    visit(program);
+}
 
-	call_function(main_value, {});
+void Interpreter::run_main() {
+	std::cout << "running main..." << std::endl;
+    auto main_value = globals->get("main");
+    call_function(main_value, {});
 }
 
 // Get base type name as string
@@ -43,69 +48,89 @@ static std::string base_type_name(const std::string& type_name) {
 
 // Call a function in T#
 Value Interpreter::call_function(const Value& callee, const std::vector<Value>& args, const Value& thisValue) {
-	// Get callee function as a function
-	auto fn = callee.as_function();
+    auto fn = callee.as_function();
 
-	// If it's a native function, call the function!
-	if (fn->is_native) {
-		return fn->native(*this, args, thisValue);
-	}
+    // Native/built-in function
+    if (fn->is_native) {
+        return fn->native(*this, args, thisValue);
+    }
 
-	// Otherwise define a local function
-	auto local = std::make_shared<Environment>(fn->closure ? fn->closure : globals);
+    // Argument count validation
+    if (args.size() != fn->params.size()) {
+        throw RuntimeError(
+            "Function " + fn->name + " expected " +
+            std::to_string(fn->params.size()) + " arguments but got " +
+            std::to_string(args.size())
+        );
+    }
 
-	if (!thisValue.is_null()) {
-		local->define("this", thisValue);
+    auto local = std::make_shared<Environment>(fn->closure ? fn->closure : globals);
 
-		// If it's an instance function
-		if (thisValue.is_instance()) {
-			auto inst = thisValue.as_instance();
-			if (!inst->class_val->base_class_name.empty()) {
-				local->define("base", thisValue);
-			}
-		}
-	}
+    // Bind this/base for instance methods
+    if (!thisValue.is_null()) {
+        local->define("this", thisValue);
 
-	// Set parameters of function to arguments
-	for (size_t i = 0; i < fn->params.size(); ++i) {
-		local->define(fn->params.at(i).name, i < args.size() ? args.at(i) : Value());
-	}
+        if (thisValue.is_instance()) {
+            auto inst = thisValue.as_instance();
 
-	auto previous = env;
-	env = local;
+            if (!inst->class_val->base_class_name.empty()) {
+                local->define("base", thisValue);
+            }
+        }
+    }
 
-	try {
-		auto* block = static_cast<TSharpParser::BlockContext*>(fn->body_node);
-		exec_result.flow = ControlFlow::NORMAL;
+    // Bind parameters
+    for (size_t i = 0; i < fn->params.size(); ++i) {
+        local->define(fn->params.at(i).name, args.at(i));
+    }
 
-		visit(block);
+    auto previous = env;
+    env = local;
 
-		Value result_value;
-		
-		if (exec_result.flow == ControlFlow::RETURN_VALUE) {
-			result_value = exec_result.value;
-			exec_result.flow = ControlFlow::NORMAL;  // Reset for next function call
-		} 
-		
-		else {
-			result_value = Value();
-		}
+    try {
+        auto* block = static_cast<TSharpParser::BlockContext*>(fn->body_node);
 
-		env = previous;
-		return result_value;
-	} 
-	
-	catch (const ReturnSignal& r) {
-		env = previous;
+        exec_result.flow = ControlFlow::NORMAL;
+        exec_result.value = Value();
 
-		return r.value;
-	} 
-	
-	catch (...) {
-		env = previous;
+        visit(block);
 
-		throw;
-	}
+        Value result_value;
+
+        if (exec_result.flow == ControlFlow::RETURN_VALUE) {
+            result_value = exec_result.value;
+            exec_result.flow = ControlFlow::NORMAL;
+            exec_result.value = Value();
+        } else {
+            result_value = Value();
+        }
+
+        // Basic return checking
+        if (fn->return_type == "void" && !result_value.is_null()) {
+            throw RuntimeError(
+                "Void function " + fn->name + " cannot return a value"
+            );
+        }
+
+        if (fn->return_type != "void" && result_value.is_null()) {
+            throw RuntimeError(
+                "Function " + fn->name + " must return " + fn->return_type
+            );
+        }
+
+        env = previous;
+        return result_value;
+    }
+
+    catch (const ReturnSignal& r) {
+        env = previous;
+        return r.value;
+    }
+
+    catch (...) {
+        env = previous;
+        throw;
+    }
 }
 
 // Evaluate parse tree node
@@ -358,15 +383,22 @@ Value Interpreter::construct_object(const std::string& type_name, const std::vec
 	auto instance = std::make_shared<InstanceValue>(class_val);
 
 	// Initialise instance fields from class_val defaults
-	for (const auto& [name, value] : class_val->field_defaults) {
-		instance->fields[name] = value;
-	}
+	copy_field_defaults(class_val, instance);
 
 	auto ctor_it = class_val->constructors.find(args.size());
 
-	if (ctor_it != class_val->constructors.end()) {
-		call_function(Value(ctor_it->second), args, Value(instance));
-	}
+if (ctor_it == class_val->constructors.end()) {
+    if (args.empty() && class_val->constructors.empty()) {
+        return Value(instance);
+    }
+
+    throw RuntimeError(
+        "No matching constructor for " + runtime_type_name +
+        " with " + std::to_string(args.size()) + " arguments"
+    );
+}
+
+call_function(Value(ctor_it->second), args, Value(instance));
 
 	return Value(instance);
 }
@@ -381,10 +413,10 @@ antlrcpp::Any Interpreter::visitProgram(TSharpParser::ProgramContext* ctx) {
 
 // Visit function declaration
 antlrcpp::Any Interpreter::visitFunctionDecl(TSharpParser::FunctionDeclContext* ctx) {
-	auto fn = build_function(ctx, false);
-	functions[fn->name] = fn;
-	globals->define(fn->name, Value(fn));
-	return Value(fn);
+    auto fn = build_function(ctx, false);
+    functions[fn->name] = fn;
+    globals->define(fn->name, Value(fn));
+    return Value(fn);
 }
 
 // Visit class declaration
@@ -638,16 +670,26 @@ antlrcpp::Any Interpreter::visitAssignment(TSharpParser::AssignmentContext* ctx)
 		if (op == "=") {
 			env->assign(name, rhs);
 		} else if (op == "+=") {
-			if (current.is_number() && rhs.is_number())
-				env->assign(name, Value(current.as_int() + rhs.as_int()));
-			else
-				env->assign(name, Value(current.as_double() + rhs.as_double()));
-		} else if (op == "-=") {
-			if (current.is_number() && rhs.is_number())
-				env->assign(name, Value(current.as_int() - rhs.as_int()));
-			else
-				env->assign(name, Value(current.as_double() - rhs.as_double())); 
-		} else if (op == "*=") {
+    if (current.is_string() || rhs.is_string()) {
+        env->assign(name, Value(current.as_string() + rhs.as_string()));
+    } else if (current.is_number() && rhs.is_number()) {
+        if (current.is_double() || current.is_float() || rhs.is_double() || rhs.is_float())
+            env->assign(name, Value(current.as_double() + rhs.as_double()));
+        else
+            env->assign(name, Value(current.as_int() + rhs.as_int()));
+    } else {
+        throw RuntimeError("Invalid operands for +=");
+    }
+} else if (op == "-=") {
+    if (current.is_number() && rhs.is_number()) {
+        if (current.is_double() || current.is_float() || rhs.is_double() || rhs.is_float())
+            env->assign(name, Value(current.as_double() - rhs.as_double()));
+        else
+            env->assign(name, Value(current.as_int() - rhs.as_int()));
+    } else {
+        throw RuntimeError("Invalid operands for -=");
+    } 
+} else if (op == "*=") {
             if (current.is_number() && rhs.is_number()) {
                 if (current.is_double() || current.is_float() || rhs.is_double() || rhs.is_float()) {
                     env->assign(name, Value(current.as_double() * rhs.as_double()));
@@ -826,9 +868,16 @@ antlrcpp::Any Interpreter::visitBlock(TSharpParser::BlockContext* ctx) {
 	auto previous = env;
 	env = std::make_shared<Environment>(previous);
 	try {
-		for (auto* stmt : ctx->statement())
-			visit(stmt);
+		for (auto* stmt : ctx->statement()) {
+    		visit(stmt);
+
+    		if (exec_result.flow != ControlFlow::NORMAL) {
+        		break;
+    		}
+		}
+
 		env = previous;
+
 		return Value();
 	} catch (...) {
 		env = previous;
@@ -839,6 +888,7 @@ antlrcpp::Any Interpreter::visitBlock(TSharpParser::BlockContext* ctx) {
 // Set a member
 void Interpreter::set_member(const Value& target, const std::string& name, const Value& value) {
 	if (target.is_instance()) {
+		
 		auto inst = target.as_instance();
 
 		auto fit = inst->fields.find(name);
@@ -866,9 +916,7 @@ void Interpreter::set_member(const Value& target, const std::string& name, const
 			class_val = it->second;
 		}
 
-		// if field not found, allow dynamic instance field creation
-		inst->fields[name] = value;
-		return;
+		throw RuntimeError("Unknown field: " + name);
 	}
 
 	if (target.is_class()) {
@@ -1144,12 +1192,15 @@ antlrcpp::Any Interpreter::visitAdditiveExpression(TSharpParser::AdditiveExpress
 				result = Value(result.as_double() + rhs.as_double());
 			}
 		} else {
-			if (result.is_number() && rhs.is_number()) {
-				result = Value(result.as_int() - rhs.as_int());
-			} else {
-				result = Value(result.as_double() - rhs.as_double());
-			}
-		}
+    if (result.is_number() && rhs.is_number()) {
+        if (result.is_double() || result.is_float() || rhs.is_double() || rhs.is_float())
+            result = Value(result.as_double() - rhs.as_double());
+        else
+            result = Value(result.as_int() - rhs.as_int());
+    } else {
+        throw RuntimeError("Invalid operands for -");
+    }
+}
 	}
 
 	return result;
@@ -1265,14 +1316,13 @@ antlrcpp::Any Interpreter::visitPostfixExpression(TSharpParser::PostfixExpressio
         
         if (part->DOT() && part->IDENTIFIER()) {
             std::string member_name = part->IDENTIFIER()->getText();
-            
             // Check if next suffix is a function call (parentheses)
             bool is_method_call = false;
             if ((i + 1) < suffixes.size() && suffixes[i + 1]->LPAREN()) {
                 is_method_call = true;
                 i++; // Skip the next suffix since we're handling it here
             }
-            
+			
             // Handle cast methods on primitives
             if (current.is_number()) {
                 if (member_name == "to_int") {
@@ -1310,14 +1360,23 @@ antlrcpp::Any Interpreter::visitPostfixExpression(TSharpParser::PostfixExpressio
                 }
             }
             
-            // Fall back to regular member access
-            current = get_member(current, member_name, from_base);
+			pending_this = current;
+			current = get_member(current, member_name, from_base);
+			from_base = false;
+
+			if (is_method_call) {
+    			std::vector<Value> args;
+    			eval_arguments(suffixes[i]->argumentList(), args);
+
+    			current = call_function(current, args, pending_this);
+    			pending_this = Value();
+			}
+
         } else if (part->LPAREN()) {
             if (from_base && current.is_instance()) {
                 // base() constructor call
                 auto inst = current.as_instance();
                 auto class_val = inst->class_val;
-                
                 if (class_val->base_class_name.empty()) {
                     throw RuntimeError("No base class to call constructor for");
                 }
@@ -1461,6 +1520,19 @@ antlrcpp::Any Interpreter::visitLiteral(TSharpParser::LiteralContext* ctx) {
 // Evaluate binary chain
 Value Interpreter::eval_binary_chain(const std::vector<TSharpParser::AdditiveExpressionContext*>&) {
 	return Value();
+}
+
+void Interpreter::copy_field_defaults(const std::shared_ptr<ClassValue>& class_val, const std::shared_ptr<InstanceValue>& instance) {
+	if (!class_val->base_class_name.empty()) {
+        auto it = classes.find(class_val->base_class_name);
+        if (it != classes.end()) {
+            copy_field_defaults(it->second, instance);
+        }
+    }
+
+    for (const auto& [name, value] : class_val->field_defaults) {
+        instance->fields[name] = value;
+    }
 }
 
 }

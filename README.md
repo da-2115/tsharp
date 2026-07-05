@@ -1,7 +1,56 @@
-# tsharp v1.0.0-beta2
+# tsharp v1.0.0-beta3
 The T# Programming Language - Written by Dylan Armstrong, 2026 in C++ with the ANTLR framework.
 
 # Changelog
+
+## v1.0.0-beta3
+Added multi-file program support, improved object/member calls, and added the `address()` built-in function.
+
+**Major Runtime Fixes**:
+- Fixed instance method calls such as `obj.Serialize()` returning `<function>` instead of the method result.
+- Fixed block control flow so `return`, `break`, and `continue` stop executing the current block correctly.
+- Added function argument count validation.
+- Added constructor arity validation.
+- Added inherited field initialisation for derived classes.
+- Disabled accidental dynamic field creation on instances.
+- Improved field/member assignment safety.
+- Fixed numeric `+=`, `-=`, and subtraction handling for floats and doubles.
+
+**Multiple File Support**:
+T# can now load multiple `.tsharp` files into the same interpreter environment before running `main()`.
+
+Example:
+
+```powershell
+.\build\Release\tsharp.exe .\examples\models.tsharp .\examples\utils.tsharp .\examples\main.tsharp
+```
+
+Recommended layout:
+
+```txt
+models.tsharp   -> classes, interfaces, enums
+utils.tsharp    -> helper functions
+main.tsharp     -> one void main()
+```
+
+Only one file should define `main()`.
+
+**New Built-in Functions**:
+- `address(value)` - returns the runtime memory address of an object, array, class, or function as a hex string. For primitive values, this returns the address of the runtime `Value` wrapper/copy rather than a stable variable slot.
+
+Example:
+
+```tsharp
+class Test {
+    public () { }
+}
+
+void main() {
+    Test t()
+    println(address(t))
+}
+```
+
 
 ## v1.0.0-beta2
 Added type casting and some more built in functions:
@@ -32,6 +81,20 @@ macOS / Linux:
 - Run `./build.sh`
 
 There are examples in the `examples/` folder.
+
+Run one file:
+
+```powershell
+.\build\Release\tsharp.exe .\examples\demo.tsharp
+```
+
+Run multiple files:
+
+```powershell
+.\build\Release\tsharp.exe .\examples\models.tsharp .\examples\main.tsharp
+```
+
+For multi-file programs, T# loads each file in order and then runs `main()` once.
 
 # Open Source and Free
 T# is an open source and free language, now accepting pull requests (PRs). The language is also free - there is no cost to use, run and contribute to T#.
@@ -98,6 +161,7 @@ T# is an open source and free language, now accepting pull requests (PRs). The l
 | `factorial()`  | Function      | Returns factorial of n (n!)                                               |
 | `size()`       | Function      | Returns number of elements in array or string length                      |
 | `typeof()`     | Function      | Returns the type of a value as a string                                   |
+| `address()`    | Function      | Returns the runtime memory address of a value as a hexadecimal string     |
 | `push()`       | Function      | Adds an element to the end of an array                                    |
 | `pop()`        | Function      | Removes and returns the last element of an array                          |
 | `sort()`       | Function      | Sorts an array in ascending order                                         |

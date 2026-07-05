@@ -1,3 +1,6 @@
 void main() {
+    Test t()
+    
     println("Hello World!")
+    println(address(t))
 }

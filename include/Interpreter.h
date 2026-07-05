@@ -40,6 +40,9 @@ public:
     std::shared_ptr<ClassValue> get_class_by_name(const std::string& name) const;
     void register_class(const std::shared_ptr<ClassValue>& class_val);
 
+    void load(TSharpParser::ProgramContext* program);
+    void run_main();
+
     // Visitor method implementations - from ANTLR generated visitor
     antlrcpp::Any visitProgram(TSharpParser::ProgramContext* ctx) override;
     antlrcpp::Any visitFunctionDecl(TSharpParser::FunctionDeclContext* ctx) override;
@@ -92,6 +95,8 @@ private:
     void set_member(const Value& target, const std::string& name, const Value& value);
     Value construct_object(const std::string& type_name, const std::vector<Value>& args);
     Value eval_binary_chain(const std::vector<TSharpParser::AdditiveExpressionContext*>&);
+
+    void copy_field_defaults(const std::shared_ptr<ClassValue>& class_val, const std::shared_ptr<InstanceValue>& instance);
 };
 
 }

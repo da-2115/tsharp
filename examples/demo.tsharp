@@ -229,7 +229,7 @@ void main() {
     println("Classes & Inheritance")
     Rectangle rect(5.0, 10.0, "blue")
     rect.Draw()
-    println(rect.GetDescription())
+    println((rect.GetDescription()))
     println("Area: " + rect.Area())
     println("")
 
