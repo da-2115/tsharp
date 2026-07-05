@@ -96,6 +96,55 @@ if (-not (Test-Path "build")) {
     New-Item -ItemType Directory -Path "build" | Out-Null
 }
 
+$grammar = ".\grammar\TSharp.g4"
+$output = ".\generated"
+$parser = "$output\TSharpParser.cpp"
+
+if ($null -eq (Get-Command antlr4 -ErrorAction SilentlyContinue)) {
+    Write-Status "antlr4 CLI not found" -Color $ErrorColor
+    Write-Status "Install ANTLR CLI or add it to PATH" -Color $WarningColor
+    exit 1
+}
+
+if (-not (Test-Path $grammar)) {
+    Write-Status "Grammar file not found: $grammar" -Color $ErrorColor
+    exit 1
+}
+
+if (-not (Test-Path $output)) {
+    New-Item -ItemType Directory -Path $output | Out-Null
+}
+
+$generate = $true
+
+if (Test-Path $parser) {
+    $grammarTime = (Get-Item $grammar).LastWriteTime
+    $parserTime  = (Get-Item $parser).LastWriteTime
+
+    if ($parserTime -ge $grammarTime) {
+        $generate = $false
+    }
+}
+
+if ($generate) {
+    Write-Status "Grammar changed. Regenerating parser..." -Color $InfoColor
+
+    & antlr4 `
+        -Dlanguage=Cpp `
+        -visitor `
+        -no-listener `
+        -o $output `
+        $grammar
+
+    if ($LASTEXITCODE -ne 0) {
+        Write-Status "ANTLR generation failed" -Color $ErrorColor
+        exit 1
+    }
+
+    Write-Status "ANTLR parser updated" -Color $SuccessColor
+} else {
+    Write-Status "ANTLR parser already up-to-date" -Color $SuccessColor
+}
 # Run CMake
 Write-Status "Running CMake..." -Color $WarningColor
 $toolchainPath = "$vcpkgDir\scripts\buildsystems\vcpkg.cmake" -replace '\\', '/'

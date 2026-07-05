@@ -9,12 +9,12 @@ namespace tsharp {
 Environment::Environment(std::shared_ptr<Environment> parent) : parent(std::move(parent)) {}
 
 // Define environment
-void Environment::define(const std::string& name, const Value& value) {
+void Environment::define(const std::string &name, const Value &value) {
     values.emplace(name, value);
 }
 
 // Assign environment
-void Environment::assign(const std::string& name, const Value& value) {
+void Environment::assign(const std::string &name, const Value &value) {
     if (values.contains(name)) {
         values.at(name) = value;
 
@@ -26,18 +26,18 @@ void Environment::assign(const std::string& name, const Value& value) {
 
         return;
     }
-    
+
     throw RuntimeError("Undefined variable: " + name);
 }
 
 // Get environment value
-Value Environment::get(const std::string& name) const {
+Value Environment::get(const std::string &name) const {
     auto it = values.find(name);
 
     if (it != values.end()) {
         return it->second;
     }
-    
+
     if (parent) {
         return parent->get(name);
     }
@@ -46,12 +46,12 @@ Value Environment::get(const std::string& name) const {
 }
 
 // Does a local exist with the same name?
-bool Environment::exists_local(const std::string& name) const {
+bool Environment::exists_local(const std::string &name) const {
     return values.contains(name);
 }
 
-std::shared_ptr<Environment> Environment::get_parent() const { 
+std::shared_ptr<Environment> Environment::get_parent() const {
     return parent;
 }
 
-}
+} // namespace tsharp

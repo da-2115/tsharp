@@ -1,0 +1,64 @@
+// Matrix2.tsharp
+// T# standard library - to use: import std.math.Matrix2
+// Dylan Armstrong, 2026
+
+import std.math.Vector2
+
+class Matrix2<T> {
+    public T m00
+    public T m01
+    public T m10
+    public T m11
+
+    public (T m00, T m01, T m10, T m11) {
+        this.m00 = m00
+        this.m01 = m01
+        this.m10 = m10
+        this.m11 = m11
+    }
+
+    public Matrix2<T> add(Matrix2<T> other) {
+        return Matrix2<T>(this.m00 + other.m00, this.m01 + other.m01, this.m10 + other.m10, this.m11 + other.m11)
+    }
+
+    public Matrix2<T> subtract(Matrix2<T> other) {
+        return Matrix2<T>(this.m00 - other.m00, this.m01 - other.m01, this.m10 - other.m10, this.m11 - other.m11)
+    }
+
+    public Matrix2<T> multiply_scalar(T scalar) {
+        return Matrix2<T>(this.m00 * scalar, this.m01 * scalar, this.m10 * scalar, this.m11 * scalar)
+    }
+
+    public Matrix2<T> multiply(Matrix2<T> other) {
+        return Matrix2<T>(
+            this.m00 * other.m00 + this.m01 * other.m10,
+            this.m00 * other.m01 + this.m01 * other.m11,
+            this.m10 * other.m00 + this.m11 * other.m10,
+            this.m10 * other.m01 + this.m11 * other.m11
+        )
+    }
+
+    public Vector2<T> multiply_vector(Vector2<T> v) {
+        return Vector2<T>(this.m00 * v.x + this.m01 * v.y, this.m10 * v.x + this.m11 * v.y)
+    }
+
+    public T determinant() {
+        return this.m00 * this.m11 - this.m01 * this.m10
+    }
+
+    public Matrix2<T> transpose() {
+        return Matrix2<T>(this.m00, this.m10, this.m01, this.m11)
+    }
+
+    public string to_string() {
+        return "[[" + this.m00 + ", " + this.m01 + "], [" + this.m10 + ", " + this.m11 + "]]"
+    }
+
+    public static Matrix2<T> identity() { 
+        return Matrix2<T>(1, 0, 0, 1) 
+    }
+    
+    public static Matrix2<T> zero() { 
+        return Matrix2<T>(0, 0, 0, 0) 
+    }
+}

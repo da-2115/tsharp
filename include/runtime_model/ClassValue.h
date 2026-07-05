@@ -32,8 +32,8 @@ struct ClassValue {
     std::unordered_map<size_t, std::shared_ptr<FunctionValue>> constructors;
     std::unordered_map<std::string, PropertyValue> properties;
     std::unordered_map<std::string, FieldInfo> field_metadata;
-    std::unordered_map<std::string, MemberInfo> member_lookup; 
+    std::unordered_map<std::string, MemberInfo> member_lookup;
     std::vector<std::string> interfaces;
 };
 
-}
+} // namespace tsharp

@@ -1,0 +1,133 @@
+// Vector3.tsharp
+// T# standard library - to use: import std.math.Vector3
+// Dylan Armstrong, 2026
+
+class Vector3<T> {
+    public T x
+    public T y
+    public T z
+
+    public (T x, T y, T z) {
+        this.x = x
+        this.y = y
+        this.z = z
+    }
+
+    public Vector3<T> add(Vector3<T> other) {
+        return Vector3<T>(
+            x + other.x,
+            y + other.y,
+            z + other.z
+        )
+    }
+
+    public Vector3<T> subtract(Vector3<T> other) {
+        return Vector3<T>(
+            x - other.x,
+            y - other.y,
+            z - other.z
+        )
+    }
+
+    public Vector3<T> multiply(T scalar) {
+        return Vector3<T>(
+            x * scalar,
+            y * scalar,
+            z * scalar
+        )
+    }
+
+    public Vector3<T> divide(T scalar) {
+        if (scalar == 0) {
+            throw "Division by zero."
+        }
+
+        return Vector3<T>(
+            x / scalar,
+            y / scalar,
+            z / scalar
+        )
+    }
+
+    public double magnitude() {
+        return sqrt(x * x + y * y + z * z)
+    }
+
+    public double length() {
+        return magnitude()
+    }
+
+    public Vector3<T> normalized() {
+        double len = magnitude()
+
+        if (len == 0) {
+            return Vector3<T>(0, 0, 0)
+        }
+
+        return Vector3<T>(
+            x / len,
+            y / len,
+            z / len
+        )
+    }
+
+    public double dot(Vector3<T> other) {
+        return x * other.x +
+               y * other.y +
+               z * other.z
+    }
+
+    public Vector3<T> cross(Vector3<T> other) {
+        return Vector3<T>(
+            y * other.z - z * other.y,
+            z * other.x - x * other.z,
+            x * other.y - y * other.x
+        )
+    }
+
+    public double distance(Vector3<T> other) {
+        return subtract(other).magnitude()
+    }
+
+    public bool equals(Vector3<T> other) {
+        return x == other.x &&
+               y == other.y &&
+               z == other.z
+    }
+
+    public string to_string() {
+        return "[" + x + ", " + y + ", " + z + "]"
+    }
+
+    public static Vector3<T> zero() {
+        return Vector3<T>(0, 0, 0)
+    }
+
+    public static Vector3<T> one() {
+        return Vector3<T>(1, 1, 1)
+    }
+
+    public static Vector3<T> up() {
+        return Vector3<T>(0, 1, 0)
+    }
+
+    public static Vector3<T> down() {
+        return Vector3<T>(0, -1, 0)
+    }
+
+    public static Vector3<T> left() {
+        return Vector3<T>(-1, 0, 0)
+    }
+
+    public static Vector3<T> right() {
+        return Vector3<T>(1, 0, 0)
+    }
+
+    public static Vector3<T> forward() {
+        return Vector3<T>(0, 0, 1)
+    }
+
+    public static Vector3<T> back() {
+        return Vector3<T>(0, 0, -1)
+    }
+}

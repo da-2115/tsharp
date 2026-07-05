@@ -16,8 +16,8 @@ struct PropertyValue {
     bool is_private = false;
     bool is_protected = false;
     bool is_public = true;
-    void* body_node = nullptr;
-    void* expr_node = nullptr;
+    void *body_node = nullptr;
+    void *expr_node = nullptr;
 };
 
-}
+} // namespace tsharp

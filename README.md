@@ -1,100 +1,280 @@
-# tsharp v1.0.0-beta3
-The T# Programming Language - Written by Dylan Armstrong, 2026 in C++ with the ANTLR framework.
+# T# v1.0.0-beta5
 
-# Changelog
+The T# Programming Language — written by Dylan Armstrong, 2026, in C++ with ANTLR.
 
-## v1.0.0-beta3
-Added multi-file program support, improved object/member calls, and added the `address()` built-in function.
+T# is a small, statically typed, C#/Java-inspired programming language with classes, interfaces, enums, generics, imports, a growing standard library, and a native interpreter runtime.
 
-**Major Runtime Fixes**:
-- Fixed instance method calls such as `obj.Serialize()` returning `<function>` instead of the method result.
-- Fixed block control flow so `return`, `break`, and `continue` stop executing the current block correctly.
+## Highlights
+
+- C#/Java-style syntax
+- Static type declarations
+- Classes, inheritance, interfaces and enums
+- Generic classes such as `Dictionary<K,V>`, `Vector2<T>`, `Vector3<T>`, `Matrix2<T>` and `Matrix3<T>`
+- Multi-file programs with `import`
+- Standard library modules
+- Built-in math, file, array, type and system functions
+- Runtime memory address inspection through `address(value)`
+- ANTLR-based parser
+- C++20 interpreter runtime
+
+## Changelog
+
+### v1.0.0-beta5
+
+Added a larger standard library and developer tooling scaffolding.
+
+**New Standard Library Math Types**
+
+- `std.math.Vector2`
+- `std.math.Vector3`
+- `std.math.Matrix2`
+- `std.math.Matrix3`
+
+**New Standard Library Areas**
+
+- `std.collections.Dictionary`
+- `std.io.File`
+- `std.math`
+
+**Developer Tooling**
+
+- Added a VS Code extension scaffold.
+- Added TextMate grammar highlighting for `.tsharp`.
+- Added snippets for common T# declarations.
+- Added an LSP server scaffold for diagnostics, completions, hover and document symbols.
+
+**Type System Progress**
+
+- Added stricter runtime-backed type validation for variables, fields, arguments and return values.
+- Added initial support for generic placeholder types such as `T`, `K` and `V`.
+- Added support for constructor calls inside expressions, e.g. `return Vector2<T>(x, y)`.
+
+### v1.0.0-beta4
+
+- Multi-file program support.
+- New `address(value)` built-in function.
+- Fixed instance method calls such as `obj.Serialize()`.
+- Fixed parser/tree lifetime issues affecting multi-file execution.
+- Fixed inherited field initialisation for derived classes.
+- Improved object member access and assignment.
 - Added function argument count validation.
 - Added constructor arity validation.
-- Added inherited field initialisation for derived classes.
-- Disabled accidental dynamic field creation on instances.
-- Improved field/member assignment safety.
-- Fixed numeric `+=`, `-=`, and subtraction handling for floats and doubles.
+- Corrected block control flow for `return`, `break` and `continue`.
+- Fixed numeric `+=`, `-=` and floating-point subtraction behaviour.
+- Fixed `print()` and `println()` to correctly print all supplied arguments.
 
-**Multiple File Support**:
-T# can now load multiple `.tsharp` files into the same interpreter environment before running `main()`.
+### v1.0.0-beta3
 
-Example:
+- Improved object/member calls.
+- Added multi-file loading foundations.
+- Added runtime safety improvements.
+
+### v1.0.0-beta2
+
+- Added type casting methods.
+- Added `size()`, `sort()`, `push()`, `pop()` and `typeof()`.
+
+## Building
+
+T# requires ANTLR and C++20.
+
+### Windows
 
 ```powershell
-.\build\Release\tsharp.exe .\examples\models.tsharp .\examples\utils.tsharp .\examples\main.tsharp
+.\build.ps1
 ```
 
-Recommended layout:
+### macOS / Linux
 
-```txt
-models.tsharp   -> classes, interfaces, enums
-utils.tsharp    -> helper functions
-main.tsharp     -> one void main()
+```bash
+./build.sh
 ```
 
-Only one file should define `main()`.
+## Running Programs
 
-**New Built-in Functions**:
-- `address(value)` - returns the runtime memory address of an object, array, class, or function as a hex string. For primitive values, this returns the address of the runtime `Value` wrapper/copy rather than a stable variable slot.
-
-Example:
-
-```tsharp
-class Test {
-    public () { }
-}
-
-void main() {
-    Test t()
-    println(address(t))
-}
-```
-
-
-## v1.0.0-beta2
-Added type casting and some more built in functions:
-
-**Type Casting Functions**:
-- `to_int()` - cast to an integer.
-- `to_string()` - cast to a string.
-- `to_bool()` - cast to a bool.
-- `to_double()` - cast to a double.
-- `to_float()` - cast to a float.
-
-**New Built-in Functions**:
-- Size function `size()` - returns the size (or length) of a string, an array, etc.
-- Sort function `sort()` - to sort arrays.
-- Push function `push()` - to push an element into the end of the array.
-- Pop function `pop()` - pops the last element from an array.
-- Typeof function `typeof()` - return a string of the type of a variable.
-
-
-# How to Run?
-
-**You must have ANTLR installed and T# uses the C++20 standard (CMake should automatically set the standard for you).**
-
-Windows:
-- Run `.\build.ps1`
-
-macOS / Linux:
-- Run `./build.sh`
-
-There are examples in the `examples/` folder.
-
-Run one file:
+Run a single file:
 
 ```powershell
 .\build\Release\tsharp.exe .\examples\demo.tsharp
 ```
 
-Run multiple files:
+Run a program that uses imports:
 
 ```powershell
-.\build\Release\tsharp.exe .\examples\models.tsharp .\examples\main.tsharp
+.\build\Release\tsharp.exe .\examples\std_demo.tsharp
 ```
 
-For multi-file programs, T# loads each file in order and then runs `main()` once.
+## Imports
+
+```tsharp
+import std.collections.Dictionary
+import std.io.File
+import std.math.Vector2
+import std.math.Vector3
+import std.math.Matrix2
+import std.math.Matrix3
+```
+
+## Standard Library Examples
+
+### Dictionary
+
+```tsharp
+import std.collections.Dictionary
+
+void main() {
+    Dictionary<string, int> d()
+    d.put("Test", 5)
+    println(d.get("Test"))
+    println(d.count())
+}
+```
+
+### File I/O
+
+```tsharp
+import std.io.File
+
+void main() {
+    File f()
+    string text = f.read_all_text("examples/test.txt")
+    println(text)
+}
+```
+
+### Vector2
+
+```tsharp
+import std.math.Vector2
+
+void main() {
+    Vector2<int> a(5, 10)
+    Vector2<int> b(1, 13)
+    println(a.add(b).to_string())
+}
+```
+
+### Vector3
+
+```tsharp
+import std.math.Vector3
+
+void main() {
+    Vector3<int> a(1, 2, 3)
+    Vector3<int> b(4, 5, 6)
+    println(a.add(b).to_string())
+    println(a.cross(b).to_string())
+}
+```
+
+### Matrix2
+
+```tsharp
+import std.math.Matrix2
+
+void main() {
+    Matrix2<int> m(1, 2, 3, 4)
+    println(m.to_string())
+    println(m.determinant())
+}
+```
+
+### Matrix3
+
+```tsharp
+import std.math.Matrix3
+
+void main() {
+    Matrix3<int> m(1, 2, 3, 0, 1, 4, 5, 6, 0)
+    println(m.to_string())
+    println(m.determinant())
+}
+```
+
+## Built-in Constants
+
+| Name | Description |
+| --- | --- |
+| `pi` | Mathematical constant π |
+| `e` | Euler's number |
+| `tau` | 2π |
+| `golden_ratio` | Golden ratio |
+
+## Built-in Functions
+
+| Function | Description |
+| --- | --- |
+| `print(value)` | Prints without a newline |
+| `println(value)` | Prints with a newline |
+| `size(value)` | Returns array length, string length or runtime value size |
+| `typeof(value)` | Returns the runtime type name |
+| `address(value)` | Returns the runtime memory address as a hexadecimal string |
+| `push(array, value)` | Pushes a value into an array |
+| `pop(array)` | Removes and returns the last array element |
+| `sort(array)` | Sorts an array |
+| `sqrt(x)` | Square root |
+| `abs(x)` | Absolute value |
+| `pow(x, y)` | Power |
+| `sin(x)` | Sine in radians |
+| `cos(x)` | Cosine in radians |
+| `tan(x)` | Tangent in radians |
+| `min(a, b)` | Minimum |
+| `max(a, b)` | Maximum |
+| `factorial(n)` | Factorial |
+
+## VS Code Extension
+
+A starter VS Code extension is included under:
+
+```txt
+vscode-extension-tsharp/
+```
+
+It provides:
+
+- `.tsharp` language registration
+- syntax highlighting
+- snippets
+- LSP client scaffold
+- LSP server scaffold
+
+Development:
+
+```bash
+cd vscode-extension-tsharp
+npm install
+npm run compile
+```
+
+Then open the extension folder in VS Code and press `F5`.
+
+## Current Limitations
+
+- Generic type substitution is still partial.
+- Generic placeholders such as `T`, `K` and `V` are currently checked loosely.
+- Arrays are type-checked shallowly.
+- Operator overloading is not implemented.
+- Namespaces are not fully implemented.
+- The LSP scaffold is not yet a complete semantic compiler service.
+
+## Roadmap
+
+- Full generic substitution
+- Typed arrays
+- Operator overloading
+- Namespaces
+- Package manager
+- Complete VS Code extension
+- Complete LSP diagnostics and completions
+- JSON standard library
+- HTTP/networking standard library
+- Async/concurrency support
+
+## Open Source and Free
+
+T# is open source and free to use, run and contribute to.
+
+Pull requests are welcome.
 
 # Open Source and Free
 T# is an open source and free language, now accepting pull requests (PRs). The language is also free - there is no cost to use, run and contribute to T#.
@@ -203,10 +383,12 @@ T# is an open source and free language, now accepting pull requests (PRs). The l
 | `:`            | Delimiter     | Colon for inheritance clauses                                             |
 | `;`            | Delimiter     | Semicolon for loop separators                                             |
 
-# Full Documentation
-All documentation for T# is on: https://tsharp.dylanarmstrong.net
+## Full Documentation
 
-# Credits
-Written and Founded by Dylan Armstrong in 2026.
+Documentation: https://tsharp.dylanarmstrong.net
+
+## Credits
+
+Written and founded by Dylan Armstrong in 2026.
 
 Have fun.

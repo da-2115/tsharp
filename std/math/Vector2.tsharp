@@ -1,0 +1,100 @@
+// Vector2.tsharp
+// T# standard library - to use: import std.math.Vector2
+// Dylan Armstrong, 2026
+
+class Vector2<T> {
+    public T x
+    public T y
+
+    public () {
+        this.x = 0
+        this.y = 0
+    }
+
+    public (T x, T y) {
+        this.x = x
+        this.y = y
+    }
+
+    public Vector2<T> add(Vector2<T> other) {
+        return Vector2<T>(this.x + other.x, this.y + other.y)
+    }
+
+    public Vector2<T> subtract(Vector2<T> other) {
+        return Vector2<T>(this.x - other.x, this.y - other.y)
+    }
+
+    public Vector2<T> multiply(T scalar) {
+        return Vector2<T>(this.x * scalar, this.y * scalar)
+    }
+
+    public Vector2<T> divide(T scalar) {
+        if (scalar == 0) {
+            throw "Division by zero."
+        }
+
+        return Vector2<T>(this.x / scalar, this.y / scalar)
+    }
+
+    public float magnitude() {
+        return sqrt(this.x * this.x + this.y * this.y)
+    }
+
+    public float length() {
+        return this.magnitude()
+    }
+
+    public Vector2<T> normalized() {
+        float len = this.magnitude()
+
+        if (len == 0) {
+            return Vector2<T>()
+        }
+
+        return Vector2<T>(this.x / len, this.y / len)
+    }
+
+    public float dot(Vector2<T> other) {
+        return this.x * other.x + this.y * other.y
+    }
+
+    public float distance(Vector2<T> other) {
+        return this.subtract(other).magnitude()
+    }
+
+    public float angle() {
+        return atan2(this.y, this.x)
+    }
+
+    public bool equals(Vector2<T> other) {
+        return this.x == other.x && this.y == other.y
+    }
+
+    public string to_string() {
+        return "[" + this.x + ", " + this.y + "]"
+    }
+
+    public static Vector2<T> zero() {
+        return Vector2<T>(0, 0)
+    }
+
+    public static Vector2<T> one() {
+        return Vector2<T>(1, 1)
+    }
+
+    public static Vector2<T> up() {
+        return Vector2<T>(0, 1)
+    }
+
+    public static Vector2<T> down() {
+        return Vector2<T>(0, -1)
+    }
+
+    public static Vector2<T> left() {
+        return Vector2<T>(-1, 0)
+    }
+
+    public static Vector2<T> right() {
+        return Vector2<T>(1, 0)
+    }
+}

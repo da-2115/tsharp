@@ -1,0 +1,95 @@
+// Matrix3.tsharp
+// T# standard library - to use: import std.math.Matrix3
+// Dylan Armstrong, 2026
+
+import std.math.Vector3
+
+class Matrix3<T> {
+    public T m00
+    public T m01
+    public T m02
+    public T m10
+    public T m11
+    public T m12
+    public T m20
+    public T m21
+    public T m22
+
+    public (T m00, T m01, T m02, T m10, T m11, T m12, T m20, T m21, T m22) {
+        this.m00 = m00
+        this.m01 = m01
+        this.m02 = m02
+        this.m10 = m10
+        this.m11 = m11
+        this.m12 = m12
+        this.m20 = m20
+        this.m21 = m21
+        this.m22 = m22
+    }
+
+    public Matrix3<T> add(Matrix3<T> other) {
+        return Matrix3<T>(
+            this.m00 + other.m00, this.m01 + other.m01, this.m02 + other.m02,
+            this.m10 + other.m10, this.m11 + other.m11, this.m12 + other.m12,
+            this.m20 + other.m20, this.m21 + other.m21, this.m22 + other.m22
+        )
+    }
+
+    public Matrix3<T> subtract(Matrix3<T> other) {
+        return Matrix3<T>(
+            this.m00 - other.m00, this.m01 - other.m01, this.m02 - other.m02,
+            this.m10 - other.m10, this.m11 - other.m11, this.m12 - other.m12,
+            this.m20 - other.m20, this.m21 - other.m21, this.m22 - other.m22
+        )
+    }
+
+    public Matrix3<T> multiply_scalar(T scalar) {
+        return Matrix3<T>(
+            this.m00 * scalar, this.m01 * scalar, this.m02 * scalar,
+            this.m10 * scalar, this.m11 * scalar, this.m12 * scalar,
+            this.m20 * scalar, this.m21 * scalar, this.m22 * scalar
+        )
+    }
+
+    public Matrix3<T> multiply(Matrix3<T> other) {
+        return Matrix3<T>(
+            this.m00 * other.m00 + this.m01 * other.m10 + this.m02 * other.m20,
+            this.m00 * other.m01 + this.m01 * other.m11 + this.m02 * other.m21,
+            this.m00 * other.m02 + this.m01 * other.m12 + this.m02 * other.m22,
+            this.m10 * other.m00 + this.m11 * other.m10 + this.m12 * other.m20,
+            this.m10 * other.m01 + this.m11 * other.m11 + this.m12 * other.m21,
+            this.m10 * other.m02 + this.m11 * other.m12 + this.m12 * other.m22,
+            this.m20 * other.m00 + this.m21 * other.m10 + this.m22 * other.m20,
+            this.m20 * other.m01 + this.m21 * other.m11 + this.m22 * other.m21,
+            this.m20 * other.m02 + this.m21 * other.m12 + this.m22 * other.m22
+        )
+    }
+
+    public Vector3<T> multiply_vector(Vector3<T> v) {
+        return Vector3<T>(
+            this.m00 * v.x + this.m01 * v.y + this.m02 * v.z,
+            this.m10 * v.x + this.m11 * v.y + this.m12 * v.z,
+            this.m20 * v.x + this.m21 * v.y + this.m22 * v.z
+        )
+    }
+
+    public T determinant() {
+        return this.m00 * (this.m11 * this.m22 - this.m12 * this.m21) - this.m01 * (this.m10 * this.m22 - this.m12 * this.m20) + this.m02 * (this.m10 * this.m21 - this.m11 * this.m20)
+    }
+
+    public Matrix3<T> transpose() {
+        return Matrix3<T>(this.m00, this.m10, this.m20, this.m01, this.m11, this.m21, this.m02, this.m12, this.m22)
+    }
+
+    public string to_string() {
+        return "[[" + this.m00 + ", " + this.m01 + ", " + this.m02 + "], [" + this.m10 + ", " + this.m11 + ", " + this.m12 + "], [" + this.m20 + ", " + this.m21 + ", " + this.m22 + "]]"
+    }
+
+    public static Matrix3<T> identity() { 
+        return Matrix3<T>(1, 0, 0, 0, 1, 0, 0, 0, 1) 
+    }
+    
+    public static Matrix3<T> zero() { 
+        return Matrix3<T>(0, 0, 0, 0, 0, 0, 0, 0, 0) 
+    }
+}

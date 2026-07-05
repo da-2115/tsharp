@@ -79,6 +79,54 @@ if [ ! -d "build" ]; then
     mkdir build
 fi
 
+# Generate ANTLR parser/lexer
+echo -e "${BLUE}Checking ANTLR parser...${NC}"
+
+ANTLR_JAR="./tools/antlr-4.13.2-complete.jar"
+GRAMMAR="./grammar/TSharp.g4"
+GENERATED_DIR="./generated"
+PARSER_FILE="$GENERATED_DIR/TSharpParser.cpp"
+
+if [ ! -f "$ANTLR_JAR" ]; then
+    echo -e "${RED}ANTLR jar not found: $ANTLR_JAR${NC}"
+    echo "Download it with:"
+    echo "  mkdir -p tools"
+    echo "  curl -L -o tools/antlr-4.13.2-complete.jar https://www.antlr.org/download/antlr-4.13.2-complete.jar"
+    exit 1
+fi
+
+if [ ! -f "$GRAMMAR" ]; then
+    echo -e "${RED}Grammar file not found: $GRAMMAR${NC}"
+    exit 1
+fi
+
+mkdir -p "$GENERATED_DIR"
+
+GENERATE=false
+
+if [ ! -f "$PARSER_FILE" ]; then
+    GENERATE=true
+elif [ "$GRAMMAR" -nt "$PARSER_FILE" ]; then
+    GENERATE=true
+fi
+
+if [ "$GENERATE" = true ]; then
+    echo -e "${YELLOW}Generating ANTLR parser...${NC}"
+
+    java -jar "$ANTLR_JAR" \
+        -Dlanguage=Cpp \
+        -visitor \
+        -no-listener \
+        -o "$GENERATED_DIR" \
+        "$GRAMMAR"
+
+    echo -e "${GREEN}ANTLR parser generated${NC}"
+else
+    echo -e "${GREEN}ANTLR parser already up-to-date${NC}"
+fi
+
+echo ""
+
 # Run CMake
 echo -e "${YELLOW}Running CMake...${NC}"
 cmake . -B build

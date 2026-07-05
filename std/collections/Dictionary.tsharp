@@ -1,0 +1,61 @@
+// Dictionary.tsharp
+// T# standard library - to use: import std.collections.Dictionary
+// Dylan Armstrong, 2026
+
+class DictionaryEntry<K, V> {
+    public K key
+    public V value
+
+    public (K key, V value) {
+        this.key = key
+        this.value = value
+    }
+}
+
+class Dictionary<K, V> {
+    private DictionaryEntry<K, V>[] entries
+
+    public () {
+        this.entries = {}
+    }
+
+    public void put(K key, V value) {
+        for (int i = 0; i < size(this.entries); i++) {
+            if (this.entries[i].key == key) {
+                this.entries[i].value = value
+                return
+            }
+        }
+
+        DictionaryEntry<K, V> entry(key, value)
+        push(this.entries, entry)
+    }
+
+    public V get(K key) {
+        for (int i = 0; i < size(this.entries); i++) {
+            if (this.entries[i].key == key) {
+                return this.entries[i].value
+            }
+        }
+
+        return null
+    }
+
+    public bool contains_key(K key) {
+        for (int i = 0; i < size(this.entries); i++) {
+            if (this.entries[i].key == key) {
+                return true
+            }
+        }
+
+        return false
+    }
+
+    public int count() {
+        return size(this.entries)
+    }
+
+    public void clear() {
+        this.entries = {}
+    }
+}

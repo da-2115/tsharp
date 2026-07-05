@@ -1,0 +1,33 @@
+// File.tsharp
+// T# standard library - to use: import std.io.File
+// Dylan Armstrong, 2026
+
+class File {
+    public static string read_all_text(string path) {
+        return file_read_all_text(path)
+    }
+
+    public static void write_all_text(string path, string text) {
+        file_write_all_text(path, text)
+    }
+
+    public static void append_all_text(string path, string text) {
+        file_append_all_text(path, text)
+    }
+
+    public static bool exists(string path) {
+        return file_exists(path)
+    }
+
+    public static void delete(string path) {
+        file_delete(path)
+    }
+
+    public static void copy(string source, string destination) {
+        file_copy(source, destination)
+    }
+
+    public static void move(string source, string destination) {
+        file_move(source, destination)
+    }
+}

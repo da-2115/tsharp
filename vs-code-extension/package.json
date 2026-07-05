@@ -1,0 +1,113 @@
+{
+  "name": "tsharp-vscode",
+  "displayName": "T# Language Support",
+  "description": "VS Code language support, semantic highlighting and LSP tooling for T#.",
+  "version": "0.2.0",
+  "publisher": "dylanarmstrong",
+  "engines": {
+    "vscode": "^1.90.0"
+  },
+  "categories": [
+    "Programming Languages",
+    "Themes"
+  ],
+  "activationEvents": [
+    "onLanguage:tsharp"
+  ],
+  "main": "./client/out/extension.js",
+  "contributes": {
+    "languages": [
+      {
+        "id": "tsharp",
+        "aliases": [
+          "T#",
+          "tsharp"
+        ],
+        "extensions": [
+          ".tsharp"
+        ],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "tsharp",
+        "scopeName": "source.tsharp",
+        "path": "./syntaxes/tsharp.tmLanguage.json"
+      }
+    ],
+    "snippets": [
+      {
+        "language": "tsharp",
+        "path": "./snippets/tsharp.json"
+      }
+    ],
+    "themes": [
+      {
+        "label": "T# Dark",
+        "uiTheme": "vs-dark",
+        "path": "./themes/tsharp-dark-color-theme.json"
+      }
+    ],
+    "semanticTokenTypes": [
+      {
+        "id": "namespace"
+      },
+      {
+        "id": "type"
+      },
+      {
+        "id": "class"
+      },
+      {
+        "id": "interface"
+      },
+      {
+        "id": "enum"
+      },
+      {
+        "id": "function"
+      },
+      {
+        "id": "method"
+      },
+      {
+        "id": "property"
+      },
+      {
+        "id": "variable"
+      },
+      {
+        "id": "parameter"
+      },
+      {
+        "id": "keyword"
+      },
+      {
+        "id": "number"
+      },
+      {
+        "id": "string"
+      },
+      {
+        "id": "comment"
+      }
+    ]
+  },
+  "scripts": {
+    "compile": "tsc -b client server",
+    "watch": "tsc -b client server -w",
+    "package": "npx @vscode/vsce package"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/vscode": "^1.90.0",
+    "typescript": "^5.4.0",
+    "@vscode/vsce": "^2.15.0"
+  },
+  "dependencies": {
+    "vscode-languageclient": "^9.0.1",
+    "vscode-languageserver": "^9.0.1",
+    "vscode-languageserver-textdocument": "^1.0.11"
+  }
+}

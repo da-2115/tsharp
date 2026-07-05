@@ -12,9 +12,18 @@
 #include "TSharpParser.h"
 #include <memory>
 #include <string>
-#include <unordered_map>
+#include <unordered_map>        
 
 namespace tsharp {
+
+struct ParsedUnit {
+    std::string source;
+    std::unique_ptr<antlr4::ANTLRInputStream> input;
+    std::unique_ptr<TSharpLexer> lexer;
+    std::unique_ptr<antlr4::CommonTokenStream> tokens;
+    std::unique_ptr<TSharpParser> parser;
+    TSharpParser::ProgramContext* program = nullptr;
+};
 
 // The all mighty interpreter of T#
 class Interpreter : public TSharpBaseVisitor {
@@ -76,7 +85,13 @@ public:
     antlrcpp::Any visitPrimary(TSharpParser::PrimaryContext* ctx) override;
     antlrcpp::Any visitArrayLiteral(TSharpParser::ArrayLiteralContext* ctx) override;
     antlrcpp::Any visitLiteral(TSharpParser::LiteralContext* ctx) override;
-
+    
+    void require_assignable(
+    const Value& value,
+    const std::string& declared_type,
+    const std::string& where
+);
+    void load_program_files(const std::vector<std::string>& user_files);
 private:
     // T# state member variables
     std::shared_ptr<Environment> globals;
@@ -84,6 +99,8 @@ private:
     std::unordered_map<std::string, std::shared_ptr<ClassValue>> classes;
     std::unordered_map<std::string, std::shared_ptr<FunctionValue>> functions;
     ExecutionResult exec_result;
+
+    std::vector<std::unique_ptr<ParsedUnit>> parsed_units;
 
     // Private member functions for building functions, methods...
     std::shared_ptr<FunctionValue> build_function(TSharpParser::FunctionDeclContext* ctx, bool is_method);
@@ -97,6 +114,13 @@ private:
     Value eval_binary_chain(const std::vector<TSharpParser::AdditiveExpressionContext*>&);
 
     void copy_field_defaults(const std::shared_ptr<ClassValue>& class_val, const std::shared_ptr<InstanceValue>& instance);
+
+    void load_file_with_imports(const std::string& file_path, std::unordered_set<std::string>& loaded_files);
+    std::string read_file(const std::string& file_path);
+    std::vector<std::string> extract_imports(const std::string& source);
+    std::string resolve_import(const std::string& import_name);
+    void parse_and_execute_declarations(const std::string& source, const std::string& file_path);
+
 };
 
 }

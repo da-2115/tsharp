@@ -6,7 +6,14 @@ grammar TSharp;
 // Parser rules
 
 program
-    : (NEWLINE | topLevelDecl)* EOF
+    : (NEWLINE | importDecl | topLevelDecl)* EOF
+    ;
+importDecl
+    : IMPORT qualifiedName NEWLINE+
+    ;
+
+qualifiedName
+    : IDENTIFIER (DOT IDENTIFIER)*
     ;
 
 topLevelDecl
@@ -153,7 +160,7 @@ parameterList
     ;
 
 parameter
-    : typeRef IDENTIFIER
+    : typeRef IDENTIFIER arrayDeclarator?
     ;
 
 block
@@ -300,29 +307,28 @@ expression
     ;
 
 logicalOrExpression
-    : logicalAndExpression (OR_OR logicalAndExpression)*
+    : logicalAndExpression (NEWLINE* OR_OR NEWLINE* logicalAndExpression)*
     ;
 
 logicalAndExpression
-    : equalityExpression (AND_AND equalityExpression)*
+    : equalityExpression (NEWLINE* AND_AND NEWLINE* equalityExpression)*
     ;
 
 equalityExpression
-    : relationalExpression ((EQ | NEQ) relationalExpression)*
+    : relationalExpression (NEWLINE* (EQ | NEQ) NEWLINE* relationalExpression)*
     ;
 
 relationalExpression
-    : additiveExpression ((LT | LTE | GT | GTE) additiveExpression)*
+    : additiveExpression (NEWLINE* (LT | LTE | GT | GTE) NEWLINE* additiveExpression)*
     ;
 
 additiveExpression
-    : multiplicativeExpression ((ADD | SUB) multiplicativeExpression)*
+    : multiplicativeExpression (NEWLINE* (ADD | SUB) NEWLINE* multiplicativeExpression)*
     ;
 
 multiplicativeExpression
-    : unaryExpression ((MUL | DIV | MOD) unaryExpression)*
+    : unaryExpression (NEWLINE* (MUL | DIV | MOD) NEWLINE* unaryExpression)*
     ;
-
 unaryExpression
     : (NOT | SUB | ADD | INC | DEC) unaryExpression
     | postfixExpression
@@ -350,7 +356,7 @@ primary
     ;
 
 argumentList
-    : expression (COMMA expression)*
+    : NEWLINE* expression (NEWLINE* COMMA NEWLINE* expression)* NEWLINE*
     ;
 
 arrayLiteral
@@ -379,6 +385,7 @@ PRIVATE    : 'private';
 PROTECTED  : 'protected';
 VIRTUAL    : 'virtual';
 OVERRIDE   : 'override';
+IMPORT     : 'import';
 
 IF         : 'if';
 ELSE       : 'else';
@@ -464,9 +471,9 @@ INTEGER_LITERAL
     ;
 
 FLOAT_LITERAL
-    : [0-9]+ '.' [0-9]+
+    : [0-9]+ '.' [0-9]+ [fF]?
     ;
-
+    
 STRING_LITERAL
     : '"' ( '\\' . | ~["\\\r\n] )* '"'
     ;

@@ -20,9 +20,9 @@ Value::Value(bool v) : data(v) {}
 
 Value::Value(char v) : data(v) {}
 
-Value::Value(const std::string& v) : data(v) {}
+Value::Value(const std::string &v) : data(v) {}
 
-Value::Value(const char* v) : data(std::string(v ? v : "")) {}
+Value::Value(const char *v) : data(std::string(v ? v : "")) {}
 
 Value::Value(std::shared_ptr<Array> v) : data(std::move(v)) {}
 
@@ -42,7 +42,8 @@ bool Value::is_null() const {
 }
 
 bool Value::is_number() const {
-    return std::holds_alternative<int>(data) || std::holds_alternative<float>(data) || std::holds_alternative<double>(data);
+    return std::holds_alternative<int>(data) || std::holds_alternative<float>(data) ||
+           std::holds_alternative<double>(data);
 }
 
 bool Value::is_bool() const {
@@ -125,7 +126,7 @@ double Value::as_double() const {
     if (std::holds_alternative<char>(data)) {
         return static_cast<double>(std::get<char>(data));
     }
-    
+
     throw RuntimeError("Value is not numeric");
 }
 
@@ -233,7 +234,7 @@ std::string Value::as_string() const {
         std::ostringstream oss;
         oss << "{ ";
         bool first = true;
-        for (const auto& [k, v] : *obj) {
+        for (const auto &[k, v] : *obj) {
             if (!first) {
                 oss << ", ";
             }
@@ -295,42 +296,53 @@ std::shared_ptr<FunctionValue> Value::as_function() const {
     throw RuntimeError("Value is not a function");
 }
 
-
 // Raw data getters
-const Value::Variant& Value::raw() const {
+const Value::Variant &Value::raw() const {
     return data;
 }
 
-Value::Variant& Value::raw() {
+Value::Variant &Value::raw() {
     return data;
 }
 
 // Helpers
-std::string value_type_name(const Value& v) {
-    if (v.is_null()) return "null";
-    if (std::holds_alternative<int>(v.raw())) return "int";
-    if (std::holds_alternative<float>(v.raw())) return "float";
-    if (std::holds_alternative<double>(v.raw())) return "double";
-    if (std::holds_alternative<bool>(v.raw())) return "bool";
-    if (std::holds_alternative<char>(v.raw())) return "char";
-    if (std::holds_alternative<std::string>(v.raw())) return "string";
-    if (std::holds_alternative<std::shared_ptr<Array>>(v.raw())) return "array";
-    if (std::holds_alternative<std::shared_ptr<ObjectMap>>(v.raw())) return "object";
-    if (std::holds_alternative<std::shared_ptr<FunctionValue>>(v.raw())) return "function";
-    if (std::holds_alternative<std::shared_ptr<ClassValue>>(v.raw())) return "class";
-    if (std::holds_alternative<std::shared_ptr<InstanceValue>>(v.raw())) return "instance";
-    if (std::holds_alternative<std::any>(v.raw())) return "any";
+std::string value_type_name(const Value &v) {
+    if (v.is_null())
+        return "null";
+    if (std::holds_alternative<int>(v.raw()))
+        return "int";
+    if (std::holds_alternative<float>(v.raw()))
+        return "float";
+    if (std::holds_alternative<double>(v.raw()))
+        return "double";
+    if (std::holds_alternative<bool>(v.raw()))
+        return "bool";
+    if (std::holds_alternative<char>(v.raw()))
+        return "char";
+    if (std::holds_alternative<std::string>(v.raw()))
+        return "string";
+    if (std::holds_alternative<std::shared_ptr<Array>>(v.raw()))
+        return "array";
+    if (std::holds_alternative<std::shared_ptr<ObjectMap>>(v.raw()))
+        return "object";
+    if (std::holds_alternative<std::shared_ptr<FunctionValue>>(v.raw()))
+        return "function";
+    if (std::holds_alternative<std::shared_ptr<ClassValue>>(v.raw()))
+        return "class";
+    if (std::holds_alternative<std::shared_ptr<InstanceValue>>(v.raw()))
+        return "instance";
+    if (std::holds_alternative<std::any>(v.raw()))
+        return "any";
     return "unknown";
 }
 
-Value apply_binary_numeric_op(const Value& a, const Value& b, const std::function<double(double, double)>& fn) {
+Value apply_binary_numeric_op(const Value &a, const Value &b, const std::function<double(double, double)> &fn) {
     // Preserve ints where possible
     if (std::holds_alternative<int>(a.raw()) && std::holds_alternative<int>(b.raw())) {
         double result = fn(static_cast<double>(std::get<int>(a.raw())), static_cast<double>(std::get<int>(b.raw())));
 
         // Only keep int if the result is mathematically integral
-        if (std::floor(result) == result &&
-            result >= static_cast<double>(std::numeric_limits<int>::min()) &&
+        if (std::floor(result) == result && result >= static_cast<double>(std::numeric_limits<int>::min()) &&
             result <= static_cast<double>(std::numeric_limits<int>::max())) {
             return Value(static_cast<int>(result));
         }
@@ -345,7 +357,7 @@ Value apply_binary_numeric_op(const Value& a, const Value& b, const std::functio
 }
 
 // Check if two values are equal/equivalent
-bool values_equal(const Value& a, const Value& b) {
+bool values_equal(const Value &a, const Value &b) {
     if (a.is_null() && b.is_null()) {
         return true;
     }
@@ -372,40 +384,35 @@ bool values_equal(const Value& a, const Value& b) {
 
     if (std::holds_alternative<std::shared_ptr<Array>>(a.raw()) &&
         std::holds_alternative<std::shared_ptr<Array>>(b.raw())) {
-        return std::get<std::shared_ptr<Array>>(a.raw()) ==
-               std::get<std::shared_ptr<Array>>(b.raw());
+        return std::get<std::shared_ptr<Array>>(a.raw()) == std::get<std::shared_ptr<Array>>(b.raw());
     }
 
     if (std::holds_alternative<std::shared_ptr<ObjectMap>>(a.raw()) &&
         std::holds_alternative<std::shared_ptr<ObjectMap>>(b.raw())) {
-        return std::get<std::shared_ptr<ObjectMap>>(a.raw()) ==
-               std::get<std::shared_ptr<ObjectMap>>(b.raw());
+        return std::get<std::shared_ptr<ObjectMap>>(a.raw()) == std::get<std::shared_ptr<ObjectMap>>(b.raw());
     }
 
     if (std::holds_alternative<std::shared_ptr<FunctionValue>>(a.raw()) &&
         std::holds_alternative<std::shared_ptr<FunctionValue>>(b.raw())) {
-        return std::get<std::shared_ptr<FunctionValue>>(a.raw()) ==
-               std::get<std::shared_ptr<FunctionValue>>(b.raw());
+        return std::get<std::shared_ptr<FunctionValue>>(a.raw()) == std::get<std::shared_ptr<FunctionValue>>(b.raw());
     }
 
     if (std::holds_alternative<std::shared_ptr<ClassValue>>(a.raw()) &&
         std::holds_alternative<std::shared_ptr<ClassValue>>(b.raw())) {
-        return std::get<std::shared_ptr<ClassValue>>(a.raw()) ==
-               std::get<std::shared_ptr<ClassValue>>(b.raw());
+        return std::get<std::shared_ptr<ClassValue>>(a.raw()) == std::get<std::shared_ptr<ClassValue>>(b.raw());
     }
 
     if (std::holds_alternative<std::shared_ptr<InstanceValue>>(a.raw()) &&
         std::holds_alternative<std::shared_ptr<InstanceValue>>(b.raw())) {
-        return std::get<std::shared_ptr<InstanceValue>>(a.raw()) ==
-               std::get<std::shared_ptr<InstanceValue>>(b.raw());
+        return std::get<std::shared_ptr<InstanceValue>>(a.raw()) == std::get<std::shared_ptr<InstanceValue>>(b.raw());
     }
 
     return false;
 }
 
 // Control flow signal implementations
-ReturnSignal::ReturnSignal(const Value& v) : value(v) {}
+ReturnSignal::ReturnSignal(const Value &v) : value(v) {}
 
-ThrowSignal::ThrowSignal(const Value& v) : value(v) {}
+ThrowSignal::ThrowSignal(const Value &v) : value(v) {}
 
-}
+} // namespace tsharp

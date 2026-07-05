@@ -1,273 +1,692 @@
 // demo.tsharp
-// Tests all T# features
+// Full T# feature demo
 // Dylan Armstrong, 2026
 
-// Enum
 enum Color {
     RED,
     BLUE,
     GREEN,
-    YELLOW
+    YELLOW,
+    PURPLE
 }
 
-// Interfaces
+enum Status {
+    PENDING,
+    RUNNING,
+    COMPLETE,
+    FAILED
+}
+
 interface Drawable {
     public void Draw()
     public string GetDescription()
 }
 
-// Generic Pair implementation
+interface Measurable {
+    public float Area()
+}
+
 class Pair<T> {
     protected T first
     protected T second
 
     public (T f, T s) {
-        this.first = f
-        this.second = s
+        first = f
+        second = s
     }
 
-    public T First -> this.first
+    public T First -> first
+    public T Second -> second
 
-    public T Second -> this.second
+    public string ToString() {
+        return "(" + first + ", " + second + ")"
+    }
 }
 
-// Regular class with inheritance
-class Shape : Drawable {
+class Box<T> {
+    private T value
+
+    public (T v) {
+        value = v
+    }
+
+    public T Value -> value
+
+    public void Set(T v) {
+        value = v
+    }
+
+    public string Describe() {
+        return "Box contains: " + value
+    }
+}
+
+class Counter {
+    private int count
+
+    public () {
+        count = 0
+    }
+
+    public (int start) {
+        count = start
+    }
+
+    public int Count -> count
+
+    public void Increment() {
+        count++
+    }
+
+    public void Add(int amount) {
+        count += amount
+    }
+
+    public void Reset() {
+        count = 0
+    }
+}
+
+class Shape : Drawable, Measurable {
     protected float width
     protected float height
+    protected Color color
 
     public (float w, float h) {
-        this.width = w
-        this.height = h
+        width = w
+        height = h
+        color = Color.RED
+    }
+
+    public (float w, float h, Color c) {
+        width = w
+        height = h
+        color = c
     }
 
     public void Draw() {
-        println("Drawing shape...")
+        println("Drawing generic shape")
     }
 
     public string GetDescription() {
-        return "I am a shape"
+        return "Shape: " + width + "x" + height
     }
 
-    public float Area() {
-        return this.width * this.height
+    public double Area() {
+        return width * height
     }
+
+    public Color GetColor -> color
 }
 
-// Derived class with override
 class Rectangle : Shape {
-    private string color
+    private string name
 
-    public (float w, float h, string c) {
-        this.width = w
-        this.height = h
-        this.color = c
+    public (float w, float h, string n, Color c) {
+        width = w
+        height = h
+        name = n
+        color = c
     }
 
     public override void Draw() {
-        println("Drawing rectangle in " + this.color)
+        println("Drawing rectangle: " + name)
     }
 
     public override string GetDescription() {
-        return "Rectangle: " + this.width + "x" + this.height
+        return "Rectangle " + name + ": " + width + "x" + height
+    }
+
+    public double Perimeter() {
+        return 2 * (width + height)
     }
 }
 
-// Another implementation
-class Circle : Drawable {
+class Square : Rectangle {
+    public (float size, string n, Color c) {
+        width = size
+        height = size
+        color = c
+    }
+
+    public override void Draw() {
+        println("Drawing square")
+    }
+
+    public override string GetDescription() {
+        return "Square: " + width + "x" + height
+    }
+}
+
+class Circle : Drawable, Measurable {
     private float radius
 
     public (float r) {
-        this.radius = r
+        radius = r
     }
 
+    public float Radius -> radius
+
     public void Draw() {
-        println("Drawing circle with radius " + this.radius)
+        println("Drawing circle with radius " + radius)
     }
 
     public string GetDescription() {
-        return "Circle with radius " + this.radius
+        return "Circle radius: " + radius
     }
 
-    public float Circumference() {
-        return 2 * pi * this.radius
+    public double Circumference() {
+        return tau * radius
     }
 
-    public float Area() {
-        return pi * pow(this.radius, 2)
-    }
-}
-
-// Container class using generics
-class Container<T> {
-    private T data
-    private string label
-
-    public (T d, string l) {
-        this.data = d
-        this.label = l
-    }
-
-    public T GetData -> this.data
-
-    public string Serialize() {
-        return this.label + ": " + this.data
+    public double Area() {
+        return pi * pow(radius, 2)
     }
 }
 
-// Functions with various features
+class Student {
+    private string name
+    private int age
+    private float grade
 
-// Simple function
+    public (string n, int a, float g) {
+        name = n
+        age = a
+        grade = g
+    }
+
+    public string Name -> name
+    public int Age -> age
+    public float Grade -> grade
+
+    public bool Passed() {
+        return grade >= 50
+    }
+
+    public string Summary() {
+        return name + ", age " + age + ", grade " + grade
+    }
+}
+
 int Add(int a, int b) {
     return a + b
 }
 
-// Function with math operations
-float MathDemo(float x) {
-    return sqrt(x) + abs(sin(x)) + cos(x)
+int Subtract(int a, int b) {
+    return a - b
 }
 
-// Function with conditional logic
+int Multiply(int a, int b) {
+    return a * b
+}
+
+int DivideInt(int a, int b) {
+    return a / b
+}
+
+int Mod(int a, int b) {
+    return a % b
+}
+
+float Average(float a, float b, float c) {
+    return (a + b + c) / 3
+}
+
+bool IsEven(int n) {
+    return n % 2 == 0
+}
+
+bool IsOdd(int n) {
+    return n % 2 != 0
+}
+
+string BoolText(bool value) {
+    if (value) {
+        return "true"
+    }
+
+    return "false"
+}
+
 string CheckNumber(int n) {
     if (n < 0) {
-        return "Negative"
+        return "negative"
     } else if (n == 0) {
-        return "Zero"
+        return "zero"
     } else {
-        return "Positive"
+        return "positive"
     }
 }
 
-// Function demonstrating loops
+string GradeText(float mark) {
+    if (mark >= 80) {
+        return "HD"
+    } else if (mark >= 70) {
+        return "D"
+    } else if (mark >= 60) {
+        return "C"
+    } else if (mark >= 50) {
+        return "P"
+    } else {
+        return "N"
+    }
+}
+
 int SumRange(int start, int end) {
-    int sum = 0
+    int total = 0
+
     for (int i = start; i <= end; i++) {
-        sum += i
+        total += i
     }
-    return sum
+
+    return total
 }
 
-// Main function of demonstration
-void main() {
-    println("T# Feature Demo")
-    println("")
-    
-    // Data types
-    println("Data Types")
-    int intVal = 42
-    float floatVal = 3.14
-    double doubleVal = 2.718
-    string strVal = "Hello, T#!"
-    char charVal = 'A'
-    bool boolVal = true
-    println("int: " + intVal)
-    println("float: " + floatVal)
-    println("double: " + doubleVal)
-    println("string: " + strVal)
-    println("char: " + charVal)
-    println("bool: " + boolVal)
-    println("")
+int FactorialManual(int n) {
+    int result = 1
 
-    // Math constants
-    println("Math constants")
+    for (int i = 1; i <= n; i++) {
+        result *= i
+    }
+
+    return result
+}
+
+int Fibonacci(int n) {
+    if (n <= 0) {
+        return 0
+    }
+
+    if (n == 1) {
+        return 1
+    }
+
+    int a = 0
+    int b = 1
+    int c = 0
+
+    for (int i = 2; i <= n; i++) {
+        c = a + b
+        a = b
+        b = c
+    }
+
+    return b
+}
+
+double Hypotenuse(float a, float b) {
+    return sqrt(pow(a, 2) + pow(b, 2))
+}
+
+double CircleArea(float r) {
+    return pi * pow(r, 2)
+}
+
+void PrintDivider() {
+    println("")
+}
+
+void PrintHeading(string text) {
+    println("")
+    println(text)
+}
+
+void PrintArray(int values[], int size) {
+    print("[")
+    for (int i = 0; i < size; i++) {
+        print(values[i])
+
+        if (i < size - 1) {
+            print(", ")
+        }
+    }
+    println("]")
+}
+
+int ArraySum(int values[], int size) {
+    int total = 0
+
+    for (int i = 0; i < size; i++) {
+        total += values[i]
+    }
+
+    return total
+}
+
+int ArrayMax(int values[], int size) {
+    int largest = values[0]
+
+    for (int i = 1; i < size; i++) {
+        if (values[i] > largest) {
+            largest = values[i]
+        }
+    }
+
+    return largest
+}
+
+void main() {
+    println("T# Complete Feature Demo")
+    println("Dylan Armstrong, 2026")
+
+    PrintHeading("Primitive Types")
+
+    int i = 42
+    float f = 3.14f
+    double d = 2.718281828
+    string s = "Hello, T#!"
+    char ch = 'A'
+    bool yes = true
+    bool no = false
+
+    println("int: " + i)
+    println("float: " + f)
+    println("double: " + d)
+    println("string: " + s)
+    println("char: " + ch)
+    println("bool true: " + yes)
+    println("bool false: " + no)
+
+    PrintHeading("Null")
+
+    string maybe = null
+    println("null string: " + maybe)
+
+    if (maybe == null) {
+        println("maybe is null")
+    }
+
+    maybe = "not null"
+
+    if (maybe != null) {
+        println("maybe is now: " + maybe)
+    }
+
+    PrintHeading("Arithmetic Operators")
+
+    int a = 10
+    int b = 3
+
+    println("a: " + a)
+    println("b: " + b)
+    println("a + b: " + (a + b))
+    println("a - b: " + (a - b))
+    println("a * b: " + (a * b))
+    println("a / b: " + (a / b))
+    println("a % b: " + (a % b))
+
+    a += 5
+    println("a += 5: " + a)
+
+    a -= 2
+    println("a -= 2: " + a)
+
+    a *= 2
+    println("a *= 2: " + a)
+
+    a /= 3
+    println("a /= 3: " + a)
+
+    a++
+    println("a++: " + a)
+
+    a--
+    println("a--: " + a)
+
+    PrintHeading("Comparison Operators")
+
+    println("10 > 3: " + (10 > 3))
+    println("10 < 3: " + (10 < 3))
+    println("10 >= 10: " + (10 >= 10))
+    println("10 <= 9: " + (10 <= 9))
+    println("10 == 10: " + (10 == 10))
+    println("10 != 3: " + (10 != 3))
+
+    PrintHeading("Boolean Logic")
+
+    bool p = true
+    bool q = false
+
+    println("p && q: " + (p && q))
+    println("p || q: " + (p || q))
+    println("!p: " + (!p))
+    println("!q: " + (!q))
+
+    PrintHeading("Strings and Concatenation")
+
+    string letterT = "T"
+    string hashSymbol = "#"
+    string lang = letterT + hashSymbol
+
+    println("first: " + letterT)
+    println("second: " + hashSymbol)
+    println("combined: " + lang)
+    println("mixed string + int: " + lang + " version " + 1)
+
+    PrintHeading("Math Constants")
+
     println("pi: " + pi)
     println("e: " + e)
     println("tau: " + tau)
     println("golden_ratio: " + golden_ratio)
-    println("")
 
-    // Math functions
-    println("Math functions")
+    PrintHeading("Math Builtins")
+
     println("sqrt(16): " + sqrt(16))
-    println("abs(-5): " + abs(-5))
-    println("sin(pi): " + sin(pi))
+    println("abs(-99): " + abs(-99))
+    println("sin(pi / 2): " + sin(pi / 2))
     println("cos(0): " + cos(0))
-    println("factorial(5): " + factorial(5))
+    println("tan(pi / 4): " + tan(pi / 4))
     println("pow(2, 8): " + pow(2, 8))
-    println("floor(3.7): " + floor(3.7))
-    println("ceil(3.2): " + ceil(3.2))
+    println("floor(3.9): " + floor(3.9))
+    println("ceil(3.1): " + ceil(3.1))
     println("round(3.5): " + round(3.5))
-    println("min(5, 3): " + min(5, 3))
-    println("max(5, 3): " + max(5, 3))
-    println("")
+    println("min(5, 9): " + min(5, 9))
+    println("max(5, 9): " + max(5, 9))
+    println("factorial(5): " + factorial(5))
 
-    // Functions
-    println("Functions")
-    println("Add(10, 20): " + Add(10, 20))
-    println("MathDemo(1.0): " + MathDemo(1.0))
-    println("CheckNumber(5): " + CheckNumber(5))
+    PrintHeading("Functions")
+
+    println("Add(5, 7): " + Add(5, 7))
+    println("Subtract(10, 4): " + Subtract(10, 4))
+    println("Multiply(6, 7): " + Multiply(6, 7))
+    println("DivideInt(20, 4): " + DivideInt(20, 4))
+    println("Mod(20, 6): " + Mod(20, 6))
+    println("Average(10, 20, 30): " + Average(10, 20, 30))
+    println("IsEven(10): " + IsEven(10))
+    println("IsOdd(10): " + IsOdd(10))
+    println("CheckNumber(-3): " + CheckNumber(-3))
+    println("CheckNumber(0): " + CheckNumber(0))
+    println("CheckNumber(9): " + CheckNumber(9))
+    println("GradeText(83): " + GradeText(83))
     println("SumRange(1, 10): " + SumRange(1, 10))
-    println("")
+    println("FactorialManual(5): " + FactorialManual(5))
+    println("Fibonacci(10): " + Fibonacci(10))
+    println("Hypotenuse(3, 4): " + Hypotenuse(3, 4))
+    println("CircleArea(5): " + CircleArea(5))
 
-    // Control flow
-    println("Control Flow")
-    print("For loop (1-5): ")
-    for (int i = 1; i <= 5; i++) {
-        print(i + " ")
+    PrintHeading("If / Else")
+
+    int score = 76
+
+    if (score >= 80) {
+        println("High distinction")
+    } else if (score >= 70) {
+        println("Distinction")
+    } else if (score >= 60) {
+        println("Credit")
+    } else if (score >= 50) {
+        println("Pass")
+    } else {
+        println("Fail")
+    }
+
+    PrintHeading("For Loops")
+
+    print("Counting 1 to 5: ")
+    for (int x = 1; x <= 5; x++) {
+        print(x + " ")
     }
     println("")
 
-    // Arrays and generics
-    println("Arrays & Generics")
+    print("Counting down: ")
+    for (int x = 5; x >= 1; x--) {
+        print(x + " ")
+    }
+    println("")
+
+    PrintHeading("While Loops")
+
+    int w = 0
+
+    while (w < 5) {
+        println("while w = " + w)
+        w++
+    }
+
+    PrintHeading("Nested Loops")
+
+    for (int row = 1; row <= 3; row++) {
+        for (int col = 1; col <= 3; col++) {
+            print(row * col + " ")
+        }
+        println("")
+    }
+
+    PrintHeading("Arrays")
+
     int numbers[5]
     numbers[0] = 10
     numbers[1] = 20
     numbers[2] = 30
     numbers[3] = 40
     numbers[4] = 50
-    println("Array element [0]: " + numbers[0])
 
-    int s[] = {1, 2, 3}
-    println("Array literal [0]: " + s[0])
+    println("numbers[0]: " + numbers[0])
+    println("numbers[4]: " + numbers[4])
+    print("numbers: ")
+    PrintArray(numbers, 5)
+
+    int literal[] = {3, 1, 4, 1, 5}
+    print("literal: ")
+    PrintArray(literal, 5)
+
+    println("ArraySum(literal): " + ArraySum(literal, 5))
+    println("ArrayMax(literal): " + ArrayMax(literal, 5))
+
+    PrintHeading("Enums")
+
+    Color color = Color.BLUE
+    Status status = Status.RUNNING
+
+    println("Color.BLUE: " + color)
+    println("Status.RUNNING: " + status)
+
+    if (color == Color.BLUE) {
+        println("The color is blue")
+    }
+
+    if (status == Status.RUNNING) {
+        println("The status is running")
+    }
+
+    PrintHeading("Classes")
+
+    Counter counter()
+    counter.Increment()
+    counter.Increment()
+    counter.Add(10)
+
+    println("Counter count: " + counter.Count)
+
+    counter.Reset()
+    println("Counter after reset: " + counter.Count)
+
+    Counter counter2(100)
+    counter2.Increment()
+    println("Counter2 count: " + counter2.Count)
+
+    PrintHeading("Generics")
 
     Pair<int> intPair(1, 2)
-    println("Pair first: " + intPair.First)
-    println("Pair second: " + intPair.Second)
-    println("")
+    println("intPair.First: " + intPair.First)
+    println("intPair.Second: " + intPair.Second)
+    println("intPair.ToString(): " + intPair.ToString())
 
-    // Classes & inheritance
-    println("Classes & Inheritance")
-    Rectangle rect(5.0, 10.0, "blue")
+    Pair<string> stringPair("left", "right")
+    println("stringPair.First: " + stringPair.First)
+    println("stringPair.Second: " + stringPair.Second)
+    println("stringPair.ToString(): " + stringPair.ToString())
+
+    Box<int> intBox(123)
+    println(intBox.Describe())
+    intBox.Set(456)
+    println(intBox.Describe())
+
+    Box<string> stringBox("hello")
+    println(stringBox.Describe())
+    stringBox.Set("world")
+    println(stringBox.Describe())
+
+    PrintHeading("Inheritance and Interfaces")
+
+    Shape shape(4.0f, 5.0f, Color.GREEN)
+    shape.Draw()
+    println(shape.GetDescription())
+    println("Shape area: " + shape.Area())
+    println("Shape color: " + shape.GetColor)
+
+    Rectangle rect(5.0f, 10.0f, "Main Rectangle", Color.YELLOW)
     rect.Draw()
-    println((rect.GetDescription()))
-    println("Area: " + rect.Area())
-    println("")
+    println(rect.GetDescription())
+    println("Rectangle area: " + rect.Area())
+    println("Rectangle perimeter: " + rect.Perimeter())
+    println("Rectangle color: " + rect.GetColor)
 
-    Circle circle(7.5)
+    Square square(6.0f, "My Square", Color.PURPLE)
+    square.Draw()
+    println(square.GetDescription())
+    println("Square area: " + square.Area())
+
+    Circle circle(7.5f)
     circle.Draw()
     println(circle.GetDescription())
-    println("Circumference: " + circle.Circumference())
-    println("Area: " + circle.Area())
-    println("")
+    println("Circle radius: " + circle.Radius)
+    println("Circle circumference: " + circle.Circumference())
+    println("Circle area: " + circle.Area())
 
-    // Containers with generics
-    println("Containers & Generics")
-    Container<int> intContainer(42, "The Answer")
-    println(intContainer.Serialize())
+    PrintHeading("Objects with Logic")
 
-    Container<string> strContainer("T#", "Language")
-    println(strContainer.Serialize())
-    println("")
+    Student student("Dylan", 23, 86.5f)
+    println(student.Summary())
+    println("Student passed: " + student.Passed())
+    println("Student grade text: " + GradeText(student.Grade))
 
-    // Complex operations
-    println("Complex Operations")
-    for (int i = 1; i <= 5; i++) {
-        println("i=" + i + ", factorial=" + factorial(i) + ", pow(2,i)=" + pow(2, i))
+    Student student2("Alex", 20, 42.0f)
+    println(student2.Summary())
+    println("Student2 passed: " + student2.Passed())
+    println("Student2 grade text: " + GradeText(student2.Grade))
+
+    PrintHeading("Complex Mixed Demo")
+
+    for (int n = 1; n <= 10; n++) {
+        string kind = "odd"
+
+        if (IsEven(n)) {
+            kind = "even"
+        }
+
+        println("n=" + n + ", kind=" + kind + ", factorial=" + factorial(n) + ", fibonacci=" + Fibonacci(n) + ", square=" + pow(n, 2))
     }
 
-    // Test enums
-    println("Enums")
-    Color c = Color.BLUE
-    println("Blue should be 1: " + c)
-    c = Color.GREEN
-    println("Green should be 2: " + c)
+    PrintHeading("Final Expressions")
 
-    if (c == Color.GREEN) {
-        println("Is green.")
-    }
+    println("2 * pi: " + (2 * pi))
+    println("tau == 2 * pi: " + (tau == 2 * pi))
+    println("golden_ratio > 1: " + (golden_ratio > 1))
+    println("sqrt(pow(3, 2) + pow(4, 2)): " + sqrt(pow(3, 2) + pow(4, 2)))
 
-    println(2 * pi)
+    PrintDivider()
 
-    println("")
-    println("Done.")
+    println("Demo complete.")
 }

@@ -50,9 +50,6 @@ tsharp
 vcpkg
 vcpkg_installed
 
-# Visual Studio Code
-.vscode
-
 # CMake
 Makefile
 CMakeFiles
@@ -61,3 +58,6 @@ cmake_install.cmake
 
 .antlr4-runtime
 antlr4-temp.zip
+
+# VS Code extension
+node_modules

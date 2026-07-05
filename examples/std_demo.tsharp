@@ -1,0 +1,192 @@
+// std_demo.tsharp
+// Tests T# standard library
+// Dylan Armstrong, 2026
+
+import std.collections.Dictionary
+import std.io.File
+import std.math.Vector2
+import std.math.Vector3
+import std.math.Matrix2
+import std.math.Matrix3
+
+void PrintHeading(string title) {
+    println("")
+    println(title)
+}
+
+void main() {
+    println("T# Standard Library Demo")
+    println("Dylan Armstrong, 2026")
+
+    PrintHeading("Dictionary<K,V>")
+
+    Dictionary<string, int> ages()
+    ages.put("Dylan", 23)
+    ages.put("Alice", 20)
+    ages.put("Bob", 31)
+
+    println("Dylan age: " + ages.get("Dylan"))
+    println("Alice age: " + ages.get("Alice"))
+    println("Bob age: " + ages.get("Bob"))
+    println("Dictionary count: " + ages.count())
+
+    Dictionary<string, string> capitals()
+    capitals.put("Australia", "Canberra")
+    capitals.put("Japan", "Tokyo")
+    capitals.put("France", "Paris")
+
+    println("Capital of Australia: " + capitals.get("Australia"))
+    println("Capital of Japan: " + capitals.get("Japan"))
+    println("Capital of France: " + capitals.get("France"))
+    println("Capital dictionary count: " + capitals.count())
+
+    PrintHeading("File I/O")
+
+    File file()
+    string text = file.read_all_text("examples/test.txt")
+    println("File contents:")
+    println(text)
+
+    PrintHeading("Vector2<T>")
+
+    Vector2<int> v2a(5, 10)
+    Vector2<int> v2b(1, 13)
+
+    println("v2a: " + v2a.to_string())
+    println("v2b: " + v2b.to_string())
+    println("v2a + v2b: " + v2a.add(v2b).to_string())
+    println("v2a - v2b: " + v2a.subtract(v2b).to_string())
+    println("v2a dot v2b: " + v2a.dot(v2b))
+
+    Vector2<float> v2f(3.5, 4.5)
+    println("v2f: " + v2f.to_string())
+
+    PrintHeading("Vector3<T>")
+
+    Vector3<int> v3a(1, 2, 3)
+    Vector3<int> v3b(4, 5, 6)
+
+    println("v3a: " + v3a.to_string())
+    println("v3b: " + v3b.to_string())
+    println("v3a + v3b: " + v3a.add(v3b).to_string())
+    println("v3a - v3b: " + v3a.subtract(v3b).to_string())
+    println("v3a dot v3b: " + v3a.dot(v3b))
+    println("v3a cross v3b: " + v3a.cross(v3b).to_string())
+
+    PrintHeading("Matrix2<T>")
+
+    Matrix2<int> m2a(1, 2, 3, 4)
+    Matrix2<int> m2b(5, 6, 7, 8)
+
+    println("m2a:")
+    println(m2a.to_string())
+
+    println("m2b:")
+    println(m2b.to_string())
+
+    println("m2a determinant: " + m2a.determinant())
+    println("m2b determinant: " + m2b.determinant())
+
+    PrintHeading("Matrix3<T>")
+
+    Matrix3<int> m3a(1, 2, 3, 0, 1, 4, 5, 6, 0)
+    Matrix3<int> m3b(2, 0, 1, 3, 0, 0, 5, 1, 1)
+
+    println("m3a:")
+    println(m3a.to_string())
+
+    println("m3b:")
+    println(m3b.to_string())
+
+    println("m3a determinant: " + m3a.determinant())
+    println("m3b determinant: " + m3b.determinant())
+
+    PrintHeading("Built-in Array Functions")
+
+    int nums[] = {5, 1, 9, 3, 7}
+
+    println("Original size: " + size(nums))
+    println("Original array address: " + address(nums))
+
+    print("Before sort: ")
+    for (int i = 0; i < size(nums); i++) {
+        print(nums[i] + " ")
+    }
+    println("")
+
+    sort(nums)
+
+    print("After sort: ")
+    for (int i = 0; i < size(nums); i++) {
+        print(nums[i] + " ")
+    }
+    println("")
+
+    push(nums, 99)
+    println("After push size: " + size(nums))
+    println("Last item after push: " + nums[size(nums) - 1])
+
+    int popped = pop(nums)
+    println("Popped value: " + popped)
+    println("After pop size: " + size(nums))
+
+    PrintHeading("Built-in Type Functions")
+
+    int x = 42
+    float y = 3.14f
+    string name = "T#"
+    bool working = true
+
+    println("typeof(x): " + typeof(x))
+    println("typeof(y): " + typeof(y))
+    println("typeof(name): " + typeof(name))
+    println("typeof(working): " + typeof(working))
+
+    println("address(x): " + address(x))
+    println("address(y): " + address(y))
+    println("address(name): " + address(name))
+
+    PrintHeading("Built-in Conversion Methods")
+
+    string numberText = "123"
+    int convertedInt = numberText.to_int()
+
+    int intValue = 456
+    string convertedString = intValue.to_string()
+
+    float floatValue = 7.89f
+    int roundedDown = floatValue.to_int()
+
+    println("numberText.to_int(): " + convertedInt)
+    println("intValue.to_string(): " + convertedString)
+    println("floatValue.to_int(): " + roundedDown)
+
+    PrintHeading("Extended Math Builtins")
+
+    println("abs(-10): " + abs(-10))
+    println("sqrt(81): " + sqrt(81))
+    println("cube_root(27): " + cube_root(27))
+    println("x_root(16, 4): " + x_root(16, 4))
+    println("exp(1): " + exp(1))
+    println("log(100): " + log(100))
+    println("pow(2, 10): " + pow(2, 10))
+    println("sin(pi / 2): " + sin(pi / 2))
+    println("cos(0): " + cos(0))
+    println("tan(pi / 4): " + tan(pi / 4))
+    println("floor(5.9): " + floor(5.9))
+    println("ceil(5.1): " + ceil(5.1))
+    println("round(5.5): " + round(5.5))
+    println("min(100, 25): " + min(100, 25))
+    println("max(100, 25): " + max(100, 25))
+    println("factorial(6): " + factorial(6))
+
+    PrintHeading("Math Constants")
+
+    println("pi: " + pi)
+    println("e: " + e)
+    println("tau: " + tau)
+    println("golden_ratio: " + golden_ratio)
+
+    println("")
+    println("Standard library demo complete.")
+}
