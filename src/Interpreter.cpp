@@ -30,7 +30,6 @@ void Interpreter::load(TSharpParser::ProgramContext* program) {
 }
 
 void Interpreter::run_main() {
-	std::cout << "running main..." << std::endl;
     auto main_value = globals->get("main");
     call_function(main_value, {});
 }
