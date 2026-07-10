@@ -7,34 +7,34 @@ class DictionaryEntry<K, V> {
     public V value
 
     public (K key, V value) {
-        this.key = key
-        this.value = value
+        key = key
+        value = value
     }
 }
 
 class Dictionary<K, V> {
-    private DictionaryEntry<K, V>[] entries
+    private DictionaryEntry<K, V> entries[]
 
     public () {
-        this.entries = {}
+        entries = {}
     }
 
     public void put(K key, V value) {
-        for (int i = 0; i < size(this.entries); i++) {
-            if (this.entries[i].key == key) {
-                this.entries[i].value = value
+        for (int i = 0; i < size(entries); i++) {
+            if (entries[i].key == key) {
+                entries[i].value = value
                 return
             }
         }
 
         DictionaryEntry<K, V> entry(key, value)
-        push(this.entries, entry)
+        push(entries, entry)
     }
 
     public V get(K key) {
-        for (int i = 0; i < size(this.entries); i++) {
-            if (this.entries[i].key == key) {
-                return this.entries[i].value
+        for (int i = 0; i < size(entries); i++) {
+            if (entries[i].key == key) {
+                return entries[i].value
             }
         }
 
@@ -42,8 +42,8 @@ class Dictionary<K, V> {
     }
 
     public bool contains_key(K key) {
-        for (int i = 0; i < size(this.entries); i++) {
-            if (this.entries[i].key == key) {
+        for (int i = 0; i < size(entries); i++) {
+            if (entries[i].key == key) {
                 return true
             }
         }
@@ -52,10 +52,10 @@ class Dictionary<K, V> {
     }
 
     public int count() {
-        return size(this.entries)
+        return size(entries)
     }
 
     public void clear() {
-        this.entries = {}
+        entries = {}
     }
 }

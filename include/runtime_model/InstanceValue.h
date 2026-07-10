@@ -1,4 +1,5 @@
 // InstanceValue.h
+// T# v1.0.0-betarc (v1.0.0 Beta Release Candidate/Final Beta)
 // Dylan Armstrong, 2026
 
 #pragma once
@@ -14,11 +15,12 @@ class Interpreter;
 
 // Instance value struct, inherits parent class
 struct InstanceValue : public std::enable_shared_from_this<InstanceValue> {
-    std::shared_ptr<ClassValue> class_val;
-    std::unordered_map<std::string, Value> fields;
+	std::shared_ptr<ClassValue> class_val;
+	std::unordered_map<std::string, Value> fields;
 
-    // Explicit constructor
-    explicit InstanceValue(std::shared_ptr<ClassValue> c) : class_val(std::move(c)) {}
+	// Explicit constructor
+	explicit InstanceValue(std::shared_ptr<ClassValue> c) : class_val(std::move(c)) {
+	}
 };
 
 }

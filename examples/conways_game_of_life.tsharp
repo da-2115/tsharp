@@ -4,7 +4,7 @@
 static int width = 30
 static int height = 20
 
-int cellToN(bool c) {
+int cellToN(int c) {
 	if (c) {
 		return 1
 	} else {
@@ -21,7 +21,7 @@ int wrap(int x, int m) {
 }
 
 void main() {
-	bool board[width * height]
+	int board[width * height]
 
 	board[1] = true
 	board[width] = true
@@ -29,7 +29,7 @@ void main() {
 	board[2 * width + 1] = true
 	board[2 * width + 2] = true
 
-	bool newBoard[width * height]
+	int newBoard[width * height]
 
 	while (true) {
 		for (int x = 0; x < width; x++) {

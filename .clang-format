@@ -1,88 +1,40 @@
----
-Language: Cpp
-
 BasedOnStyle: LLVM
+Language: Cpp
+FixNamespaceComments: false
 
 # Indentation
+UseTab: Always
 IndentWidth: 4
 TabWidth: 4
-UseTab: Never
 ContinuationIndentWidth: 4
 
 # Braces
 BreakBeforeBraces: Attach
-BraceWrapping:
-  AfterClass: false
-  AfterControlStatement: false
-  AfterEnum: false
-  AfterFunction: false
-  AfterNamespace: false
-  AfterStruct: false
-  AfterUnion: false
-  BeforeCatch: true
-  BeforeElse: true
-  IndentBraces: false
-  SplitEmptyFunction: false
-  SplitEmptyRecord: false
-  SplitEmptyNamespace: false
+AllowShortBlocksOnASingleLine: Never
+AllowShortFunctionsOnASingleLine: None
+AllowShortIfStatementsOnASingleLine: Never
+AllowShortLoopsOnASingleLine: false
+AllowShortCaseLabelsOnASingleLine: false
 
-# Functions
-AllowShortFunctionsOnASingleLine: Empty
-AlwaysBreakAfterReturnType: None
-AlwaysBreakTemplateDeclarations: Yes
+# Pointer/reference style
+PointerAlignment: Left
+ReferenceAlignment: Left
+DerivePointerAlignment: false
 
-# Parameters
-BinPackParameters: true
-BinPackArguments: true
+# Force braces where possible
+InsertBraces: true
+RemoveBracesLLVM: false
 
-# References & pointers
-PointerAlignment: Right
-ReferenceAlignment: Pointer
-
-# Spaces
+# Misc.
+IndentCaseLabels: true
+IndentCaseBlocks: true
+NamespaceIndentation: None
+ColumnLimit: 0
+SortIncludes: true
 SpaceBeforeParens: ControlStatements
-SpaceBeforeAssignmentOperators: true
-SpaceAfterCStyleCast: false
-SpacesInParentheses: false
-SpacesInSquareBrackets: false
-SpacesInAngles: Never
-SpaceInEmptyParentheses: false
-
-# Includes
-SortIncludes: Never
-IncludeBlocks: Preserve
-
-# Alignment
-AlignOperands: true
-AlignTrailingComments: true
+Cpp11BracedListStyle: true
 AlignConsecutiveAssignments: false
 AlignConsecutiveDeclarations: false
-
-# Access modifiers
-AccessModifierOffset: -4
-EmptyLineBeforeAccessModifier: LogicalBlock
-EmptyLineAfterAccessModifier: Never
-
-# Classes
-IndentCaseLabels: true
-IndentGotoLabels: false
-
-# Columns
-ColumnLimit: 120
-
-# Constructor initializers
-BreakConstructorInitializers: BeforeComma
-PackConstructorInitializers: CurrentLine
-
-# Misc
-Cpp11BracedListStyle: true
-DerivePointerAlignment: false
-FixNamespaceComments: true
-NamespaceIndentation: None
-KeepEmptyLinesAtTheStartOfBlocks: false
-MaxEmptyLinesToKeep: 1
-ReflowComments: true
-
+AlignOperands: Align
+AlignTrailingComments: true
 Standard: Latest
-
-AllowShortIfStatementsOnASingleLine: Never

@@ -1,4 +1,4 @@
-int dylan_fn(int x) {
+double dylan_fn(int x) {
     return pow(x, factorial(x))
 }
 

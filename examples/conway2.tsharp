@@ -4,7 +4,7 @@
 static int width = 30
 static int height = 20
 
-static int delayCount = pow(2, 14)
+static double delayCount = pow(2, 14)
 
 void main() {
 	any board[height]

@@ -1,4 +1,5 @@
 // Environment.cpp
+// T# v1.0.0-betarc (v1.0.0 Beta Release Candidate/Final Beta)
 // Dylan Armstrong, 2026
 
 #include "Environment.h"
@@ -6,52 +7,53 @@
 namespace tsharp {
 
 // Environment constructor
-Environment::Environment(std::shared_ptr<Environment> parent) : parent(std::move(parent)) {}
+Environment::Environment(std::shared_ptr<Environment> parent) : parent(std::move(parent)) {
+}
 
 // Define environment
-void Environment::define(const std::string &name, const Value &value) {
-    values.emplace(name, value);
+void Environment::define(const std::string& name, const Value& value) {
+	values.emplace(name, value);
 }
 
 // Assign environment
-void Environment::assign(const std::string &name, const Value &value) {
-    if (values.contains(name)) {
-        values.at(name) = value;
+void Environment::assign(const std::string& name, const Value& value) {
+	if (values.contains(name)) {
+		values.at(name) = value;
 
-        return;
-    }
+		return;
+	}
 
-    if (parent) {
-        parent->assign(name, value);
+	if (parent) {
+		parent->assign(name, value);
 
-        return;
-    }
+		return;
+	}
 
-    throw RuntimeError("Undefined variable: " + name);
+	throw RuntimeError("Undefined variable: " + name);
 }
 
 // Get environment value
-Value Environment::get(const std::string &name) const {
-    auto it = values.find(name);
+Value Environment::get(const std::string& name) const {
+	auto it = values.find(name);
 
-    if (it != values.end()) {
-        return it->second;
-    }
+	if (it != values.end()) {
+		return it->second;
+	}
 
-    if (parent) {
-        return parent->get(name);
-    }
+	if (parent) {
+		return parent->get(name);
+	}
 
-    throw RuntimeError("Undefined variable: " + name);
+	throw RuntimeError("Undefined variable: " + name);
 }
 
 // Does a local exist with the same name?
-bool Environment::exists_local(const std::string &name) const {
-    return values.contains(name);
+bool Environment::exists_local(const std::string& name) const {
+	return values.contains(name);
 }
 
 std::shared_ptr<Environment> Environment::get_parent() const {
-    return parent;
+	return parent;
 }
 
-} // namespace tsharp
+}

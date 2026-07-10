@@ -1,4 +1,4 @@
-# T# v1.0.0-beta5
+# T# v1.0.0-betarc
 
 The T# Programming Language — written by Dylan Armstrong, 2026, in C++ with ANTLR.
 
@@ -18,6 +18,17 @@ T# is a small, statically typed, C#/Java-inspired programming language with clas
 - C++20 interpreter runtime
 
 ## Changelog
+
+### v1.0.0-betarc
+
+This will be the final beta before a full release of the language.
+
+**Fixes**:
+- Fixed bugs with arrays. This includes bugs with array types and array intitialisation within the interpreter. Arrays should now behave much better than what they did before.
+
+**General Code Patching**:
+- Commented out the T# codebase a lot more.
+- Added formatting properly via `clang-format`.
 
 ### v1.0.0-beta5
 

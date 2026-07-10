@@ -3,6 +3,6 @@
     "C_Cpp.clang_format_style": "file",
     "editor.formatOnSave": true,
     "[cpp]": {
-        "editor.defaultFormatter": "ms-vscode.cpptools"
+        "editor.defaultFormatter": "xaver.clang-format"
     }
 }
