@@ -1,4 +1,4 @@
-# T# v1.0.0-betarc
+# T# v1.0.0
 
 The T# Programming Language — written by Dylan Armstrong, 2026, in C++ with ANTLR.
 
