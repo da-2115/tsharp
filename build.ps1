@@ -212,8 +212,8 @@ if ($compiler) {
     Write-Status "T# compiler location: $(Resolve-Path $compiler)" -Color $InfoColor
     Write-Host ""
     Write-Status "Ready to use! Try:" -Color $SuccessColor
-    Write-Host "  .\test.ps1              # Run test suite"
-    Write-Host "  $compiler examples\test.tsharp  # Run example"
+    Write-Host "  $compiler examples\demo.tsharp     # Run demo"
+    Write-Host "  $compiler examples\std_demo.tsharp # Run std library demo"
     Write-Host ""
     exit 0
 } else {

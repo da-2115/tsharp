@@ -1,5 +1,5 @@
 // main.cpp
-// T# v1.0.0-betarc (v1.0.0 Beta Release Candidate/Final Beta)
+
 // Dylan Armstrong, 2026
 
 #include "Interpreter.h"
@@ -11,7 +11,7 @@
 #include <vector>
 
 // Compile time constant readonly string for the version string
-constexpr std::string_view tsharp_version = "v1.0.0-betarc";
+constexpr std::string_view tsharp_version = "v1.0.0";
 
 // Main function
 int main(int argc, const char* argv[]) {

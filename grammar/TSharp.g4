@@ -102,7 +102,7 @@ constructorDecl:
 	accessModifier? LPAREN parameterList? RPAREN NEWLINE* block;
 
 methodDecl:
-	modifiers? returnType IDENTIFIER genericParams? LPAREN parameterList? RPAREN NEWLINE* block;
+	modifiers? returnType IDENTIFIER genericParams? LPAREN parameterList? RPAREN NEWLINE* block?;
 
 interfaceMethodDecl:
 	accessModifier? returnType IDENTIFIER genericParams? LPAREN parameterList? RPAREN NEWLINE+;

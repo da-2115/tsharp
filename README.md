@@ -19,6 +19,10 @@ T# is a small, statically typed, C#/Java-inspired programming language with clas
 
 ## Changelog
 
+### v1.0.0
+
+Final bug fixes primarily in the ANTLR grammar specification.
+
 ### v1.0.0-betarc
 
 This will be the final beta before a full release of the language.

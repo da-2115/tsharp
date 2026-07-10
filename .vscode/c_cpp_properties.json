@@ -3,7 +3,8 @@
         {
             "name": "Win32",
             "includePath": [
-                "${workspaceFolder}/**"
+                "${workspaceFolder}/**",
+                "/opt/homebrew/Cellar/antlr4-cpp-runtime/4.13.2/include/antlr4-runtime"
             ],
             "defines": [
                 "_DEBUG",

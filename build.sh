@@ -82,18 +82,10 @@ fi
 # Generate ANTLR parser/lexer
 echo -e "${BLUE}Checking ANTLR parser...${NC}"
 
-ANTLR_JAR="./tools/antlr-4.13.2-complete.jar"
+ANTLR_CMD=antlr
 GRAMMAR="./grammar/TSharp.g4"
 GENERATED_DIR="./generated"
 PARSER_FILE="$GENERATED_DIR/TSharpParser.cpp"
-
-if [ ! -f "$ANTLR_JAR" ]; then
-    echo -e "${RED}ANTLR jar not found: $ANTLR_JAR${NC}"
-    echo "Download it with:"
-    echo "  mkdir -p tools"
-    echo "  curl -L -o tools/antlr-4.13.2-complete.jar https://www.antlr.org/download/antlr-4.13.2-complete.jar"
-    exit 1
-fi
 
 if [ ! -f "$GRAMMAR" ]; then
     echo -e "${RED}Grammar file not found: $GRAMMAR${NC}"
@@ -102,28 +94,16 @@ fi
 
 mkdir -p "$GENERATED_DIR"
 
-GENERATE=false
+echo -e "${YELLOW}Generating ANTLR parser...${NC}"
 
-if [ ! -f "$PARSER_FILE" ]; then
-    GENERATE=true
-elif [ "$GRAMMAR" -nt "$PARSER_FILE" ]; then
-    GENERATE=true
-fi
+$ANTLR_CMD \
+    -Dlanguage=Cpp \
+    -visitor \
+    -no-listener \
+    -o "$GENERATED_DIR" \
+    "$GRAMMAR"
 
-if [ "$GENERATE" = true ]; then
-    echo -e "${YELLOW}Generating ANTLR parser...${NC}"
-
-    java -jar "$ANTLR_JAR" \
-        -Dlanguage=Cpp \
-        -visitor \
-        -no-listener \
-        -o "$GENERATED_DIR" \
-        "$GRAMMAR"
-
-    echo -e "${GREEN}ANTLR parser generated${NC}"
-else
-    echo -e "${GREEN}ANTLR parser already up-to-date${NC}"
-fi
+echo -e "${GREEN}ANTLR parser generated${NC}"
 
 echo ""
 
@@ -156,8 +136,8 @@ if [ -f "./tsharp" ]; then
     ./tsharp --version 2>/dev/null || echo "  (version check not available)"
     echo ""
     echo -e "${GREEN}Ready to use! Try:${NC}"
-    echo "  ./test.sh              # Run test suite"
-    echo "  ./tsharp examples/test.tsharp  # Run example"
+    echo "  ./tsharp examples/demo.tsharp      # Run demo"
+    echo "  ./tsharp examples/std_demo.tsharp  # Run std library demo"
     exit 0
 else
     echo -e "${RED}Build failed - compiler binary not found${NC}"
