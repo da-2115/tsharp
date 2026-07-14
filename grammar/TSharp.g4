@@ -1,8 +1,6 @@
-/* 
- TSharp.g4
- T# v1.0.0-betarc (v1.0.0 Beta Release Candidate/Final Beta)
- Dylan Armstrong, 2026
- */
+// TSharp.g4 
+// T# v2.0.0-beta1
+// Dylan Armstrong, 2026
 
 grammar TSharp;
 
@@ -62,6 +60,7 @@ arrayTypeSuffix: LBRACK RBRACK;
 primitiveType:
 	INT
 	| FLOAT
+	| LONG
 	| DOUBLE
 	| STRING
 	| CHAR
@@ -269,8 +268,10 @@ argumentList:
 arrayLiteral: LBRACE (expression (COMMA expression)*)? RBRACE;
 
 literal:
+LONG_LITERAL |
 	INTEGER_LITERAL
 	| FLOAT_LITERAL
+	
 	| STRING_LITERAL
 	| CHAR_LITERAL
 	| TRUE
@@ -279,6 +280,7 @@ literal:
 
 // Lexer rules
 
+// Keywords
 CLASS: 'class';
 INTERFACE: 'interface';
 ENUM: 'enum';
@@ -291,6 +293,7 @@ VIRTUAL: 'virtual';
 OVERRIDE: 'override';
 IMPORT: 'import';
 
+// Statements
 IF: 'if';
 ELSE: 'else';
 FOR: 'for';
@@ -310,8 +313,10 @@ FINALLY: 'finally';
 THIS: 'this';
 BASE: 'base';
 
+// Type tokens
 INT: 'int';
 FLOAT: 'float';
+LONG: 'long';
 DOUBLE: 'double';
 STRING: 'string';
 CHAR: 'char';
@@ -371,6 +376,8 @@ IDENTIFIER: [a-zA-Z_][a-zA-Z0-9_]*;
 INTEGER_LITERAL: [0-9]+;
 
 FLOAT_LITERAL: [0-9]+ '.' [0-9]+ [fF]?;
+
+LONG_LITERAL: [0-9]+ [lL];
 
 STRING_LITERAL: '"' ( '\\' . | ~["\\\r\n])* '"';
 

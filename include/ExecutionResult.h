@@ -8,7 +8,7 @@
 #include "Value.h"
 
 namespace tsharp {
-class Interpreter;
+;
 
 // Execution result
 // Stores a value, and the control flow of that value

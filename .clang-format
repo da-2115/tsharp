@@ -29,7 +29,7 @@ RemoveBracesLLVM: false
 IndentCaseLabels: true
 IndentCaseBlocks: true
 NamespaceIndentation: None
-ColumnLimit: 0
+ColumnLimit: 200
 SortIncludes: true
 SpaceBeforeParens: ControlStatements
 Cpp11BracedListStyle: true

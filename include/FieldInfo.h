@@ -6,7 +6,7 @@
 #include <string>
 
 namespace tsharp {
-class Interpreter;
+;
 
 // Field info struct for tracking field access modifiers
 struct FieldInfo {

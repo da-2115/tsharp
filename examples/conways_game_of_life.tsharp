@@ -1,5 +1,5 @@
 // conways_game_of_life.tsharp
-// Ash Kollmorgen, 2026
+// AshKmo, 2026
 
 static int width = 30
 static int height = 20

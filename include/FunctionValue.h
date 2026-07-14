@@ -14,7 +14,7 @@
 #include "ParameterInfo.h"
 
 namespace tsharp {
-class Interpreter;
+;
 
 // Function value struct
 // Stores information about T# functions
@@ -40,7 +40,7 @@ struct FunctionValue {
 	void* body_node = nullptr;
 
 	std::shared_ptr<Environment> closure;
-	std::function<Value(Interpreter&, const std::vector<Value>&, const Value&)> native;
+	std::function<Value(const std::vector<Value>&, const Value&)> native;
 };
 
 }

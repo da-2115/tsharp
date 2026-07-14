@@ -6,7 +6,6 @@
 #include <string>
 
 namespace tsharp {
-class Interpreter;
 
 // Property value struct
 // Used for properties
