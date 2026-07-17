@@ -745,40 +745,6 @@ void main() {
     t.Honk()
     
     PrintDivider()
-    println("More complex tests")
-
-    for (int i = 0; i <= abs(-30); i += 5) {
-        println("i=" + i + ", &i=" + address(i))
-        for (int j = i; j <= ((i - 1) * 2); j++) {
-            // Test copy/move semantics in T#
-            string addr_j = address(j)
-            println(addr_j)
-            int copy_of_j = j
-            string copy_addr_j = address(copy_of_j)
-            println(copy_addr_j)
-
-            if (addr_j == copy_addr_j) {
-                println("Adresses match")
-                break
-            }
-
-            println((j % 2).to_bool())
-        }
-        switch (i) {
-            case abs(-30):
-                println("Done")
-                break
-            default:
-                println("Continuing")
-                break
-        }
-    }
-
-    PrintDivider()
 
     println("Demo complete.")
-
-    /*
-        Test multiline comment
-    */
 }

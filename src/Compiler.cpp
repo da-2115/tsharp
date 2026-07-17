@@ -217,7 +217,7 @@ void Compiler::declare_function(TSharpParser::FunctionDeclContext* ctx) {
 
 	function.arity = function.parameter_names.size();
 
-	const std::size_t index = module.functions.size();
+	const size_t index = module.functions.size();
 
 	module.function_lookup[name] = index;
 
@@ -243,7 +243,7 @@ void Compiler::declare_class(TSharpParser::ClassDeclContext* ctx) {
 		class_info.base_class = ctx->inheritanceClause()->typeRef()[0]->getText();
 	}
 
-	const std::size_t class_index = module.classes.size();
+	const size_t class_index = module.classes.size();
 
 	module.class_lookup[name] = class_index;
 
@@ -276,7 +276,7 @@ void Compiler::declare_class(TSharpParser::ClassDeclContext* ctx) {
 				throw std::runtime_error("Field already defined: " + name + "." + field_name);
 			}
 
-			const std::size_t slot = declared_class.fields.size();
+			const size_t slot = declared_class.fields.size();
 
 			BytecodeFieldInfo info;
 
@@ -347,7 +347,7 @@ void Compiler::declare_enum(TSharpParser::EnumDeclContext* ctx) {
 		next_value = value + 1;
 	}
 
-	const std::size_t index = module.enums.size();
+	const size_t index = module.enums.size();
 
 	module.enum_lookup[info.name] = index;
 
@@ -365,7 +365,7 @@ void Compiler::declare_global(TSharpParser::GlobalVarDeclContext* ctx) {
 		throw std::runtime_error("Global variable already defined: " + name);
 	}
 
-	const std::size_t slot = module.globals.size();
+	const size_t slot = module.globals.size();
 
 	module.global_lookup[name] = slot;
 
@@ -382,7 +382,7 @@ void Compiler::compile_global_initializer(TSharpParser::GlobalVarDeclContext* ct
 
 	const std::string name = variable->IDENTIFIER()->getText();
 
-	const std::size_t slot = resolve_global(name);
+	const size_t slot = resolve_global(name);
 
 	if (!variable->variableInitializer()) {
 		return;
@@ -401,7 +401,7 @@ void Compiler::compile_global_initializer(TSharpParser::GlobalVarDeclContext* ct
 
 // Methods
 
-void Compiler::declare_method(std::size_t class_index, TSharpParser::MethodDeclContext* ctx) {
+void Compiler::declare_method(size_t class_index, TSharpParser::MethodDeclContext* ctx) {
 	ClassInfo& class_info = module.classes[class_index];
 
 	const std::string method_name = ctx->IDENTIFIER()->getText();
@@ -429,7 +429,7 @@ void Compiler::declare_method(std::size_t class_index, TSharpParser::MethodDeclC
 
 	function.arity = function.parameter_names.size() - 1;
 
-	const std::size_t function_index = module.functions.size();
+	const size_t function_index = module.functions.size();
 
 	module.function_lookup[qualified_name] = function_index;
 
@@ -440,7 +440,7 @@ void Compiler::declare_method(std::size_t class_index, TSharpParser::MethodDeclC
 
 // Constructors
 
-void Compiler::declare_constructor(std::size_t class_index, TSharpParser::ConstructorDeclContext* ctx) {
+void Compiler::declare_constructor(size_t class_index, TSharpParser::ConstructorDeclContext* ctx) {
 	ClassInfo& class_info = module.classes[class_index];
 
 	BytecodeFunction function;
@@ -463,7 +463,7 @@ void Compiler::declare_constructor(std::size_t class_index, TSharpParser::Constr
 
 	function.arity = function.parameter_names.size() - 1;
 
-	const std::size_t function_index = module.functions.size();
+	const size_t function_index = module.functions.size();
 
 	module.function_lookup[function.name] = function_index;
 
@@ -474,7 +474,7 @@ void Compiler::declare_constructor(std::size_t class_index, TSharpParser::Constr
 
 // Properties
 
-void Compiler::declare_property(std::size_t class_index, TSharpParser::PropertyDeclContext* ctx) {
+void Compiler::declare_property(size_t class_index, TSharpParser::PropertyDeclContext* ctx) {
 	ClassInfo& class_info = module.classes[class_index];
 
 	const std::string property_name = ctx->IDENTIFIER()->getText();
@@ -491,7 +491,7 @@ void Compiler::declare_property(std::size_t class_index, TSharpParser::PropertyD
 
 	function.arity = 0;
 
-	const std::size_t function_index = module.functions.size();
+	const size_t function_index = module.functions.size();
 
 	module.function_lookup[function_name] = function_index;
 
@@ -505,13 +505,13 @@ void Compiler::declare_property(std::size_t class_index, TSharpParser::PropertyD
 void Compiler::compile_function(TSharpParser::FunctionDeclContext* ctx) {
 	const std::string name = ctx->IDENTIFIER()->getText();
 
-	const std::size_t function_index = resolve_function(name);
+	const size_t function_index = resolve_function(name);
 
 	BytecodeFunction& function = module.functions[function_index];
 
 	begin_function(function);
 
-	for (std::size_t i = 0; i < function.parameter_names.size(); i++) {
+	for (size_t i = 0; i < function.parameter_names.size(); i++) {
 		const std::string type = i < function.parameter_types.size() ? function.parameter_types[i] : std::string{};
 
 		declare_local(function.parameter_names[i], type);
@@ -536,11 +536,11 @@ void Compiler::compile_function(TSharpParser::FunctionDeclContext* ctx) {
 void Compiler::compile_class(TSharpParser::ClassDeclContext* ctx) {
 	const std::string name = ctx->IDENTIFIER()->getText();
 
-	const std::size_t class_index = resolve_class(name);
+	const size_t class_index = resolve_class(name);
 
 	current_class = &module.classes[class_index];
 
-	std::size_t constructor_index = 0;
+	size_t constructor_index = 0;
 
 	for (auto* member : ctx->classBody()->classMember()) {
 		if (auto* method = member->methodDecl()) {
@@ -567,18 +567,18 @@ void Compiler::compile_class(TSharpParser::ClassDeclContext* ctx) {
 
 // Compile method
 
-void Compiler::compile_method(std::size_t class_index, TSharpParser::MethodDeclContext* ctx) {
+void Compiler::compile_method(size_t class_index, TSharpParser::MethodDeclContext* ctx) {
 	ClassInfo& class_info = module.classes[class_index];
 
 	const std::string qualified_name = class_info.name + "." + ctx->IDENTIFIER()->getText();
 
-	const std::size_t function_index = resolve_function(qualified_name);
+	const size_t function_index = resolve_function(qualified_name);
 
 	BytecodeFunction& function = module.functions[function_index];
 
 	begin_function(function);
 
-	for (std::size_t i = 0; i < function.parameter_names.size(); i++) {
+	for (size_t i = 0; i < function.parameter_names.size(); i++) {
 		const std::string type = i < function.parameter_types.size() ? function.parameter_types[i] : std::string{};
 
 		declare_local(function.parameter_names[i], type);
@@ -599,16 +599,16 @@ void Compiler::compile_method(std::size_t class_index, TSharpParser::MethodDeclC
 
 // Compile constructor
 
-void Compiler::compile_constructor(std::size_t class_index, TSharpParser::ConstructorDeclContext* ctx, std::size_t constructor_index) {
+void Compiler::compile_constructor(size_t class_index, TSharpParser::ConstructorDeclContext* ctx, size_t constructor_index) {
 	ClassInfo& class_info = module.classes[class_index];
 
-	const std::size_t function_index = class_info.constructors[constructor_index];
+	const size_t function_index = class_info.constructors[constructor_index];
 
 	BytecodeFunction& function = module.functions[function_index];
 
 	begin_function(function);
 
-	for (std::size_t i = 0; i < function.parameter_names.size(); i++) {
+	for (size_t i = 0; i < function.parameter_names.size(); i++) {
 		const std::string type = i < function.parameter_types.size() ? function.parameter_types[i] : std::string{};
 
 		declare_local(function.parameter_names[i], type);
@@ -628,10 +628,10 @@ void Compiler::compile_constructor(std::size_t class_index, TSharpParser::Constr
 
 // Compile property
 
-void Compiler::compile_property(std::size_t class_index, TSharpParser::PropertyDeclContext* ctx) {
+void Compiler::compile_property(size_t class_index, TSharpParser::PropertyDeclContext* ctx) {
 	ClassInfo& class_info = module.classes[class_index];
 
-	const std::size_t function_index = class_info.properties[ctx->IDENTIFIER()->getText()];
+	const size_t function_index = class_info.properties[ctx->IDENTIFIER()->getText()];
 
 	BytecodeFunction& function = module.functions[function_index];
 
@@ -709,7 +709,7 @@ Chunk& Compiler::chunk() {
 
 // Local/global resolution
 
-std::size_t Compiler::declare_local(const std::string& name, const std::string& type) {
+size_t Compiler::declare_local(const std::string& name, const std::string& type) {
 	auto& context = current_context();
 
 	if (context.scopes.empty()) {
@@ -722,14 +722,14 @@ std::size_t Compiler::declare_local(const std::string& name, const std::string& 
 		throw std::runtime_error("Local variable already declared in this scope: " + name);
 	}
 
-	const std::size_t slot = context.next_local++;
+	const size_t slot = context.next_local++;
 
 	current_scope[name] = LocalInfo{.slot = slot, .type = type};
 
 	return slot;
 }
 
-std::size_t Compiler::resolve_local(const std::string& name) const {
+size_t Compiler::resolve_local(const std::string& name) const {
 	if (function_contexts.empty()) {
 		throw std::runtime_error("No active function context");
 	}
@@ -781,7 +781,7 @@ bool Compiler::has_local(const std::string& name) const {
 	return false;
 }
 
-std::size_t Compiler::resolve_global(const std::string& name) const {
+size_t Compiler::resolve_global(const std::string& name) const {
 	auto it = module.global_lookup.find(name);
 
 	if (it == module.global_lookup.end()) {
@@ -791,7 +791,7 @@ std::size_t Compiler::resolve_global(const std::string& name) const {
 	return it->second;
 }
 
-std::size_t Compiler::resolve_function(const std::string& name) const {
+size_t Compiler::resolve_function(const std::string& name) const {
 	auto it = module.function_lookup.find(name);
 
 	if (it == module.function_lookup.end()) {
@@ -801,7 +801,7 @@ std::size_t Compiler::resolve_function(const std::string& name) const {
 	return it->second;
 }
 
-std::size_t Compiler::resolve_class(const std::string& name) const {
+size_t Compiler::resolve_class(const std::string& name) const {
 	auto it = module.class_lookup.find(name);
 
 	if (it == module.class_lookup.end()) {
@@ -817,41 +817,41 @@ void Compiler::emit_opcode(OpCode opcode) {
 	chunk().write_opcode(opcode);
 }
 
-void Compiler::emit_byte(std::uint8_t value) {
+void Compiler::emit_byte(uint8_t value) {
 	chunk().write_byte(value);
 }
 
-void Compiler::emit_u16(std::uint16_t value) {
-	emit_byte(static_cast<std::uint8_t>(value & 0xff));
+void Compiler::emit_u16(uint16_t value) {
+	emit_byte(static_cast<uint8_t>(value & 0xff));
 
-	emit_byte(static_cast<std::uint8_t>((value >> 8) & 0xff));
+	emit_byte(static_cast<uint8_t>((value >> 8) & 0xff));
 }
 
 void Compiler::emit_constant(Value value) {
-	const std::size_t index = chunk().add_constant(std::move(value));
+	const size_t index = chunk().add_constant(std::move(value));
 
-	if (index > std::numeric_limits<std::uint16_t>::max()) {
+	if (index > std::numeric_limits<uint16_t>::max()) {
 		throw std::runtime_error("Too many constants");
 	}
 
 	emit_opcode(OpCode::Constant);
 
-	emit_u16(static_cast<std::uint16_t>(index));
+	emit_u16(static_cast<uint16_t>(index));
 }
 
-void Compiler::emit_load_local(std::size_t slot) {
+void Compiler::emit_load_local(size_t slot) {
 	emit_opcode(OpCode::LoadLocal);
 
-	emit_u16(static_cast<std::uint16_t>(slot));
+	emit_u16(static_cast<uint16_t>(slot));
 }
 
-void Compiler::emit_store_local(std::size_t slot) {
+void Compiler::emit_store_local(size_t slot) {
 	emit_opcode(OpCode::StoreLocal);
 
-	emit_u16(static_cast<std::uint16_t>(slot));
+	emit_u16(static_cast<uint16_t>(slot));
 }
 
-std::size_t Compiler::emit_jump(OpCode opcode) {
+size_t Compiler::emit_jump(OpCode opcode) {
 	emit_opcode(opcode);
 
 	emit_u16(0xffff);
@@ -859,30 +859,30 @@ std::size_t Compiler::emit_jump(OpCode opcode) {
 	return (chunk().code_size() - 2);
 }
 
-void Compiler::patch_jump(std::size_t operand_position) {
-	const std::size_t offset = chunk().code_size() - operand_position - 2;
+void Compiler::patch_jump(size_t operand_position) {
+	const size_t offset = chunk().code_size() - operand_position - 2;
 
-	if (offset > std::numeric_limits<std::uint16_t>::max()) {
+	if (offset > std::numeric_limits<uint16_t>::max()) {
 		throw std::runtime_error("Jump offset too large");
 	}
 
 	auto& code = chunk().mutable_code();
 
-	code[operand_position] = static_cast<std::uint8_t>(offset & 0xff);
+	code[operand_position] = static_cast<uint8_t>(offset & 0xff);
 
-	code[operand_position + 1] = static_cast<std::uint8_t>((offset >> 8) & 0xff);
+	code[operand_position + 1] = static_cast<uint8_t>((offset >> 8) & 0xff);
 }
 
-void Compiler::emit_loop(std::size_t loop_start) {
+void Compiler::emit_loop(size_t loop_start) {
 	emit_opcode(OpCode::Loop);
 
-	const std::size_t offset = chunk().code_size() - loop_start + 2;
+	const size_t offset = chunk().code_size() - loop_start + 2;
 
-	if (offset > std::numeric_limits<std::uint16_t>::max()) {
+	if (offset > std::numeric_limits<uint16_t>::max()) {
 		throw std::runtime_error("Loop body too large");
 	}
 
-	emit_u16(static_cast<std::uint16_t>(offset));
+	emit_u16(static_cast<uint16_t>(offset));
 }
 
 // Block
@@ -910,7 +910,7 @@ antlrcpp::Any Compiler::visitVariableDecl(TSharpParser::VariableDeclContext* ctx
 
 	const std::string declared_type = base_type_name(ctx->typeRef()->getText());
 
-	const std::size_t slot = declare_local(name, declared_type);
+	const size_t slot = declare_local(name, declared_type);
 
 	auto* array_decl = ctx->arrayDeclarator();
 
@@ -934,7 +934,7 @@ antlrcpp::Any Compiler::visitVariableDecl(TSharpParser::VariableDeclContext* ctx
 			const std::string runtime_type = base_type_name(ctx->typeRef()->getText());
 
 			if (module.class_lookup.contains(runtime_type)) {
-				std::size_t argument_count = 0;
+				size_t argument_count = 0;
 
 				if (initializer->argumentList()) {
 					for (auto* argument : initializer->argumentList()->expression()) {
@@ -945,26 +945,17 @@ antlrcpp::Any Compiler::visitVariableDecl(TSharpParser::VariableDeclContext* ctx
 				}
 
 				emit_opcode(OpCode::NewObject);
-				emit_u16(static_cast<std::uint16_t>(module.class_lookup.at(runtime_type)));
-				emit_u16(static_cast<std::uint16_t>(argument_count));
+				emit_u16(static_cast<uint16_t>(module.class_lookup.at(runtime_type)));
+				emit_u16(static_cast<uint16_t>(argument_count));
 
 				emit_store_local(slot);
 
 				return {};
 			}
 		}
-
-		// Keep your constructor-style initialization here if
-		// argumentList() represents:
-		//
-		// Counter counter()
-		// Counter counter(100)
-		//
-		// Do NOT treat an array literal as a zero-sized NewArray.
 	}
 
 	// Fixed-size array without initializer
-	//
 	// int values[5]
 
 	if (array_decl) {
@@ -979,10 +970,9 @@ antlrcpp::Any Compiler::visitVariableDecl(TSharpParser::VariableDeclContext* ctx
 		}
 
 		// Unsized [] with no initializer.
-		//
 		// int values[]
-		//
 		// Represent as empty array.
+
 		emit_constant(Value(0));
 
 		emit_opcode(OpCode::NewArray);
@@ -993,7 +983,6 @@ antlrcpp::Any Compiler::visitVariableDecl(TSharpParser::VariableDeclContext* ctx
 	}
 
 	// No initializer
-
 	if (!initializer) {
 		emit_opcode(OpCode::Null);
 
@@ -1001,8 +990,6 @@ antlrcpp::Any Compiler::visitVariableDecl(TSharpParser::VariableDeclContext* ctx
 
 		return {};
 	}
-
-	// Your constructor-style initialization logic continues here.
 
 	return {};
 }
@@ -1034,7 +1021,7 @@ antlrcpp::Any Compiler::visitAssignment(TSharpParser::AssignmentContext* ctx) {
 
 		// Implicit this field FIRST.
 		if (current_class && current_class->field_slots.contains(name)) {
-			const std::size_t field_slot = current_class->field_slots[name];
+			const size_t field_slot = current_class->field_slots[name];
 
 			emit_load_local(0);
 
@@ -1043,7 +1030,7 @@ antlrcpp::Any Compiler::visitAssignment(TSharpParser::AssignmentContext* ctx) {
 
 				emit_opcode(OpCode::LoadField);
 
-				emit_u16(static_cast<std::uint16_t>(field_slot));
+				emit_u16(static_cast<uint16_t>(field_slot));
 			}
 
 			visit(ctx->expression());
@@ -1054,19 +1041,17 @@ antlrcpp::Any Compiler::visitAssignment(TSharpParser::AssignmentContext* ctx) {
 
 			emit_opcode(OpCode::StoreField);
 
-			emit_u16(static_cast<std::uint16_t>(field_slot));
+			emit_u16(static_cast<uint16_t>(field_slot));
 
 			return {};
 		}
 
 		if (has_local(name)) {
-			const std::size_t slot = resolve_local(name);
+			const size_t slot = resolve_local(name);
 
-			
 			// Fused local addition
 			//
 			// result += i
-			
 
 			if (op == "+=") {
 				const std::string rhs_name = simple_identifier_from_expression(ctx->expression());
@@ -1079,9 +1064,9 @@ antlrcpp::Any Compiler::visitAssignment(TSharpParser::AssignmentContext* ctx) {
 					if (lhs_type == "int" && rhs_type == "int") {
 						emit_opcode(OpCode::AddLocalInt);
 
-						emit_u16(static_cast<std::uint16_t>(slot));
+						emit_u16(static_cast<uint16_t>(slot));
 
-						emit_u16(static_cast<std::uint16_t>(resolve_local(rhs_name)));
+						emit_u16(static_cast<uint16_t>(resolve_local(rhs_name)));
 
 						return {};
 					}
@@ -1089,18 +1074,16 @@ antlrcpp::Any Compiler::visitAssignment(TSharpParser::AssignmentContext* ctx) {
 					if (lhs_type == "long" && rhs_type == "long") {
 						emit_opcode(OpCode::AddLocalLong);
 
-						emit_u16(static_cast<std::uint16_t>(slot));
+						emit_u16(static_cast<uint16_t>(slot));
 
-						emit_u16(static_cast<std::uint16_t>(resolve_local(rhs_name)));
+						emit_u16(static_cast<uint16_t>(resolve_local(rhs_name)));
 
 						return {};
 					}
 				}
 			}
 
-			
 			// Normal assignment
-			
 
 			if (op == "=") {
 				visit(ctx->expression());
@@ -1110,9 +1093,7 @@ antlrcpp::Any Compiler::visitAssignment(TSharpParser::AssignmentContext* ctx) {
 				return {};
 			}
 
-			
 			// Generic compound assignment fallback
-			
 
 			emit_load_local(slot);
 
@@ -1125,17 +1106,15 @@ antlrcpp::Any Compiler::visitAssignment(TSharpParser::AssignmentContext* ctx) {
 			return {};
 		}
 
-		// --------------------------------------------------------
 		// Global
-		// --------------------------------------------------------
 
 		if (module.global_lookup.contains(name)) {
-			const std::size_t global = resolve_global(name);
+			const size_t global = resolve_global(name);
 
 			if (op != "=") {
 				emit_opcode(OpCode::LoadGlobal);
 
-				emit_u16(static_cast<std::uint16_t>(global));
+				emit_u16(static_cast<uint16_t>(global));
 			}
 
 			visit(ctx->expression());
@@ -1146,7 +1125,7 @@ antlrcpp::Any Compiler::visitAssignment(TSharpParser::AssignmentContext* ctx) {
 
 			emit_opcode(OpCode::StoreGlobal);
 
-			emit_u16(static_cast<std::uint16_t>(global));
+			emit_u16(static_cast<uint16_t>(global));
 
 			return {};
 		}
@@ -1167,7 +1146,7 @@ antlrcpp::Any Compiler::visitAssignment(TSharpParser::AssignmentContext* ctx) {
 
 	emit_variable_load(primary_name);
 
-	for (std::size_t i = 0; i + 1 < suffixes.size(); i++) {
+	for (size_t i = 0; i + 1 < suffixes.size(); i++) {
 		auto* suffix = suffixes[i];
 
 		if (suffix->LBRACK()) {
@@ -1260,11 +1239,11 @@ antlrcpp::Any Compiler::visitAssignment(TSharpParser::AssignmentContext* ctx) {
 		// Store them temporarily to avoid requiring a Duplicate2
 		// opcode.
 
-		const std::size_t index_slot = declare_temporary();
+		const size_t index_slot = declare_temporary();
 
 		emit_store_local(index_slot);
 
-		const std::size_t receiver_slot = declare_temporary();
+		const size_t receiver_slot = declare_temporary();
 
 		emit_store_local(receiver_slot);
 
@@ -1281,7 +1260,7 @@ antlrcpp::Any Compiler::visitAssignment(TSharpParser::AssignmentContext* ctx) {
 		emit_compound_operator(op);
 
 		// Save result temporarily.
-		const std::size_t value_slot = declare_temporary();
+		const size_t value_slot = declare_temporary();
 
 		emit_store_local(value_slot);
 
@@ -1321,7 +1300,7 @@ antlrcpp::Any Compiler::visitLogicalOrExpression(TSharpParser::LogicalOrExpressi
 
 	visit(values[0]);
 
-	for (std::size_t i = 1; i < values.size(); i++) {
+	for (size_t i = 1; i < values.size(); i++) {
 		visit(values[i]);
 
 		emit_opcode(OpCode::LogicalOr);
@@ -1335,7 +1314,7 @@ antlrcpp::Any Compiler::visitLogicalAndExpression(TSharpParser::LogicalAndExpres
 
 	visit(values[0]);
 
-	for (std::size_t i = 1; i < values.size(); i++) {
+	for (size_t i = 1; i < values.size(); i++) {
 		visit(values[i]);
 
 		emit_opcode(OpCode::LogicalAnd);
@@ -1349,12 +1328,24 @@ antlrcpp::Any Compiler::visitEqualityExpression(TSharpParser::EqualityExpression
 
 	visit(values[0]);
 
-	for (std::size_t i = 1; i < values.size(); i++) {
-		visit(values[i]);
+	size_t value_index = 1;
 
-		const std::string op = ctx->children[i * 2 - 1]->getText();
+	for (auto* child : ctx->children) {
+		auto* terminal = dynamic_cast<antlr4::tree::TerminalNode*>(child);
 
-		emit_opcode(op == "==" ? OpCode::Equal : OpCode::NotEqual);
+		if (!terminal) {
+			continue;
+		}
+
+		const int token_type = terminal->getSymbol()->getType();
+
+		if (token_type != TSharpParser::EQ && token_type != TSharpParser::NEQ) {
+			continue;
+		}
+
+		visit(values[value_index++]);
+
+		emit_opcode(token_type == TSharpParser::EQ ? OpCode::Equal : OpCode::NotEqual);
 	}
 
 	return {};
@@ -1365,19 +1356,42 @@ antlrcpp::Any Compiler::visitRelationalExpression(TSharpParser::RelationalExpres
 
 	visit(values[0]);
 
-	for (std::size_t i = 1; i < values.size(); i++) {
-		visit(values[i]);
+	size_t value_index = 1;
 
-		const std::string op = ctx->children[i * 2 - 1]->getText();
+	for (auto* child : ctx->children) {
+		auto* terminal = dynamic_cast<antlr4::tree::TerminalNode*>(child);
 
-		if (op == "<") {
-			emit_opcode(OpCode::Less);
-		} else if (op == "<=") {
-			emit_opcode(OpCode::LessEqual);
-		} else if (op == ">") {
-			emit_opcode(OpCode::Greater);
-		} else if (op == ">=") {
-			emit_opcode(OpCode::GreaterEqual);
+		if (!terminal) {
+			continue;
+		}
+
+		const int token_type = terminal->getSymbol()->getType();
+
+		if (token_type != TSharpParser::LT && token_type != TSharpParser::LTE && token_type != TSharpParser::GT && token_type != TSharpParser::GTE) {
+			continue;
+		}
+
+		visit(values[value_index++]);
+
+		switch (token_type) {
+			case TSharpParser::LT:
+				emit_opcode(OpCode::Less);
+				break;
+
+			case TSharpParser::LTE:
+				emit_opcode(OpCode::LessEqual);
+				break;
+
+			case TSharpParser::GT:
+				emit_opcode(OpCode::Greater);
+				break;
+
+			case TSharpParser::GTE:
+				emit_opcode(OpCode::GreaterEqual);
+				break;
+
+			default:
+				break;
 		}
 	}
 
@@ -1389,12 +1403,24 @@ antlrcpp::Any Compiler::visitAdditiveExpression(TSharpParser::AdditiveExpression
 
 	visit(values[0]);
 
-	for (std::size_t i = 1; i < values.size(); i++) {
-		visit(values[i]);
+	size_t value_index = 1;
 
-		const std::string op = ctx->children[i * 2 - 1]->getText();
+	for (auto* child : ctx->children) {
+		auto* terminal = dynamic_cast<antlr4::tree::TerminalNode*>(child);
 
-		emit_opcode(op == "+" ? OpCode::Add : OpCode::Subtract);
+		if (!terminal) {
+			continue;
+		}
+
+		const int token_type = terminal->getSymbol()->getType();
+
+		if (token_type != TSharpParser::ADD && token_type != TSharpParser::SUB) {
+			continue;
+		}
+
+		visit(values[value_index++]);
+
+		emit_opcode(token_type == TSharpParser::ADD ? OpCode::Add : OpCode::Subtract);
 	}
 
 	return {};
@@ -1405,17 +1431,38 @@ antlrcpp::Any Compiler::visitMultiplicativeExpression(TSharpParser::Multiplicati
 
 	visit(values[0]);
 
-	for (std::size_t i = 1; i < values.size(); i++) {
-		visit(values[i]);
+	size_t value_index = 1;
 
-		const std::string op = ctx->children[i * 2 - 1]->getText();
+	for (auto* child : ctx->children) {
+		auto* terminal = dynamic_cast<antlr4::tree::TerminalNode*>(child);
 
-		if (op == "*") {
-			emit_opcode(OpCode::Multiply);
-		} else if (op == "/") {
-			emit_opcode(OpCode::Divide);
-		} else {
-			emit_opcode(OpCode::Modulo);
+		if (!terminal) {
+			continue;
+		}
+
+		const int token_type = terminal->getSymbol()->getType();
+
+		if (token_type != TSharpParser::MUL && token_type != TSharpParser::DIV && token_type != TSharpParser::MOD) {
+			continue;
+		}
+
+		visit(values[value_index++]);
+
+		switch (token_type) {
+			case TSharpParser::MUL:
+				emit_opcode(OpCode::Multiply);
+				break;
+
+			case TSharpParser::DIV:
+				emit_opcode(OpCode::Divide);
+				break;
+
+			case TSharpParser::MOD:
+				emit_opcode(OpCode::Modulo);
+				break;
+
+			default:
+				break;
 		}
 	}
 
@@ -1423,7 +1470,6 @@ antlrcpp::Any Compiler::visitMultiplicativeExpression(TSharpParser::Multiplicati
 }
 
 // Unary
-
 antlrcpp::Any Compiler::visitUnaryExpression(TSharpParser::UnaryExpressionContext* ctx) {
 	if (ctx->postfixExpression()) {
 		return visit(ctx->postfixExpression());
@@ -1442,11 +1488,11 @@ antlrcpp::Any Compiler::visitUnaryExpression(TSharpParser::UnaryExpressionContex
 
 		const std::string name = postfix->primary()->IDENTIFIER()->getText();
 
-		const std::size_t slot = resolve_local(name);
+		const size_t slot = resolve_local(name);
 
 		emit_opcode(op == "++" ? OpCode::IncrementLocal : OpCode::DecrementLocal);
 
-		emit_u16(static_cast<std::uint16_t>(slot));
+		emit_u16(static_cast<uint16_t>(slot));
 
 		emit_load_local(slot);
 
@@ -1488,12 +1534,8 @@ antlrcpp::Any Compiler::visitPostfixExpression(TSharpParser::PostfixExpressionCo
 
 		const bool increment = suffixes[0]->INC() != nullptr;
 
-		// ------------------------------------------------------------
-		// Local variable
-		// ------------------------------------------------------------
-
 		if (has_local(name)) {
-			const std::size_t slot = resolve_local(name);
+			const size_t slot = resolve_local(name);
 
 			// Postfix result is the old value.
 			emit_load_local(slot);
@@ -1501,39 +1543,27 @@ antlrcpp::Any Compiler::visitPostfixExpression(TSharpParser::PostfixExpressionCo
 			// Actually mutate the local variable.
 			emit_opcode(increment ? OpCode::IncrementLocal : OpCode::DecrementLocal);
 
-			emit_u16(static_cast<std::uint16_t>(slot));
+			emit_u16(static_cast<uint16_t>(slot));
 
 			return {};
 		}
 
-		// ------------------------------------------------------------
-		// Implicit this field
-		//
-		// class Counter {
-		//     private int count
-		//
-		//     void Increment() {
-		//         count++
-		//     }
-		// }
-		// ------------------------------------------------------------
-
 		if (current_class && current_class->field_slots.contains(name)) {
-			const std::size_t field_slot = current_class->field_slots[name];
+			const size_t field_slot = current_class->field_slots[name];
 
 			// Load old value as the postfix expression result.
 			emit_load_local(0);
 
 			emit_opcode(OpCode::LoadField);
 
-			emit_u16(static_cast<std::uint16_t>(field_slot));
+			emit_u16(static_cast<uint16_t>(field_slot));
 
 			// Mutate this.field directly.
 			emit_load_local(0);
 
 			emit_opcode(increment ? OpCode::IncrementField : OpCode::DecrementField);
 
-			emit_u16(static_cast<std::uint16_t>(field_slot));
+			emit_u16(static_cast<uint16_t>(field_slot));
 
 			return {};
 		}
@@ -1555,7 +1585,7 @@ antlrcpp::Any Compiler::visitPostfixExpression(TSharpParser::PostfixExpressionCo
 									 name);
 		}
 
-		const std::size_t slot = resolve_local(name);
+		const size_t slot = resolve_local(name);
 
 		// Postfix semantics: leave old value on the stack.
 		emit_load_local(slot);
@@ -1563,7 +1593,7 @@ antlrcpp::Any Compiler::visitPostfixExpression(TSharpParser::PostfixExpressionCo
 		// Actually mutate the local.
 		emit_opcode(suffixes[0]->INC() ? OpCode::IncrementLocal : OpCode::DecrementLocal);
 
-		emit_u16(static_cast<std::uint16_t>(slot));
+		emit_u16(static_cast<uint16_t>(slot));
 
 		return {};
 	}
@@ -1589,7 +1619,7 @@ antlrcpp::Any Compiler::visitPostfixExpression(TSharpParser::PostfixExpressionCo
 
 			emit_constant(Value(value_it->second));
 
-			for (std::size_t i = 1; i < suffixes.size(); i++) {
+			for (size_t i = 1; i < suffixes.size(); i++) {
 				compile_postfix_suffix(suffixes[i]);
 			}
 
@@ -1609,7 +1639,7 @@ antlrcpp::Any Compiler::visitPostfixExpression(TSharpParser::PostfixExpressionCo
 
 			compile_call(name, first_suffix->argumentList());
 
-			for (std::size_t i = 1; i < suffixes.size(); i++) {
+			for (size_t i = 1; i < suffixes.size(); i++) {
 				compile_postfix_suffix(suffixes[i]);
 			}
 
@@ -1617,16 +1647,12 @@ antlrcpp::Any Compiler::visitPostfixExpression(TSharpParser::PostfixExpressionCo
 		}
 	}
 
-	// ------------------------------------------------------------
-	// Normal/native function call
-	// ------------------------------------------------------------
-
 	if (primary->IDENTIFIER() != nullptr && !suffixes.empty() && suffixes[0]->LPAREN() != nullptr) {
 		const std::string name = primary->IDENTIFIER()->getText();
 
 		compile_call(name, suffixes[0]->argumentList());
 
-		for (std::size_t i = 1; i < suffixes.size(); i++) {
+		for (size_t i = 1; i < suffixes.size(); i++) {
 			compile_postfix_suffix(suffixes[i]);
 		}
 
@@ -1754,7 +1780,7 @@ antlrcpp::Any Compiler::visitLiteral(TSharpParser::LiteralContext* ctx) {
 // Array literal
 
 antlrcpp::Any Compiler::visitArrayLiteral(TSharpParser::ArrayLiteralContext* ctx) {
-	std::size_t count = 0;
+	size_t count = 0;
 
 	for (auto* expression : ctx->expression()) {
 		visit(expression);
@@ -1764,7 +1790,7 @@ antlrcpp::Any Compiler::visitArrayLiteral(TSharpParser::ArrayLiteralContext* ctx
 
 	emit_opcode(OpCode::ArrayLiteral);
 
-	emit_u16(static_cast<std::uint16_t>(count));
+	emit_u16(static_cast<uint16_t>(count));
 
 	return {};
 }
@@ -1776,12 +1802,12 @@ antlrcpp::Any Compiler::visitIfStatement(TSharpParser::IfStatementContext* ctx) 
 
 	const auto& blocks = ctx->block();
 
-	std::vector<std::size_t> end_jumps;
+	std::vector<size_t> end_jumps;
 
-	for (std::size_t i = 0; i < expressions.size(); i++) {
+	for (size_t i = 0; i < expressions.size(); i++) {
 		visit(expressions[i]);
 
-		const std::size_t false_jump = emit_jump(OpCode::JumpIfFalse);
+		const size_t false_jump = emit_jump(OpCode::JumpIfFalse);
 
 		visit(blocks[i]);
 
@@ -1794,7 +1820,7 @@ antlrcpp::Any Compiler::visitIfStatement(TSharpParser::IfStatementContext* ctx) 
 		visit(blocks.back());
 	}
 
-	for (const std::size_t jump : end_jumps) {
+	for (const size_t jump : end_jumps) {
 		patch_jump(jump);
 	}
 
@@ -1804,11 +1830,11 @@ antlrcpp::Any Compiler::visitIfStatement(TSharpParser::IfStatementContext* ctx) 
 // While
 
 antlrcpp::Any Compiler::visitWhileStatement(TSharpParser::WhileStatementContext* ctx) {
-	const std::size_t loop_start = chunk().code_size();
+	const size_t loop_start = chunk().code_size();
 
 	visit(ctx->expression());
 
-	const std::size_t exit_jump = emit_jump(OpCode::JumpIfFalse);
+	const size_t exit_jump = emit_jump(OpCode::JumpIfFalse);
 
 	begin_loop(loop_start);
 
@@ -1828,19 +1854,19 @@ antlrcpp::Any Compiler::visitWhileStatement(TSharpParser::WhileStatementContext*
 // Do / while
 
 antlrcpp::Any Compiler::visitDoWhileStatement(TSharpParser::DoWhileStatementContext* ctx) {
-	const std::size_t loop_start = chunk().code_size();
+	const size_t loop_start = chunk().code_size();
 
 	begin_loop(loop_start);
 
 	visit(ctx->block());
 
-	const std::size_t condition_start = chunk().code_size();
+	const size_t condition_start = chunk().code_size();
 
 	patch_continue_jumps(condition_start);
 
 	visit(ctx->expression());
 
-	const std::size_t exit = emit_jump(OpCode::JumpIfFalse);
+	const size_t exit = emit_jump(OpCode::JumpIfFalse);
 
 	emit_loop(loop_start);
 
@@ -1870,9 +1896,9 @@ antlrcpp::Any Compiler::visitForStatement(TSharpParser::ForStatementContext* ctx
 		}
 	}
 
-	const std::size_t condition_start = chunk().code_size();
+	const size_t condition_start = chunk().code_size();
 
-	std::size_t exit_jump = std::numeric_limits<std::size_t>::max();
+	size_t exit_jump = std::numeric_limits<size_t>::max();
 
 	if (ctx->expression()) {
 		visit(ctx->expression());
@@ -1884,7 +1910,7 @@ antlrcpp::Any Compiler::visitForStatement(TSharpParser::ForStatementContext* ctx
 
 	visit(ctx->block());
 
-	const std::size_t update_start = chunk().code_size();
+	const size_t update_start = chunk().code_size();
 
 	patch_continue_jumps(update_start);
 
@@ -1904,7 +1930,7 @@ antlrcpp::Any Compiler::visitForStatement(TSharpParser::ForStatementContext* ctx
 
 	emit_loop(condition_start);
 
-	if (exit_jump != std::numeric_limits<std::size_t>::max()) {
+	if (exit_jump != std::numeric_limits<size_t>::max()) {
 		patch_jump(exit_jump);
 	}
 
@@ -1943,7 +1969,7 @@ antlrcpp::Any Compiler::visitSwitchStatement(TSharpParser::SwitchStatementContex
 	// Store switch value in a temporary local.
 	visit(ctx->expression());
 
-	const std::size_t switch_slot = declare_temporary();
+	const size_t switch_slot = declare_temporary();
 
 	emit_store_local(switch_slot);
 
@@ -1951,7 +1977,7 @@ antlrcpp::Any Compiler::visitSwitchStatement(TSharpParser::SwitchStatementContex
 
 	TSharpParser::SwitchSectionContext* default_section = nullptr;
 
-	std::vector<std::size_t> end_jumps;
+	std::vector<size_t> end_jumps;
 
 	for (auto* section : ctx->switchSection()) {
 		if (section->DEFAULT()) {
@@ -1966,7 +1992,7 @@ antlrcpp::Any Compiler::visitSwitchStatement(TSharpParser::SwitchStatementContex
 
 		emit_opcode(OpCode::Equal);
 
-		const std::size_t next_case = emit_jump(OpCode::JumpIfFalse);
+		const size_t next_case = emit_jump(OpCode::JumpIfFalse);
 
 		compile_switch_section(section);
 
@@ -1979,7 +2005,7 @@ antlrcpp::Any Compiler::visitSwitchStatement(TSharpParser::SwitchStatementContex
 		compile_switch_section(default_section);
 	}
 
-	for (const std::size_t jump : end_jumps) {
+	for (const size_t jump : end_jumps) {
 		patch_jump(jump);
 	}
 
@@ -2005,18 +2031,18 @@ antlrcpp::Any Compiler::visitReturnStatement(TSharpParser::ReturnStatementContex
 // Try / catch / finally
 
 antlrcpp::Any Compiler::visitTryStatement(TSharpParser::TryStatementContext* ctx) {
-	const std::size_t handler = emit_exception_handler_placeholder();
+	const size_t handler = emit_exception_handler_placeholder();
 
 	visit(ctx->block());
 
 	emit_opcode(OpCode::PopExceptionHandler);
 
-	const std::size_t end_try = emit_jump(OpCode::Jump);
+	const size_t end_try = emit_jump(OpCode::Jump);
 
 	patch_exception_handler(handler, chunk().code_size());
 
 	for (auto* catch_clause : ctx->catchClause()) {
-		const std::size_t exception_slot = declare_local(catch_clause->IDENTIFIER()->getText());
+		const size_t exception_slot = declare_local(catch_clause->IDENTIFIER()->getText());
 
 		emit_store_local(exception_slot);
 
@@ -2045,7 +2071,7 @@ antlrcpp::Any Compiler::visitThrowStatement(TSharpParser::ThrowStatementContext*
 // Call compilation
 
 void Compiler::compile_call(const std::string& name, TSharpParser::ArgumentListContext* arguments) {
-	std::size_t argument_count = 0;
+	size_t argument_count = 0;
 
 	if (arguments) {
 		for (auto* argument : arguments->expression()) {
@@ -2062,9 +2088,9 @@ void Compiler::compile_call(const std::string& name, TSharpParser::ArgumentListC
 	if (module.class_lookup.contains(name)) {
 		emit_opcode(OpCode::NewObject);
 
-		emit_u16(static_cast<std::uint16_t>(module.class_lookup.at(name)));
+		emit_u16(static_cast<uint16_t>(module.class_lookup.at(name)));
 
-		emit_u16(static_cast<std::uint16_t>(argument_count));
+		emit_u16(static_cast<uint16_t>(argument_count));
 
 		return;
 	}
@@ -2072,9 +2098,9 @@ void Compiler::compile_call(const std::string& name, TSharpParser::ArgumentListC
 	if (is_builtin(name)) {
 		emit_opcode(OpCode::CallNative);
 
-		emit_u16(static_cast<std::uint16_t>(resolve_native(name)));
+		emit_u16(static_cast<uint16_t>(resolve_native(name)));
 
-		emit_u16(static_cast<std::uint16_t>(argument_count));
+		emit_u16(static_cast<uint16_t>(argument_count));
 
 		return;
 	}
@@ -2082,9 +2108,9 @@ void Compiler::compile_call(const std::string& name, TSharpParser::ArgumentListC
 	if (module.function_lookup.contains(name)) {
 		emit_opcode(OpCode::Call);
 
-		emit_u16(static_cast<std::uint16_t>(resolve_function(name)));
+		emit_u16(static_cast<uint16_t>(resolve_function(name)));
 
-		emit_u16(static_cast<std::uint16_t>(argument_count));
+		emit_u16(static_cast<uint16_t>(argument_count));
 
 		return;
 	}
@@ -2104,9 +2130,9 @@ void Compiler::compile_call(const std::string& name, TSharpParser::ArgumentListC
 
 		emit_opcode(OpCode::Call);
 
-		emit_u16(static_cast<std::uint16_t>(current_class->methods.at(name)));
+		emit_u16(static_cast<uint16_t>(current_class->methods.at(name)));
 
-		emit_u16(static_cast<std::uint16_t>(argument_count + 1));
+		emit_u16(static_cast<uint16_t>(argument_count + 1));
 
 		return;
 	}
@@ -2136,7 +2162,7 @@ void Compiler::compile_postfix_suffix(TSharpParser::PostfixSuffixContext* ctx) {
 	}
 
 	if (ctx->LPAREN()) {
-		std::size_t argument_count = 0;
+		size_t argument_count = 0;
 
 		if (ctx->argumentList()) {
 			for (auto* argument : ctx->argumentList()->expression()) {
@@ -2148,7 +2174,7 @@ void Compiler::compile_postfix_suffix(TSharpParser::PostfixSuffixContext* ctx) {
 
 		emit_opcode(OpCode::CallValue);
 
-		emit_u16(static_cast<std::uint16_t>(argument_count));
+		emit_u16(static_cast<uint16_t>(argument_count));
 
 		return;
 	}
@@ -2174,7 +2200,7 @@ void Compiler::emit_variable_load(const std::string& name) {
 
 		emit_opcode(OpCode::LoadField);
 
-		emit_u16(static_cast<std::uint16_t>(current_class->field_slots[name]));
+		emit_u16(static_cast<uint16_t>(current_class->field_slots[name]));
 
 		return;
 	}
@@ -2182,7 +2208,7 @@ void Compiler::emit_variable_load(const std::string& name) {
 	if (module.global_lookup.contains(name)) {
 		emit_opcode(OpCode::LoadGlobal);
 
-		emit_u16(static_cast<std::uint16_t>(resolve_global(name)));
+		emit_u16(static_cast<uint16_t>(resolve_global(name)));
 
 		return;
 	}
@@ -2214,7 +2240,7 @@ void Compiler::emit_compound_operator(const std::string& op) {
 
 // Loop helpers
 
-void Compiler::begin_loop(std::size_t continue_target) {
+void Compiler::begin_loop(size_t continue_target) {
 	LoopCompilerContext context;
 
 	context.continue_target = continue_target;
@@ -2231,17 +2257,17 @@ void Compiler::end_loop() {
 
 	loop_contexts.pop_back();
 
-	for (const std::size_t jump : context.break_jumps) {
+	for (const size_t jump : context.break_jumps) {
 		patch_jump(jump);
 	}
 }
 
-void Compiler::patch_continue_jumps(std::size_t target) {
+void Compiler::patch_continue_jumps(size_t target) {
 	if (loop_contexts.empty()) {
 		return;
 	}
 
-	for (const std::size_t position : loop_contexts.back().continue_jumps) {
+	for (const size_t position : loop_contexts.back().continue_jumps) {
 		patch_absolute_jump(position, target);
 	}
 
@@ -2276,16 +2302,16 @@ bool Compiler::has_modifier(TSharpParser::ModifiersContext* ctx, const std::stri
 	return false;
 }
 
-std::size_t Compiler::declare_temporary() {
+size_t Compiler::declare_temporary() {
 	const std::string name = "$tmp_" + std::to_string(current_context().next_local);
 
 	return declare_local(name);
 }
 
 void Compiler::emit_string_operand(const std::string& value) {
-	const std::size_t index = chunk().add_constant(Value(value));
+	const size_t index = chunk().add_constant(Value(value));
 
-	emit_u16(static_cast<std::uint16_t>(index));
+	emit_u16(static_cast<uint16_t>(index));
 }
 
 bool Compiler::try_get_constant_expression(TSharpParser::ExpressionContext* expression, Value& value) {
@@ -2433,7 +2459,7 @@ bool Compiler::is_builtin(const std::string& name) const {
 			name == "file_exists" || name == "file_delete" || name == "file_copy" || name == "file_move" || name == "atan2");
 }
 
-std::size_t Compiler::resolve_native(const std::string& name) const {
+size_t Compiler::resolve_native(const std::string& name) const {
 	auto it = module.native_lookup.find(name);
 
 	if (it == module.native_lookup.end()) {
@@ -2467,7 +2493,7 @@ Value Compiler::get_builtin_constant(const std::string& name) const {
 	throw std::runtime_error("Unknown builtin constant: " + name);
 }
 
-void Compiler::patch_absolute_jump(std::size_t operand_position, std::size_t target) {
+void Compiler::patch_absolute_jump(size_t operand_position, size_t target) {
 	if (operand_position + 1 >= chunk().code_size()) {
 		throw std::runtime_error("Invalid jump operand position");
 	}
@@ -2477,19 +2503,19 @@ void Compiler::patch_absolute_jump(std::size_t operand_position, std::size_t tar
 								 "supports forward jumps");
 	}
 
-	const std::size_t offset = target - operand_position - 2;
+	const size_t offset = target - operand_position - 2;
 
-	if (offset > std::numeric_limits<std::uint16_t>::max()) {
+	if (offset > std::numeric_limits<uint16_t>::max()) {
 		throw std::runtime_error("Jump offset too large");
 	}
 
 	auto& code = chunk().mutable_code();
 
-	code[operand_position] = static_cast<std::uint8_t>(offset & 0xff);
+	code[operand_position] = static_cast<uint8_t>(offset & 0xff);
 
-	code[operand_position + 1] = static_cast<std::uint8_t>((offset >> 8) & 0xff);
+	code[operand_position + 1] = static_cast<uint8_t>((offset >> 8) & 0xff);
 }
-std::size_t Compiler::emit_exception_handler_placeholder() {
+size_t Compiler::emit_exception_handler_placeholder() {
 	emit_opcode(OpCode::PushExceptionHandler);
 
 	emit_u16(0xffff);
@@ -2497,27 +2523,27 @@ std::size_t Compiler::emit_exception_handler_placeholder() {
 	return (chunk().code_size() - 2);
 }
 
-void Compiler::patch_exception_handler(std::size_t handler_position, std::size_t target) {
+void Compiler::patch_exception_handler(size_t handler_position, size_t target) {
 	if (target < handler_position + 2) {
 		throw std::runtime_error("Invalid exception handler target");
 	}
 
-	const std::size_t offset = target - handler_position - 2;
+	const size_t offset = target - handler_position - 2;
 
-	if (offset > std::numeric_limits<std::uint16_t>::max()) {
+	if (offset > std::numeric_limits<uint16_t>::max()) {
 		throw std::runtime_error("Exception handler offset too large");
 	}
 
 	auto& code = chunk().mutable_code();
 
-	code[handler_position] = static_cast<std::uint8_t>(offset & 0xff);
+	code[handler_position] = static_cast<uint8_t>(offset & 0xff);
 
-	code[handler_position + 1] = static_cast<std::uint8_t>((offset >> 8) & 0xff);
+	code[handler_position + 1] = static_cast<uint8_t>((offset >> 8) & 0xff);
 }
 
 void Compiler::register_natives() {
-	auto register_native = [this](const std::string& name, std::size_t arity) {
-		const std::size_t index = module.natives.size();
+	auto register_native = [this](const std::string& name, size_t arity) {
+		const size_t index = module.natives.size();
 
 		NativeFunctionInfo info;
 

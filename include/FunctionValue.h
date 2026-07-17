@@ -14,7 +14,6 @@
 #include "ParameterInfo.h"
 
 namespace tsharp {
-;
 
 // Function value struct
 // Stores information about T# functions

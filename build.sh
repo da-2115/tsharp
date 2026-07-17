@@ -110,18 +110,17 @@ echo ""
 # Run CMake
 echo -e "${YELLOW}Running CMake...${NC}"
 
-cmake -DCMAKE_BUILD_TYPE=Release .
-cmake --build .
-
-# Build with Make
-echo -e "${YELLOW}Running Make...${NC}"
-# Determine parallel jobs (nproc not available on macOS, use sysctl instead)
 if command -v nproc &> /dev/null; then
     JOBS=$(nproc)
 else
     JOBS=$(sysctl -n hw.ncpu 2>/dev/null || echo 1)
 fi
-make -C build -j$JOBS
+
+echo -e "${YELLOW}Configuring Release build...${NC}"
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+
+echo -e "${YELLOW}Building T#...${NC}"
+cmake --build build --config Release --clean-first --parallel "$JOBS"
 
 echo ""
 

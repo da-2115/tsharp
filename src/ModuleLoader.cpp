@@ -13,13 +13,13 @@
 namespace {
 
 std::string trim_copy(const std::string& text) {
-	std::size_t start = 0;
+	size_t start = 0;
 
 	while (start < text.size() && std::isspace(static_cast<unsigned char>(text[start]))) {
 		start++;
 	}
 
-	std::size_t end = text.size();
+	size_t end = text.size();
 
 	while (end > start && std::isspace(static_cast<unsigned char>(text[end - 1]))) {
 		end--;
@@ -95,10 +95,6 @@ ParsedModule* ModuleLoader::load_recursive(const std::filesystem::path& path, bo
 	// return the same parsed module.
 	loaded[key] = result;
 	modules.push_back(std::move(module));
-
-	// ---------------------------------------------------------
-	// Resolve imports
-	// ---------------------------------------------------------
 
 	for (auto* import_decl : result->program->importDecl()) {
 		const std::string import_name = trim_copy(import_decl->getText().substr(std::string("import").size()));

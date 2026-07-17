@@ -8,21 +8,21 @@
 
 namespace tsharp {
 
-void Chunk::write_byte(std::uint8_t byte) {
+void Chunk::write_byte(uint8_t byte) {
 	code.push_back(byte);
 }
 
 void Chunk::write_opcode(OpCode opcode) {
-	code.push_back(static_cast<std::uint8_t>(opcode));
+	code.push_back(static_cast<uint8_t>(opcode));
 }
 
-std::size_t Chunk::add_constant(Value value) {
+size_t Chunk::add_constant(Value value) {
 	constants.push_back(std::move(value));
 
 	return constants.size() - 1;
 }
 
-const std::vector<std::uint8_t>& Chunk::get_code() const {
+const std::vector<uint8_t>& Chunk::get_code() const {
 	return code;
 }
 

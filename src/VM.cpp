@@ -21,7 +21,7 @@ namespace tsharp {
 
 namespace {
 struct BytecodeInstance {
-	std::size_t class_index = 0;
+	size_t class_index = 0;
 	std::vector<Value> fields;
 };
 
@@ -29,7 +29,7 @@ struct BytecodeCallable {
 	enum class Kind { Method, PrimitiveCast };
 
 	Kind kind = Kind::Method;
-	std::size_t function_index = 0;
+	size_t function_index = 0;
 	Value receiver;
 	std::string primitive_name;
 };
@@ -48,7 +48,7 @@ static std::shared_ptr<BytecodeInstance> as_bytecode_instance(const Value& value
 	return nullptr;
 }
 
-static Value make_bytecode_callable(std::size_t function_index, Value receiver) {
+static Value make_bytecode_callable(size_t function_index, Value receiver) {
 	return Value(std::any(BytecodeCallable{BytecodeCallable::Kind::Method, function_index, std::move(receiver), {}}));
 }
 
@@ -254,7 +254,7 @@ Value VM::pop() {
 	return value;
 }
 
-Value& VM::peek(std::size_t distance) {
+Value& VM::peek(size_t distance) {
 	auto& stack = get_frame().stack;
 
 	if (distance >= stack.size()) {
@@ -280,7 +280,7 @@ const CallFrame& VM::get_immutable_frame() const {
 	return frames.back();
 }
 
-void VM::push_frame(std::size_t function_index, std::vector<Value> arguments, std::optional<Value> receiver) {
+void VM::push_frame(size_t function_index, std::vector<Value> arguments, std::optional<Value> receiver) {
 	if (module == nullptr) {
 		throw std::runtime_error("No bytecode module loaded");
 	}
@@ -301,26 +301,26 @@ void VM::push_frame(std::size_t function_index, std::vector<Value> arguments, st
 	new_frame.function_index = function_index;
 	new_frame.ip = 0;
 
-	const std::size_t required_locals = arguments.size() + (receiver.has_value() ? 1 : 0);
+	const size_t required_locals = arguments.size() + (receiver.has_value() ? 1 : 0);
 
 	new_frame.locals.resize(std::max(function.local_count, required_locals));
 
 	new_frame.stack.reserve(64);
 
-	std::size_t argument_offset = 0;
+	size_t argument_offset = 0;
 
 	if (receiver.has_value()) {
 		new_frame.locals[0] = std::move(*receiver);
 		argument_offset = 1;
 	}
 
-	for (std::size_t i = 0; i < arguments.size(); i++) {
+	for (size_t i = 0; i < arguments.size(); i++) {
 		new_frame.locals[i + argument_offset] = std::move(arguments[i]);
 	}
 
 	frames.push_back(std::move(new_frame));
 }
-std::uint8_t VM::read_byte() {
+uint8_t VM::read_byte() {
 	auto& current = get_frame();
 
 	const auto& code = current.function->chunk.get_code();
@@ -332,12 +332,12 @@ std::uint8_t VM::read_byte() {
 	return code[current.ip++];
 }
 
-std::uint16_t VM::read_u16() {
-	const std::uint16_t low = read_byte();
+uint16_t VM::read_u16() {
+	const uint16_t low = read_byte();
 
-	const std::uint16_t high = read_byte();
+	const uint16_t high = read_byte();
 
-	return static_cast<std::uint16_t>(low | (high << 8));
+	return static_cast<uint16_t>(low | (high << 8));
 }
 
 Value VM::run(const BytecodeModule& module) {
@@ -356,16 +356,16 @@ Value VM::run(const BytecodeModule& module) {
 			throw std::runtime_error("Function ended without RETURN: " + get_frame().function->name);
 		}
 
-		const std::size_t instruction_offset = get_frame().ip;
+		const size_t instruction_offset = get_frame().ip;
 
-		const std::uint8_t raw_opcode = read_byte();
+		const uint8_t raw_opcode = read_byte();
 
 		const auto opcode = static_cast<OpCode>(raw_opcode);
 
 		switch (opcode) {
 			case OpCode::Constant:
 				{
-					const std::uint16_t index = read_u16();
+					const uint16_t index = read_u16();
 
 					if (index >= constants.size()) {
 						throw std::runtime_error("Constant index out of bounds");
@@ -417,7 +417,7 @@ Value VM::run(const BytecodeModule& module) {
 
 			case OpCode::LoadLocal:
 				{
-					const std::uint16_t slot = read_u16();
+					const uint16_t slot = read_u16();
 
 					auto& locals = get_frame().locals;
 
@@ -432,12 +432,12 @@ Value VM::run(const BytecodeModule& module) {
 
 			case OpCode::StoreLocal:
 				{
-					const std::uint16_t slot = read_u16();
+					const uint16_t slot = read_u16();
 
 					auto& locals = get_frame().locals;
 
 					if (slot >= locals.size()) {
-						locals.resize(static_cast<std::size_t>(slot) + 1);
+						locals.resize(static_cast<size_t>(slot) + 1);
 					}
 
 					locals[slot] = pop();
@@ -447,7 +447,7 @@ Value VM::run(const BytecodeModule& module) {
 
 			case OpCode::IncrementField:
 				{
-					const std::uint16_t slot = read_u16();
+					const uint16_t slot = read_u16();
 
 					Value instance_value = pop();
 
@@ -519,7 +519,7 @@ Value VM::run(const BytecodeModule& module) {
 
 			case OpCode::DecrementField:
 				{
-					const std::uint16_t slot = read_u16();
+					const uint16_t slot = read_u16();
 
 					Value instance_value = pop();
 
@@ -591,7 +591,7 @@ Value VM::run(const BytecodeModule& module) {
 
 			case OpCode::IncrementLocal:
 				{
-					const std::uint16_t slot = read_u16();
+					const uint16_t slot = read_u16();
 
 					auto& locals = get_frame().locals;
 
@@ -618,7 +618,7 @@ Value VM::run(const BytecodeModule& module) {
 
 			case OpCode::DecrementLocal:
 				{
-					const std::uint16_t slot = read_u16();
+					const uint16_t slot = read_u16();
 
 					auto& locals = get_frame().locals;
 
@@ -715,7 +715,7 @@ Value VM::run(const BytecodeModule& module) {
 
 			case OpCode::LoadGlobal:
 				{
-					const std::uint16_t slot = read_u16();
+					const uint16_t slot = read_u16();
 
 					if (slot >= globals.size()) {
 						throw std::runtime_error("Global variable slot out of bounds");
@@ -728,7 +728,7 @@ Value VM::run(const BytecodeModule& module) {
 
 			case OpCode::StoreGlobal:
 				{
-					const std::uint16_t slot = read_u16();
+					const uint16_t slot = read_u16();
 
 					if (slot >= globals.size()) {
 						throw std::runtime_error("Global variable slot out of bounds");
@@ -1185,7 +1185,7 @@ Value VM::run(const BytecodeModule& module) {
 
 					auto array = std::make_shared<Array>();
 
-					array->resize(static_cast<std::size_t>(size));
+					array->resize(static_cast<size_t>(size));
 
 					push(Value(array));
 
@@ -1194,13 +1194,13 @@ Value VM::run(const BytecodeModule& module) {
 
 			case OpCode::ArrayLiteral:
 				{
-					const std::uint16_t count = read_u16();
+					const uint16_t count = read_u16();
 
 					auto array = std::make_shared<Array>();
 
 					array->resize(count);
 
-					for (std::size_t i = count; i > 0; i--) {
+					for (size_t i = count; i > 0; i--) {
 						(*array)[i - 1] = pop();
 					}
 
@@ -1221,11 +1221,11 @@ Value VM::run(const BytecodeModule& module) {
 
 					auto array = target.as_array();
 
-					if (index < 0 || static_cast<std::size_t>(index) >= array->size()) {
+					if (index < 0 || static_cast<size_t>(index) >= array->size()) {
 						throw std::runtime_error("Array index out of bounds: index=" + std::to_string(index) + ", size=" + std::to_string(array->size()));
 					}
 
-					push((*array)[static_cast<std::size_t>(index)]);
+					push((*array)[static_cast<size_t>(index)]);
 
 					break;
 				}
@@ -1244,14 +1244,14 @@ Value VM::run(const BytecodeModule& module) {
 
 					auto array = target.as_array();
 
-					if (index < 0 || static_cast<std::size_t>(index) >= array->size()) {
+					if (index < 0 || static_cast<size_t>(index) >= array->size()) {
 						throw std::runtime_error("Array index out of bounds");
 					}
 
-					(*array)[static_cast<std::size_t>(index)] = std::move(value);
+					(*array)[static_cast<size_t>(index)] = std::move(value);
 
 					// Assignment is still an expression.
-					push((*array)[static_cast<std::size_t>(index)]);
+					push((*array)[static_cast<size_t>(index)]);
 
 					break;
 				}
@@ -1273,7 +1273,7 @@ Value VM::run(const BytecodeModule& module) {
 
 			case OpCode::Jump:
 				{
-					const std::uint16_t offset = read_u16();
+					const uint16_t offset = read_u16();
 
 					get_frame().ip += offset;
 
@@ -1282,7 +1282,7 @@ Value VM::run(const BytecodeModule& module) {
 
 			case OpCode::JumpIfFalse:
 				{
-					const std::uint16_t offset = read_u16();
+					const uint16_t offset = read_u16();
 
 					const Value condition = pop();
 
@@ -1295,7 +1295,7 @@ Value VM::run(const BytecodeModule& module) {
 
 			case OpCode::JumpIfTrue:
 				{
-					const std::uint16_t offset = read_u16();
+					const uint16_t offset = read_u16();
 
 					const Value condition = pop();
 
@@ -1308,7 +1308,7 @@ Value VM::run(const BytecodeModule& module) {
 
 			case OpCode::Loop:
 				{
-					const std::uint16_t offset = read_u16();
+					const uint16_t offset = read_u16();
 
 					if (offset > get_frame().ip) {
 						throw std::runtime_error("Invalid loop offset");
@@ -1323,13 +1323,13 @@ Value VM::run(const BytecodeModule& module) {
 
 			case OpCode::Call:
 				{
-					const std::uint16_t function_index = read_u16();
+					const uint16_t function_index = read_u16();
 
-					const std::uint16_t argument_count = read_u16();
+					const uint16_t argument_count = read_u16();
 
 					std::vector<Value> arguments(argument_count);
 
-					for (std::size_t i = argument_count; i > 0; i--) {
+					for (size_t i = argument_count; i > 0; i--) {
 						arguments[i - 1] = pop();
 					}
 
@@ -1340,13 +1340,13 @@ Value VM::run(const BytecodeModule& module) {
 
 			case OpCode::CallNative:
 				{
-					const std::uint16_t native_index = read_u16();
+					const uint16_t native_index = read_u16();
 
-					const std::uint16_t argument_count = read_u16();
+					const uint16_t argument_count = read_u16();
 
 					std::vector<Value> arguments(argument_count);
 
-					for (std::size_t i = argument_count; i > 0; i--) {
+					for (size_t i = argument_count; i > 0; i--) {
 						arguments[i - 1] = pop();
 					}
 
@@ -1408,8 +1408,8 @@ Value VM::run(const BytecodeModule& module) {
 
 			case OpCode::NewObject:
 				{
-					const std::uint16_t class_index = read_u16();
-					const std::uint16_t argument_count = read_u16();
+					const uint16_t class_index = read_u16();
+					const uint16_t argument_count = read_u16();
 
 					if (!this->module) {
 						throw std::runtime_error("No bytecode this->module loaded");
@@ -1421,7 +1421,7 @@ Value VM::run(const BytecodeModule& module) {
 
 					std::vector<Value> arguments(argument_count);
 
-					for (std::size_t i = argument_count; i > 0; i--) {
+					for (size_t i = argument_count; i > 0; i--) {
 						arguments[i - 1] = pop();
 					}
 
@@ -1430,9 +1430,9 @@ Value VM::run(const BytecodeModule& module) {
 					instance->fields.resize(this->module->classes[class_index].fields.size());
 
 					const auto& class_info = this->module->classes[class_index];
-					std::size_t constructor_index = std::numeric_limits<std::size_t>::max();
+					size_t constructor_index = std::numeric_limits<size_t>::max();
 
-					for (std::size_t candidate : class_info.constructors) {
+					for (size_t candidate : class_info.constructors) {
 						if (candidate < this->module->functions.size() && this->module->functions[candidate].arity == argument_count) {
 							constructor_index = candidate;
 							break;
@@ -1441,7 +1441,7 @@ Value VM::run(const BytecodeModule& module) {
 
 					Value instance_value{std::any(instance)};
 
-					if (constructor_index == std::numeric_limits<std::size_t>::max()) {
+					if (constructor_index == std::numeric_limits<size_t>::max()) {
 						if (argument_count != 0 && !class_info.constructors.empty()) {
 							throw std::runtime_error("No matching constructor for " + class_info.name + " with " + std::to_string(argument_count) + " arguments");
 						}
@@ -1463,7 +1463,7 @@ Value VM::run(const BytecodeModule& module) {
 
 			case OpCode::LoadField:
 				{
-					const std::uint16_t slot = read_u16();
+					const uint16_t slot = read_u16();
 
 					Value target = pop();
 
@@ -1511,7 +1511,7 @@ Value VM::run(const BytecodeModule& module) {
 				}
 			case OpCode::StoreField:
 				{
-					const std::uint16_t slot = read_u16();
+					const uint16_t slot = read_u16();
 					Value value = pop();
 					Value target = pop();
 
@@ -1555,7 +1555,7 @@ Value VM::run(const BytecodeModule& module) {
 
 			case OpCode::StoreFieldDynamic:
 				{
-					const std::uint16_t constant_index = read_u16();
+					const uint16_t constant_index = read_u16();
 
 					const auto& member_name_value = constants.at(constant_index);
 					const std::string field_name = member_name_value.as_string();
@@ -1594,7 +1594,7 @@ Value VM::run(const BytecodeModule& module) {
 			case OpCode::LoadMember:
 			case OpCode::GetProperty:
 				{
-					const std::uint16_t constant_index = read_u16();
+					const uint16_t constant_index = read_u16();
 
 					const auto& member_name_value = constants.at(constant_index);
 					const std::string member_name = member_name_value.as_string();
@@ -1640,9 +1640,9 @@ Value VM::run(const BytecodeModule& module) {
 
 			case OpCode::AddLocalInt:
 				{
-					const std::uint16_t destination = read_u16();
+					const uint16_t destination = read_u16();
 
-					const std::uint16_t source = read_u16();
+					const uint16_t source = read_u16();
 
 					auto& locals = get_frame().locals;
 
@@ -1661,9 +1661,9 @@ Value VM::run(const BytecodeModule& module) {
 
 			case OpCode::AddLocalLong:
 				{
-					const std::uint16_t destination = read_u16();
+					const uint16_t destination = read_u16();
 
-					const std::uint16_t source = read_u16();
+					const uint16_t source = read_u16();
 
 					auto& locals = get_frame().locals;
 
@@ -1686,9 +1686,9 @@ Value VM::run(const BytecodeModule& module) {
 
 			case OpCode::LessLocalIntConstant:
 				{
-					const std::uint16_t local_slot = read_u16();
+					const uint16_t local_slot = read_u16();
 
-					const std::uint16_t constant_index = read_u16();
+					const uint16_t constant_index = read_u16();
 
 					auto& locals = get_frame().locals;
 					const auto& constants = get_immutable_frame().function->chunk.get_constants();
@@ -1703,9 +1703,9 @@ Value VM::run(const BytecodeModule& module) {
 				}
 			case OpCode::LessLocalLongConstant:
 				{
-					const std::uint16_t local_slot = read_u16();
+					const uint16_t local_slot = read_u16();
 
-					const std::uint16_t constant_index = read_u16();
+					const uint16_t constant_index = read_u16();
 
 					auto& locals = get_frame().locals;
 					const auto& constants = get_immutable_frame().function->chunk.get_constants();
@@ -1720,9 +1720,9 @@ Value VM::run(const BytecodeModule& module) {
 				}
 			case OpCode::CallMethod:
 				{
-					const std::uint16_t function_index = read_u16();
+					const uint16_t function_index = read_u16();
 
-					const std::uint16_t argument_count = read_u16();
+					const uint16_t argument_count = read_u16();
 
 					if (function_index >= this->module->functions.size()) {
 						throw std::runtime_error("CallMethod function index out of bounds");
@@ -1730,7 +1730,7 @@ Value VM::run(const BytecodeModule& module) {
 
 					std::vector<Value> arguments(argument_count);
 
-					for (std::size_t i = argument_count; i > 0; i--) {
+					for (size_t i = argument_count; i > 0; i--) {
 						arguments[i - 1] = pop();
 					}
 
@@ -1757,16 +1757,16 @@ Value VM::run(const BytecodeModule& module) {
 			case OpCode::TypeOf:
 			case OpCode::Switch:
 				{
-					throw std::runtime_error("Opcode not implemented yet at offset " + std::to_string(instruction_offset) + ": " + std::to_string(static_cast<int>(static_cast<std::uint8_t>(opcode))));
+					throw std::runtime_error("Opcode not implemented yet at offset " + std::to_string(instruction_offset) + ": " + std::to_string(static_cast<int>(static_cast<uint8_t>(opcode))));
 				}
 
 			case OpCode::CallValue:
 				{
-					const std::uint16_t argument_count = read_u16();
+					const uint16_t argument_count = read_u16();
 
 					std::vector<Value> arguments(argument_count);
 
-					for (std::size_t i = argument_count; i > 0; i--) {
+					for (size_t i = argument_count; i > 0; i--) {
 						arguments[i - 1] = pop();
 					}
 
@@ -1800,7 +1800,7 @@ Value VM::run(const BytecodeModule& module) {
 
 			case OpCode::PushExceptionHandler:
 				{
-					const std::uint16_t offset = read_u16();
+					const uint16_t offset = read_u16();
 
 					get_frame().exception_handlers.push_back(ExceptionHandler{.catch_ip = get_frame().ip + offset, .stack_size = get_frame().stack.size()});
 
@@ -1848,15 +1848,14 @@ Value VM::run(const BytecodeModule& module) {
 
 			default:
 				{
-					throw std::runtime_error("Unknown bytecode instruction at offset " + std::to_string(instruction_offset) + ": " +
-											 std::to_string(static_cast<int>(static_cast<std::uint8_t>(opcode))));
+					throw std::runtime_error("Unknown bytecode instruction at offset " + std::to_string(instruction_offset) + ": " + std::to_string(static_cast<int>(static_cast<uint8_t>(opcode))));
 				}
 		}
 	}
 	return Value();
 }
 
-Value VM::call_native(std::size_t native_index, const std::vector<Value>& arguments) {
+Value VM::call_native(size_t native_index, const std::vector<Value>& arguments) {
 	if (!this->module) {
 		throw std::runtime_error("No bytecode this->module loaded");
 	}
@@ -2244,10 +2243,10 @@ Value VM::call_native(std::size_t native_index, const std::vector<Value>& argume
 			return value_to_string(lhs) < value_to_string(rhs);
 		};
 
-		for (std::size_t i = 0; i < array->size(); i++) {
-			std::size_t smallest = i;
+		for (size_t i = 0; i < array->size(); i++) {
+			size_t smallest = i;
 
-			for (std::size_t j = i + 1; j < array->size(); j++) {
+			for (size_t j = i + 1; j < array->size(); j++) {
 				if (less_than((*array)[j], (*array)[smallest])) {
 					smallest = j;
 				}
@@ -2262,14 +2261,29 @@ Value VM::call_native(std::size_t native_index, const std::vector<Value>& argume
 	}
 
 	if (name == "address") {
-		// Temporary VM implementation.
-		// This returns the address of the Value object passed
-		// into the native argument vector, not necessarily
-		// the original source variable's storage address.
+		if (arguments.size() != 1) {
+			throw std::runtime_error("address expects 1 argument");
+		}
+
+		const Value& value = arguments[0];
+		const void* address = nullptr;
+
+		if (value.is_array()) {
+			address = static_cast<const void*>(value.as_array().get());
+		} else if (auto instance = as_bytecode_instance(value)) {
+			address = static_cast<const void*>(instance.get());
+		} else if (value.is_instance()) {
+			address = static_cast<const void*>(value.as_instance().get());
+		} else if (value.is_class()) {
+			address = static_cast<const void*>(value.as_class().get());
+		} else if (value.is_function()) {
+			address = static_cast<const void*>(value.as_function().get());
+		} else {
+			throw std::runtime_error("address requires an array, instance, class or function");
+		}
 
 		std::ostringstream stream;
-
-		stream << static_cast<const void*>(&arguments[0]);
+		stream << address;
 
 		return Value(stream.str());
 	}
@@ -2391,7 +2405,7 @@ std::string VM::value_to_string(const Value& value) const {
 
 		const auto array = value.as_array();
 
-		for (std::size_t i = 0; i < array->size(); i++) {
+		for (size_t i = 0; i < array->size(); i++) {
 			if (i > 0) {
 				result += ", ";
 			}

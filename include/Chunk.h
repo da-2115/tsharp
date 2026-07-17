@@ -29,7 +29,7 @@ class Chunk {
 	// Add a constant
 	size_t add_constant(Value value);
 
-	// Get code, constants - returns a vector
+	// Get code, constants - returns a constant vector
 	const std::vector<uint8_t>& get_code() const;
 	const std::vector<Value>& get_constants() const;
 
