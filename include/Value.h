@@ -1,4 +1,5 @@
 // Value.h
+// T# v2.0.0-beta1
 // Dylan Armstrong, 2026
 
 #pragma once
@@ -41,14 +42,15 @@ class RuntimeError : public std::runtime_error {
 class Value {
   public:
 	// Variant type alias for std::variant of all T# types
-	using Variant = std::variant<std::monostate, int, float, double, bool, char, std::string, std::shared_ptr<Array>,
-								 std::shared_ptr<ObjectMap>, std::shared_ptr<FunctionValue>,
-								 std::shared_ptr<ClassValue>, std::shared_ptr<InstanceValue>, std::any>;
+	using Variant = std::variant<std::monostate, int, float, double, bool, char, std::string, std::shared_ptr<Array>, std::shared_ptr<ObjectMap>, std::shared_ptr<FunctionValue>,
+								 std::shared_ptr<ClassValue>, std::shared_ptr<InstanceValue>, std::any, std::int64_t>;
 
 	// Constructors for Value
 	Value();
 	Value(int v);
 	Value(float v);
+	Value(std::int64_t value);
+
 	Value(double v);
 	Value(bool v);
 	Value(char v);
@@ -63,6 +65,7 @@ class Value {
 
 	// Bool checking member functions -> is it (type here)?
 	bool is_null() const;
+	bool is_long() const;
 	bool is_number() const;
 	bool is_int() const;
 	bool is_float() const;
@@ -81,6 +84,7 @@ class Value {
 	int as_int() const;
 	char as_char() const;
 	bool as_bool() const;
+	std::int64_t as_long() const;
 	std::string as_string() const;
 	std::shared_ptr<Array> as_array() const;
 	std::shared_ptr<InstanceValue> as_instance() const;

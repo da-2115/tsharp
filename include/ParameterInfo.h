@@ -6,7 +6,7 @@
 #include <string>
 
 namespace tsharp {
-class Interpreter;
+;
 
 // Parameter info struct
 struct ParameterInfo {

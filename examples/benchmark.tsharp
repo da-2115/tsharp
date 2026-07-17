@@ -1,0 +1,9 @@
+void main() {
+    long result = 0l
+
+    for (long i = 0l; i < 1000000l; i++) {
+        result += i
+    }
+
+    println(result)
+}

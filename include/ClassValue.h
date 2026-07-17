@@ -15,8 +15,6 @@
 #include "Value.h"
 
 namespace tsharp {
-// Forward declaration for interpreter class - which implements the visitor pattern logic
-class Interpreter;
 
 // Class value struct
 // Contains information about classes in T#

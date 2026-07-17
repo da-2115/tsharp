@@ -1,4 +1,5 @@
 // Value.cpp
+// T# v2.0.0-beta1
 // Dylan Armstrong, 2026
 
 #include "Value.h"
@@ -15,6 +16,9 @@ Value::Value(int v) : data(v) {
 }
 
 Value::Value(float v) : data(v) {
+}
+
+Value::Value(std::int64_t v) : data(v) {
 }
 
 Value::Value(double v) : data(v) {
@@ -55,9 +59,12 @@ bool Value::is_null() const {
 	return std::holds_alternative<std::monostate>(data);
 }
 
+bool Value::is_long() const {
+	return std::holds_alternative<std::int64_t>(data);
+}
+
 bool Value::is_number() const {
-	return std::holds_alternative<int>(data) || std::holds_alternative<float>(data) ||
-		   std::holds_alternative<double>(data);
+	return is_int() || is_long() || is_float() || is_double();
 }
 
 bool Value::is_bool() const {
@@ -125,20 +132,20 @@ char Value::as_char() const {
 }
 
 double Value::as_double() const {
-	if (std::holds_alternative<double>(data)) {
+	if (is_double()) {
 		return std::get<double>(data);
 	}
-	if (std::holds_alternative<float>(data)) {
+
+	if (is_float()) {
 		return static_cast<double>(std::get<float>(data));
 	}
-	if (std::holds_alternative<int>(data)) {
+
+	if (is_long()) {
+		return static_cast<double>(std::get<std::int64_t>(data));
+	}
+
+	if (is_int()) {
 		return static_cast<double>(std::get<int>(data));
-	}
-	if (std::holds_alternative<bool>(data)) {
-		return std::get<bool>(data) ? 1.0 : 0.0;
-	}
-	if (std::holds_alternative<char>(data)) {
-		return static_cast<double>(std::get<char>(data));
 	}
 
 	throw RuntimeError("Value is not numeric");
@@ -186,6 +193,18 @@ bool Value::as_bool() const {
 		return false;
 	}
 	return true;
+}
+
+std::int64_t Value::as_long() const {
+	if (is_long()) {
+		return std::get<std::int64_t>(data);
+	}
+
+	if (is_int()) {
+		return static_cast<std::int64_t>(as_int());
+	}
+
+	throw RuntimeError("Value is not convertible to long");
 }
 
 std::string Value::as_string() const {
@@ -369,8 +388,7 @@ Value apply_binary_numeric_op(const Value& a, const Value& b, const std::functio
 		double result = fn(static_cast<double>(std::get<int>(a.raw())), static_cast<double>(std::get<int>(b.raw())));
 
 		// Only keep int if the result is mathematically integral
-		if (std::floor(result) == result && result >= static_cast<double>(std::numeric_limits<int>::min()) &&
-			result <= static_cast<double>(std::numeric_limits<int>::max())) {
+		if (std::floor(result) == result && result >= static_cast<double>(std::numeric_limits<int>::min()) && result <= static_cast<double>(std::numeric_limits<int>::max())) {
 			return Value(static_cast<int>(result));
 		}
 		return Value(result);
@@ -409,28 +427,23 @@ bool values_equal(const Value& a, const Value& b) {
 		return std::get<std::string>(a.raw()) == std::get<std::string>(b.raw());
 	}
 
-	if (std::holds_alternative<std::shared_ptr<Array>>(a.raw()) &&
-		std::holds_alternative<std::shared_ptr<Array>>(b.raw())) {
+	if (std::holds_alternative<std::shared_ptr<Array>>(a.raw()) && std::holds_alternative<std::shared_ptr<Array>>(b.raw())) {
 		return std::get<std::shared_ptr<Array>>(a.raw()) == std::get<std::shared_ptr<Array>>(b.raw());
 	}
 
-	if (std::holds_alternative<std::shared_ptr<ObjectMap>>(a.raw()) &&
-		std::holds_alternative<std::shared_ptr<ObjectMap>>(b.raw())) {
+	if (std::holds_alternative<std::shared_ptr<ObjectMap>>(a.raw()) && std::holds_alternative<std::shared_ptr<ObjectMap>>(b.raw())) {
 		return std::get<std::shared_ptr<ObjectMap>>(a.raw()) == std::get<std::shared_ptr<ObjectMap>>(b.raw());
 	}
 
-	if (std::holds_alternative<std::shared_ptr<FunctionValue>>(a.raw()) &&
-		std::holds_alternative<std::shared_ptr<FunctionValue>>(b.raw())) {
+	if (std::holds_alternative<std::shared_ptr<FunctionValue>>(a.raw()) && std::holds_alternative<std::shared_ptr<FunctionValue>>(b.raw())) {
 		return std::get<std::shared_ptr<FunctionValue>>(a.raw()) == std::get<std::shared_ptr<FunctionValue>>(b.raw());
 	}
 
-	if (std::holds_alternative<std::shared_ptr<ClassValue>>(a.raw()) &&
-		std::holds_alternative<std::shared_ptr<ClassValue>>(b.raw())) {
+	if (std::holds_alternative<std::shared_ptr<ClassValue>>(a.raw()) && std::holds_alternative<std::shared_ptr<ClassValue>>(b.raw())) {
 		return std::get<std::shared_ptr<ClassValue>>(a.raw()) == std::get<std::shared_ptr<ClassValue>>(b.raw());
 	}
 
-	if (std::holds_alternative<std::shared_ptr<InstanceValue>>(a.raw()) &&
-		std::holds_alternative<std::shared_ptr<InstanceValue>>(b.raw())) {
+	if (std::holds_alternative<std::shared_ptr<InstanceValue>>(a.raw()) && std::holds_alternative<std::shared_ptr<InstanceValue>>(b.raw())) {
 		return std::get<std::shared_ptr<InstanceValue>>(a.raw()) == std::get<std::shared_ptr<InstanceValue>>(b.raw());
 	}
 

@@ -16,34 +16,62 @@ void Environment::define(const std::string& name, const Value& value) {
 
 // Assign environment
 void Environment::assign(const std::string& name, const Value& value) {
-	if (values.contains(name)) {
-		values.at(name) = value;
+	Value* destination = find_mutable(name);
 
-		return;
+	if (!destination) {
+		throw RuntimeError("Undefined variable: " + name);
 	}
 
-	if (parent) {
-		parent->assign(name, value);
+	*destination = value;
+}
 
-		return;
+// Get environment value
+Value Environment::get(const std::string& name) const {
+	const Value* value = find(name);
+
+	if (value) {
+		return *value;
 	}
 
 	throw RuntimeError("Undefined variable: " + name);
 }
 
-// Get environment value
-Value Environment::get(const std::string& name) const {
+const Value& Environment::get_ref(const std::string& name) const {
+	const Value* value = find(name);
+
+	if (!value) {
+		throw RuntimeError("Undefined variable: " + name);
+	}
+
+	return *value;
+}
+
+const Value* Environment::find(const std::string& name) const {
 	auto it = values.find(name);
 
 	if (it != values.end()) {
-		return it->second;
+		return &it->second;
 	}
 
 	if (parent) {
-		return parent->get(name);
+		return parent->find(name);
 	}
 
-	throw RuntimeError("Undefined variable: " + name);
+	return nullptr;
+}
+
+Value* Environment::find_mutable(const std::string& name) {
+	auto it = values.find(name);
+
+	if (it != values.end()) {
+		return &it->second;
+	}
+
+	if (parent) {
+		return parent->find_mutable(name);
+	}
+
+	return nullptr;
 }
 
 // Does a local exist with the same name?

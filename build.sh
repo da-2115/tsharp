@@ -109,7 +109,9 @@ echo ""
 
 # Run CMake
 echo -e "${YELLOW}Running CMake...${NC}"
-cmake . -B build
+
+cmake -DCMAKE_BUILD_TYPE=Release .
+cmake --build .
 
 # Build with Make
 echo -e "${YELLOW}Running Make...${NC}"
