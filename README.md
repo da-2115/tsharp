@@ -25,7 +25,7 @@ Bytecode update. The whole language now runs on a VM/bytecode system instead of 
 
 ### v1.0.0
 
-Final bug fixes primarily in the ANTLR grammar specification.
+Final bug fixes primarily in the ANTLR graz1mmar specification.
 
 ### v1.0.0-betarc
 
@@ -240,54 +240,6 @@ void main() {
 | `min(a, b)` | Minimum |
 | `max(a, b)` | Maximum |
 | `factorial(n)` | Factorial |
-
-## VS Code Extension
-
-A starter VS Code extension is included under:
-
-```txt
-vscode-extension-tsharp/
-```
-
-It provides:
-
-- `.tsharp` language registration
-- syntax highlighting
-- snippets
-- LSP client scaffold
-- LSP server scaffold
-
-Development:
-
-```bash
-cd vscode-extension-tsharp
-npm install
-npm run compile
-```
-
-Then open the extension folder in VS Code and press `F5`.
-
-## Current Limitations
-
-- Generic type substitution is still partial.
-- Generic placeholders such as `T`, `K` and `V` are currently checked loosely.
-- Arrays are type-checked shallowly.
-- Operator overloading is not implemented.
-- Namespaces are not fully implemented.
-- The LSP scaffold is not yet a complete semantic compiler service.
-
-## Roadmap
-
-- Full generic substitution
-- Typed arrays
-- Operator overloading
-- Namespaces
-- Package manager
-- Complete VS Code extension
-- Complete LSP diagnostics and completions
-- JSON standard library
-- HTTP/networking standard library
-- Async/concurrency support
 
 ## Open Source and Free
 

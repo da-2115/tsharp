@@ -142,9 +142,45 @@ void main() {
     println("typeof(name): " + typeof(name))
     println("typeof(working): " + typeof(working))
 
-    println("address(x): " + address(x))
-    println("address(y): " + address(y))
-    println("address(name): " + address(name))
+    PrintHeading("Address and Reference Identity")
+
+    // Arrays
+    int firstArray[] = {1, 2, 3}
+    int firstArrayAlias[] = firstArray
+    int separateArray[] = {1, 2, 3}
+
+    println("firstArray address: " + address(firstArray))
+    println("firstArrayAlias address: " + address(firstArrayAlias))
+    println("separateArray address: " + address(separateArray))
+
+    println(
+	    "firstArray and firstArrayAlias share identity: " +
+	    (address(firstArray) == address(firstArrayAlias))
+    )
+
+    println(
+	    "firstArray and separateArray share identity: " +
+	    (address(firstArray) == address(separateArray))
+    )
+
+    // Class instances
+    Vector2<int> firstVector(10, 20)
+    Vector2<int> firstVectorAlias = firstVector
+    Vector2<int> separateVector(10, 20)
+
+    println("firstVector address: " + address(firstVector))
+    println("firstVectorAlias address: " + address(firstVectorAlias))
+    println("separateVector address: " + address(separateVector))
+
+    println(
+	    "firstVector and firstVectorAlias share identity: " +
+	    (address(firstVector) == address(firstVectorAlias))
+    )
+
+    println(
+	    "firstVector and separateVector share identity: " +
+	    (address(firstVector) == address(separateVector))
+    )
 
     PrintHeading("Built-in Conversion Methods")
 
