@@ -1,4 +1,4 @@
-# T# v2.0.0-beta1
+# T# v2.0.0
 
 The T# Programming Language — written by Dylan Armstrong, 2026, in C++ with ANTLR.
 
@@ -18,6 +18,10 @@ T# is a small, statically typed, C#/Java-inspired programming language with clas
 - C++20 interpreter runtime
 
 ## Changelog
+
+### v2.0.0
+
+Full Bytecode system, ready for production usage.
 
 ### v2.0.0-beta1
 
@@ -260,6 +264,7 @@ T# is an open source and free language, now accepting pull requests (PRs). The l
 | `bool`         | Type          | True or false                                                             |
 | `void`         | Type          | Does not return anything                                                  |
 | `any`          | Type          | Can be any type                                                           |
+| `long`         | Type         | Stores bigger whole numbers than `int`                                    |
 | `class`        | Keyword       | Declares a class for object-oriented programming                          |
 | `interface`    | Keyword       | Declares an interface defining a contract for classes                     |
 | `enum`         | Keyword       | Declares an enumeration of named constants                                |

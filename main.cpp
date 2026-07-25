@@ -1,5 +1,5 @@
 // main.cpp
-// T# v2.0.0-beta1
+// T# v2.0.0
 // Dylan Armstrong, 2026
 
 #include "TSharpLexer.h"
@@ -21,7 +21,7 @@
 #include <string_view>
 
 // Version string
-constexpr std::string_view tsharp_version = "v2.0.0-beta1";
+constexpr std::string_view tsharp_version = "v2.0.0";
 
 namespace {
 
@@ -59,28 +59,6 @@ int run_bytecode(const std::filesystem::path& input_path) {
 
 	return 0;
 }
-
-// int run_interpreter(const std::filesystem::path& input_path) {
-// 	const std::string source = read_file_text(input_path);
-
-// 	antlr4::ANTLRInputStream input(source);
-// 	TSharpLexer lexer(&input);
-// 	antlr4::CommonTokenStream tokens(&lexer);
-// 	TSharpParser parser(&tokens);
-
-// 	TSharpParser::ProgramContext* program = parser.program();
-
-// 	if (parser.getNumberOfSyntaxErrors() > 0) {
-// 		std::cerr << "Compilation failed due to syntax errors.\n";
-
-// 		return 2;
-// 	}
-
-// 	tsharp::Interpreter interpreter;
-// 	interpreter.execute(program);
-
-// 	return 0;
-// }
 
 }
 

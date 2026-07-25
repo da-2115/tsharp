@@ -730,8 +730,6 @@ void main() {
         println("Testing")
     } catch (string error) {
         throw println(error)
-    } finally {
-        println("Finished")
     }
 
     PrintDivider()

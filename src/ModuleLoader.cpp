@@ -1,5 +1,5 @@
 // ModuleLoader.cpp
-// T# v2.0.0-beta1
+// T# v2.0.0
 // Dylan Armstrong, 2026
 
 #include "ModuleLoader.h"
