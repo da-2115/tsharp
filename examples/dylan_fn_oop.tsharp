@@ -27,6 +27,10 @@ class DylanFunctionWithPrint : DylanFunction {
     }
 }
 
+// bool is_even(int x) {
+//     return x % 2 == 0
+// }
+
 void main() {
     DylanFunctionWithPrint d(2)
     d.print_to_screen()

@@ -232,6 +232,16 @@ float Average(float a, float b, float c) {
     return (a + b + c) / 3
 }
 
+int betteravg(int s[]) {
+    int sum = 0
+
+    for (int i = 0; i < size(s); i++) {
+        sum += s[i]
+    }
+
+    return sum / size(s)
+}
+
 bool IsEven(int n) {
     return n % 2 == 0
 }
@@ -466,6 +476,9 @@ void main() {
 
     a--
     println("a--: " + a)
+
+    int data[] = {5, 10, 20, 30}
+    println(betteravg(data))
 
     PrintHeading("Comparison Operators")
 
@@ -743,6 +756,41 @@ void main() {
     t.Honk()
     
     PrintDivider()
+
+    // Test new for/if/else/else if/switch syntax + for in loop
+
+    int val = 1
+
+    if 0 < val {
+        println("True")
+    }
+
+    if 0 > val {
+        // Never gets executed
+    } else if 1 == val {
+        println("True")
+    }
+
+    if true == false {
+        // Never gets executed
+    } else {
+        println("False")
+    }
+
+    int items[] = { 1,2,3,4,5 }
+
+    for i in items {
+        println(i)
+    }
+
+    for i in items {
+        switch i {
+            case 1:
+                println(i)
+            default:
+                println(i + golden_ratio)
+        }
+    }
 
     println("Demo complete.")
 }

@@ -21,7 +21,7 @@
 #include <string_view>
 
 // Version string
-constexpr std::string_view tsharp_version = "v2.0.0";
+constexpr std::string_view tsharp_version = "v2.1.0";
 
 namespace {
 
@@ -81,7 +81,7 @@ int main(int argc, const char* argv[]) {
 
 		return run_bytecode(file_path);
 	} catch (const tsharp::RuntimeError& e) {
-		std::cerr << "Runtime error: " << e.what() << '\n';
+		std::cerr << "Runtime error: " << e.what() << std::endl;
 
 		return 2;
 	} catch (const std::exception& e) {

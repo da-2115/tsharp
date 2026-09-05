@@ -1881,9 +1881,85 @@ antlrcpp::Any Compiler::visitDoWhileStatement(TSharpParser::DoWhileStatementCont
 
 antlrcpp::Any Compiler::visitForStatement(TSharpParser::ForStatementContext* ctx) {
 	begin_scope();
+	// for item in items
+	if (ctx->foreachClause()) {
+		auto* foreach_clause = ctx->foreachClause();
 
-	if (ctx->forInit()) {
-		auto* init = ctx->forInit();
+		// Evaluate the array expression once.
+		visit(foreach_clause->expression());
+
+		const size_t array_slot = declare_temporary();
+
+		emit_store_local(array_slot);
+
+		// Hidden index variable starts at zero.
+		emit_constant(Value(0));
+
+		const size_t index_slot = declare_temporary();
+
+		emit_store_local(index_slot);
+
+		// The range variable is visible inside the loop body.
+		const std::string item_name = foreach_clause->IDENTIFIER()->getText();
+
+		const size_t item_slot = declare_local(item_name, "any");
+
+		const size_t condition_start = chunk().code_size();
+
+		// index < array.length
+		emit_load_local(index_slot);
+
+		emit_load_local(array_slot);
+
+		emit_opcode(OpCode::ArrayLength);
+
+		emit_opcode(OpCode::Less);
+
+		const size_t exit_jump = emit_jump(OpCode::JumpIfFalse);
+
+		// item = array[index]
+		emit_load_local(array_slot);
+
+		emit_load_local(index_slot);
+
+		emit_opcode(OpCode::LoadIndex);
+
+		emit_store_local(item_slot);
+
+		begin_loop(condition_start);
+
+		visit(ctx->block());
+
+		// continue jumps must run the index increment first.
+		const size_t update_start = chunk().code_size();
+
+		patch_continue_jumps(update_start);
+
+		// index = index + 1
+		emit_load_local(index_slot);
+
+		emit_constant(Value(1));
+
+		emit_opcode(OpCode::Add);
+
+		emit_store_local(index_slot);
+
+		emit_loop(condition_start);
+
+		patch_jump(exit_jump);
+
+		end_loop();
+
+		end_scope();
+
+		return {};
+	}
+
+	// Classic for loop.
+	auto* classic = ctx->classicForClause();
+
+	if (classic->forInit()) {
+		auto* init = classic->forInit();
 
 		if (init->variableDecl()) {
 			visit(init->variableDecl());
@@ -1900,8 +1976,8 @@ antlrcpp::Any Compiler::visitForStatement(TSharpParser::ForStatementContext* ctx
 
 	size_t exit_jump = std::numeric_limits<size_t>::max();
 
-	if (ctx->expression()) {
-		visit(ctx->expression());
+	if (classic->expression()) {
+		visit(classic->expression());
 
 		exit_jump = emit_jump(OpCode::JumpIfFalse);
 	}
@@ -1914,8 +1990,8 @@ antlrcpp::Any Compiler::visitForStatement(TSharpParser::ForStatementContext* ctx
 
 	patch_continue_jumps(update_start);
 
-	if (ctx->forUpdate()) {
-		auto* update = ctx->forUpdate();
+	if (classic->forUpdate()) {
+		auto* update = classic->forUpdate();
 
 		for (auto* assignment : update->assignment()) {
 			visit(assignment);
@@ -1940,7 +2016,6 @@ antlrcpp::Any Compiler::visitForStatement(TSharpParser::ForStatementContext* ctx
 
 	return {};
 }
-
 // Break / continue
 
 antlrcpp::Any Compiler::visitBreakStatement(TSharpParser::BreakStatementContext*) {
