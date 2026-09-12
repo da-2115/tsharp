@@ -1,6 +1,3 @@
-import Test
-
 void main() {
-    Test t()
     println("Hello World!")
 }

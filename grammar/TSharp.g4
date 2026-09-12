@@ -1,6 +1,4 @@
-// TSharp.g4 
-// T# v2.0.0
-// Dylan Armstrong, 2026
+// TSharp.g4 T# v2.0.0 Dylan Armstrong, 2026
 
 grammar TSharp;
 
@@ -165,19 +163,38 @@ assignmentOperator:
 
 expressionStatement: expression NEWLINE+;
 
+// Control flow conditions can be written with or without parentheses. Parenthesised expressions
+// still work through the primary expression rule.
 ifStatement:
-	IF LPAREN expression RPAREN NEWLINE* block (
-		ELSE IF LPAREN expression RPAREN block
-	)* (ELSE block)?;
+	IF expression NEWLINE* block (
+		NEWLINE* ELSE IF expression NEWLINE* block
+	)* (NEWLINE* ELSE NEWLINE* block)?;
 
-whileStatement: WHILE LPAREN expression RPAREN NEWLINE* block;
+whileStatement: WHILE expression NEWLINE* block;
 
 doWhileStatement:
-	DO NEWLINE* block WHILE LPAREN expression RPAREN NEWLINE+;
+	DO NEWLINE* block NEWLINE* WHILE expression NEWLINE+;
 
-// For loop uses semicolons (only T# feature with semicolons) for (init; condition; update)
+// Supports:
+// 
+// for int i = 0; i < 10; i++ { }
+// 
+// for (int i = 0; i < 10; i++) { }
+// 
+// for item in items { }
+// 
+// for (item in items) { }
 forStatement:
-	FOR LPAREN forInit? SEMICOLON expression? SEMICOLON forUpdate? RPAREN NEWLINE* block;
+	FOR (
+		foreachClause
+		| LPAREN foreachClause RPAREN
+		| classicForClause
+		| LPAREN classicForClause RPAREN
+	) NEWLINE* block;
+foreachClause: IDENTIFIER IN expression;
+
+classicForClause:
+	forInit? SEMICOLON expression? SEMICOLON forUpdate?;
 
 forInit: variableDecl | assignment | expression;
 
@@ -186,10 +203,7 @@ forUpdate:
 	| expression (COMMA expression)*;
 
 switchStatement:
-	SWITCH LPAREN expression RPAREN LBRACE (
-		switchSection
-		| NEWLINE
-	)* RBRACE;
+	SWITCH expression NEWLINE* LBRACE (switchSection | NEWLINE)* RBRACE;
 
 switchSection: (CASE expression COLON | DEFAULT COLON) (
 		NEWLINE
@@ -268,10 +282,9 @@ argumentList:
 arrayLiteral: LBRACE (expression (COMMA expression)*)? RBRACE;
 
 literal:
-LONG_LITERAL |
-	INTEGER_LITERAL
+	LONG_LITERAL
+	| INTEGER_LITERAL
 	| FLOAT_LITERAL
-	
 	| STRING_LITERAL
 	| CHAR_LITERAL
 	| TRUE
@@ -370,6 +383,8 @@ DOT: '.';
 COLON: ':';
 SEMICOLON: ';';
 PIPE: '|';
+
+IN: 'in';
 
 IDENTIFIER: [a-zA-Z_][a-zA-Z0-9_]*;
 

@@ -1,0 +1,12 @@
+import std.math.Vector2
+
+void throw_test(Vector2<int> v, int n) {
+    Vector2<int> x = v.divide(n)
+    println(x.to_string())
+}
+
+void main() {
+    Vector2<int> v2(5, 5)
+    throw_test(v2, 5)
+    throw_test(v2, 0) // Should throw
+}

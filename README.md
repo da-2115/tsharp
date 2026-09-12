@@ -1,4 +1,4 @@
-# T# v2.0.0
+# T# v2.1.0
 
 The T# Programming Language — written by Dylan Armstrong, 2026, in C++ with ANTLR.
 
