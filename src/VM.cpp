@@ -1,5 +1,5 @@
 // VM.cpp
-// T# v2.0.0
+// T# v2.1.1
 // Dylan Armstrong, 2026
 
 #include "VM.h"
@@ -8,6 +8,7 @@
 #include "InstanceValue.h"
 
 #include "BytecodeFunction.h"
+#include "Numeric.h"
 
 #include <algorithm>
 #include <cmath>
@@ -236,6 +237,9 @@ static Value primitive_cast_value(const std::string& primitive_name, const Value
 
 }
 
+VM::VM(VMOptions options) : options(options) {
+}
+
 void VM::push(Value value) {
 	get_frame().stack.push_back(std::move(value));
 }
@@ -340,6 +344,10 @@ uint16_t VM::read_u16() {
 	return static_cast<uint16_t>(low | (high << 8));
 }
 
+Value default_value_for_type(const std::string& type);
+
+bool value_matches_type(const Value& value, const std::string& type);
+
 Value VM::run(const BytecodeModule& module) {
 	this->module = &module;
 
@@ -361,6 +369,12 @@ Value VM::run(const BytecodeModule& module) {
 		const uint8_t raw_opcode = read_byte();
 
 		const auto opcode = static_cast<OpCode>(raw_opcode);
+
+		if (options.trace) {
+			trace_instruction(get_immutable_frame(), instruction_offset, opcode);
+
+			trace_stack(get_immutable_frame());
+		}
 
 		switch (opcode) {
 			case OpCode::Constant:
@@ -1230,29 +1244,61 @@ Value VM::run(const BytecodeModule& module) {
 					break;
 				}
 
-			case OpCode::StoreIndex:
+			case OpCode::SetArrayType:
 				{
-					Value value = pop();
-
-					const int index = pop().as_int();
+					const uint16_t constant_index = read_u16();
 
 					Value target = pop();
 
 					if (!target.is_array()) {
-						throw std::runtime_error("Cannot index a non-array value");
+						throw RuntimeError("SetArrayType requires an array");
+					}
+
+					const auto& type_value = constants[constant_index];
+
+					if (!type_value.is_string()) {
+						throw RuntimeError("Array type metadata must be a string");
+					}
+
+					auto array = target.as_array();
+
+					array->element_type = type_value.as_string();
+
+					const Value default_value = default_value_for_type(array->element_type);
+
+					for (Value& element : array->elements) {
+						if (element.is_null()) {
+							element = default_value;
+						}
+					}
+
+					push(std::move(target));
+					break;
+				}
+
+			case OpCode::StoreIndex:
+				{
+					Value value = pop();
+					const int index = pop().as_int();
+					Value target = pop();
+
+					if (!target.is_array()) {
+						throw RuntimeError("Cannot index a non-array value");
 					}
 
 					auto array = target.as_array();
 
 					if (index < 0 || static_cast<size_t>(index) >= array->size()) {
-						throw std::runtime_error("Array index out of bounds");
+						throw RuntimeError("Array index out of bounds: " + std::to_string(index));
+					}
+
+					if (!value_matches_type(value, array->element_type)) {
+						throw RuntimeError("Cannot assign " + value_type_name(value) + " to " + array->element_type + "[]");
 					}
 
 					(*array)[static_cast<size_t>(index)] = std::move(value);
 
-					// Assignment is still an expression.
 					push((*array)[static_cast<size_t>(index)]);
-
 					break;
 				}
 
@@ -1855,6 +1901,42 @@ Value VM::run(const BytecodeModule& module) {
 	return Value();
 }
 
+bool value_matches_type(const Value& value, const std::string& type) {
+	if (type == "any" || type.empty()) {
+		return true;
+	}
+
+	if (type == "int") {
+		return value.is_int();
+	}
+
+	if (type == "long") {
+		return value.is_long();
+	}
+
+	if (type == "float") {
+		return value.is_float();
+	}
+
+	if (type == "double") {
+		return value.is_double();
+	}
+
+	if (type == "string") {
+		return value.is_string();
+	}
+
+	if (type == "char") {
+		return value.is_char();
+	}
+
+	if (type == "bool") {
+		return value.is_bool();
+	}
+
+	return true;
+}
+
 Value VM::call_native(size_t native_index, const std::vector<Value>& arguments) {
 	if (!this->module) {
 		throw std::runtime_error("No bytecode this->module loaded");
@@ -2194,7 +2276,13 @@ Value VM::call_native(size_t native_index, const std::vector<Value>& arguments) 
 			throw std::runtime_error("push expects first argument to be an array");
 		}
 
-		arguments[0].as_array()->push_back(arguments[1]);
+		auto array = arguments[0].as_array();
+
+		if (!array->element_type.empty() && !value_matches_type(arguments[1], array->element_type)) {
+			throw std::runtime_error("Cannot push value of incompatible type into " + array->element_type + "[]");
+		}
+
+		array->push_back(arguments[1]);
 
 		return Value();
 	}
@@ -2289,6 +2377,23 @@ Value VM::call_native(size_t native_index, const std::vector<Value>& arguments) 
 	}
 
 	throw std::runtime_error("Native function not implemented: " + name);
+}
+
+void VM::trace_instruction(const CallFrame& frame, size_t instruction_offset, OpCode opcode) const {
+	std::cerr << "[TRACE] " << frame.function->name << " @ " << instruction_offset << "  " << opcode_name(opcode) << '\n';
+}
+void VM::trace_stack(const CallFrame& frame) const {
+	std::cerr << "        stack: [";
+
+	for (size_t i = 0; i < frame.stack.size(); i++) {
+		if (i > 0) {
+			std::cerr << ", ";
+		}
+
+		std::cerr << value_to_string(frame.stack[i]);
+	}
+
+	std::cerr << "]\n";
 }
 
 bool VM::values_equal(const Value& lhs, const Value& rhs) const {
@@ -2426,89 +2531,59 @@ std::string VM::value_to_string(const Value& value) const {
 }
 
 Value VM::add_values(const Value& lhs, const Value& rhs) const {
-	if (lhs.is_long() || rhs.is_long()) {
-		if ((lhs.is_int() || lhs.is_long()) && (rhs.is_int() || rhs.is_long())) {
-			return Value(lhs.as_long() + rhs.as_long());
-		}
-	}
 	if (lhs.is_string() || rhs.is_string()) {
 		return Value(value_to_string(lhs) + value_to_string(rhs));
 	}
 
-	if (lhs.is_int() && rhs.is_int()) {
-		return Value(lhs.as_int() + rhs.as_int());
+	if (!lhs.is_number() || !rhs.is_number()) {
+		throw RuntimeError("Invalid operands for +");
 	}
 
-	if (lhs.is_double() || rhs.is_double()) {
-		return Value(lhs.as_double() + rhs.as_double());
-	}
-
-	if (lhs.is_float() || rhs.is_float()) {
-		return Value(static_cast<float>(lhs.as_double() + rhs.as_double()));
-	}
-
-	throw std::runtime_error("Invalid operands for +");
+	return numeric_add(lhs, rhs);
 }
 
 Value VM::subtract_values(const Value& lhs, const Value& rhs) const {
-	if (!lhs.is_number() || !rhs.is_number()) {
-		throw std::runtime_error("Invalid operands for -");
-	}
-
-	if (lhs.is_int() && rhs.is_int()) {
-		return Value(lhs.as_int() - rhs.as_int());
-	}
-
-	if (lhs.is_double() || rhs.is_double()) {
-		return Value(lhs.as_double() - rhs.as_double());
-	}
-
-	return Value(static_cast<float>(lhs.as_double() - rhs.as_double()));
+	return numeric_subtract(lhs, rhs);
 }
 
 Value VM::multiply_values(const Value& lhs, const Value& rhs) const {
-	if (!lhs.is_number() || !rhs.is_number()) {
-		throw std::runtime_error("Invalid operands for *");
-	}
-
-	if (lhs.is_int() && rhs.is_int()) {
-		return Value(lhs.as_int() * rhs.as_int());
-	}
-
-	if (lhs.is_double() || rhs.is_double()) {
-		return Value(lhs.as_double() * rhs.as_double());
-	}
-
-	return Value(static_cast<float>(lhs.as_double() * rhs.as_double()));
+	return numeric_multiply(lhs, rhs);
 }
+
 Value VM::divide_values(const Value& lhs, const Value& rhs) const {
-	if (!lhs.is_number() || !rhs.is_number()) {
-		throw std::runtime_error("Invalid operands for /");
-	}
-
-	if (rhs.as_double() == 0.0) {
-		throw std::runtime_error("Division by zero");
-	}
-
-	if (lhs.is_int() && rhs.is_int()) {
-		return Value(lhs.as_int() / rhs.as_int());
-	}
-
-	if (lhs.is_double() || rhs.is_double()) {
-		return Value(lhs.as_double() / rhs.as_double());
-	}
-
-	return Value(static_cast<float>(lhs.as_double() / rhs.as_double()));
+	return numeric_divide(lhs, rhs);
 }
+
 Value VM::modulo_values(const Value& lhs, const Value& rhs) const {
-	if (!lhs.is_int() || !rhs.is_int()) {
-		throw std::runtime_error("Modulo requires integer operands");
-	}
-
-	if (rhs.as_int() == 0) {
-		throw std::runtime_error("Modulo by zero");
-	}
-
-	return Value(lhs.as_int() % rhs.as_int());
+	return numeric_modulo(lhs, rhs);
 }
+
+Value default_value_for_type(const std::string& type) {
+	if (type == "int") {
+		return Value(0);
+	}
+
+	if (type == "long") {
+		return Value(static_cast<std::int64_t>(0));
+	}
+
+	if (type == "float") {
+		return Value(0.0f);
+	}
+
+	if (type == "double") {
+		return Value(0.0);
+	}
+
+	if (type == "bool") {
+		return Value(false);
+	}
+
+	if (type == "char") {
+		return Value('\0');
+	}
+
+	return Value();
+}
+
 }

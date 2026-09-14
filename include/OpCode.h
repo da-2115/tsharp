@@ -1,5 +1,5 @@
 // OpCode.h
-// T# v2.0.0
+// T# v2.1.1
 // Dylan Armstrong, 2026
 
 #pragma once
@@ -9,7 +9,7 @@
 namespace tsharp {
 
 // OpCode enum
-// Contains all VM opcodes
+// Contains all VM opcodes for the bytecode VM
 enum class OpCode : uint8_t {
 	// Constants / literals
 	Constant,
@@ -145,6 +145,8 @@ enum class OpCode : uint8_t {
 	ToBool,
 	ToChar,
 
+	SetArrayType,
+
 	TypeOf,
 
 	// Control flow
@@ -189,5 +191,7 @@ enum class OpCode : uint8_t {
 	AddLocalInt,
 	Halt
 };
+
+const char* opcode_name(OpCode opcode);
 
 }

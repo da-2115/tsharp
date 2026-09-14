@@ -8,6 +8,14 @@ class Test<T> {
     public T Value -> val
 }
 
+class Test<T> {
+    private T trump
+
+    public (T t) {
+        trump = t
+    }
+}
+
 class AnotherTest<T> {
     private Test<T> testObj
 

@@ -109,8 +109,8 @@ void main() {
     println("Original array address: " + address(nums))
 
     print("Before sort: ")
-    for (int i = 0; i < size(nums); i++) {
-        print(nums[i] + " ")
+    for n in nums {
+        print(n + " ")
     }
     println("")
 
@@ -223,6 +223,11 @@ void main() {
     println("tau: " + tau)
     println("golden_ratio: " + golden_ratio)
 
+    // Cool golden ratio approximation
+    println(
+        "approximation of golden_ratio - x_root(76,9): " 
+        + x_root(76, 9)
+    )
     println("")
     println("Standard library demo complete.")
 }

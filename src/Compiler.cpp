@@ -1,5 +1,5 @@
 // Compiler.cpp
-// T# v2.0.0
+// T# v2.1.1
 // Dylan Armstrong, 2026
 
 #include "Compiler.h"
@@ -691,6 +691,40 @@ void Compiler::end_function() {
 	current_function = function_contexts.empty() ? nullptr : function_contexts.back().function;
 }
 
+void Compiler::emit_default_value(const std::string& type) {
+	if (type == "int") {
+		emit_constant(Value(0));
+		return;
+	}
+
+	if (type == "long") {
+		emit_constant(Value(static_cast<std::int64_t>(0)));
+		return;
+	}
+
+	if (type == "float") {
+		emit_constant(Value(0.0f));
+		return;
+	}
+
+	if (type == "double") {
+		emit_constant(Value(0.0));
+		return;
+	}
+
+	if (type == "bool") {
+		emit_opcode(OpCode::False);
+		return;
+	}
+
+	if (type == "char") {
+		emit_constant(Value('\0'));
+		return;
+	}
+
+	emit_opcode(OpCode::Null);
+}
+
 Compiler::FunctionCompilerContext& Compiler::current_context() {
 	if (function_contexts.empty()) {
 		throw std::runtime_error("No active function compilation context");
@@ -925,6 +959,10 @@ antlrcpp::Any Compiler::visitVariableDecl(TSharpParser::VariableDeclContext* ctx
 		if (initializer->expression()) {
 			visit(initializer->expression());
 
+			if (array_decl) {
+				emit_array_type(declared_type);
+			}
+
 			emit_store_local(slot);
 
 			return {};
@@ -939,7 +977,6 @@ antlrcpp::Any Compiler::visitVariableDecl(TSharpParser::VariableDeclContext* ctx
 				if (initializer->argumentList()) {
 					for (auto* argument : initializer->argumentList()->expression()) {
 						visit(argument);
-
 						argument_count++;
 					}
 				}
@@ -952,6 +989,8 @@ antlrcpp::Any Compiler::visitVariableDecl(TSharpParser::VariableDeclContext* ctx
 
 				return {};
 			}
+
+			throw std::runtime_error("Cannot construct unknown type '" + runtime_type + "'");
 		}
 	}
 
@@ -964,6 +1003,8 @@ antlrcpp::Any Compiler::visitVariableDecl(TSharpParser::VariableDeclContext* ctx
 
 			emit_opcode(OpCode::NewArray);
 
+			emit_array_type(declared_type);
+
 			emit_store_local(slot);
 
 			return {};
@@ -974,17 +1015,14 @@ antlrcpp::Any Compiler::visitVariableDecl(TSharpParser::VariableDeclContext* ctx
 		// Represent as empty array.
 
 		emit_constant(Value(0));
-
 		emit_opcode(OpCode::NewArray);
-
+		emit_array_type(declared_type);
 		emit_store_local(slot);
-
-		return {};
 	}
 
 	// No initializer
 	if (!initializer) {
-		emit_opcode(OpCode::Null);
+		emit_default_value(declared_type);
 
 		emit_store_local(slot);
 
@@ -2669,4 +2707,16 @@ void Compiler::register_natives() {
 	register_native("file_copy", 2);
 	register_native("file_move", 2);
 }
+
+void Compiler::emit_array_type(const std::string& type) {
+	const size_t index = chunk().add_constant(Value(type));
+
+	if (index > std::numeric_limits<uint16_t>::max()) {
+		throw std::runtime_error("Too many constants");
+	}
+
+	emit_opcode(OpCode::SetArrayType);
+	emit_u16(static_cast<uint16_t>(index));
+}
+
 }

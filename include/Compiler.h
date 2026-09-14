@@ -1,5 +1,5 @@
 // Compiler.h
-// T# v2.0.0
+// T# v2.1.1
 // Dylan Armstrong, 2026
 
 #pragma once
@@ -162,6 +162,10 @@ class Compiler final : public TSharpBaseVisitor {
 	void begin_function(BytecodeFunction& function);
 
 	void end_function();
+
+	void emit_default_value(const std::string& type);
+
+	void emit_array_type(const std::string& type);
 
 	FunctionCompilerContext& current_context();
 

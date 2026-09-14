@@ -1,5 +1,5 @@
 // VM.h
-// T# v2.0.0
+// T# v2.1.1
 // Dylan Armstrong, 2026
 
 #pragma once
@@ -26,6 +26,10 @@ struct ExceptionHandler {
 	size_t stack_size = 0;
 };
 
+struct VMOptions {
+	bool trace = false;
+};
+
 // Call frame
 struct CallFrame {
 	const BytecodeFunction* function = nullptr;
@@ -43,9 +47,13 @@ struct CallFrame {
 // The T# virtual machine
 class VM {
   public:
+	explicit VM(VMOptions options = {});
+
 	Value run(const BytecodeModule& module);
 
   private:
+	VMOptions options;
+
 	const BytecodeModule* module = nullptr;
 
 	std::vector<CallFrame> frames;
@@ -67,7 +75,9 @@ class VM {
 
 	void push_frame(size_t function_index, std::vector<Value> arguments, std::optional<Value> receiver = std::nullopt);
 
-	// Value return_from_frame(Value result);
+	void trace_instruction(const CallFrame& frame, size_t instruction_offset, OpCode opcode) const;
+
+	void trace_stack(const CallFrame& frame) const;
 
 	Value call_native(size_t native_index, const std::vector<Value>& arguments);
 

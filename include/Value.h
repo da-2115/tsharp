@@ -1,5 +1,5 @@
 // Value.h
-// T# v2.0.0
+// T# v2.1.1
 // Dylan Armstrong, 2026
 
 #pragma once
@@ -23,9 +23,32 @@ namespace tsharp {
 struct FunctionValue;
 struct ClassValue;
 struct InstanceValue;
+class Value;
 
-// Type aliases
-using Array = std::vector<class Value>;
+struct Array {
+	std::string element_type;
+	std::vector<Value> elements;
+
+	size_t size() const;
+	bool empty() const;
+	void resize(size_t size);
+
+	void push_back(Value value);
+
+	Value& back();
+	const Value& back() const;
+
+	Value& operator[](size_t index);
+	const Value& operator[](size_t index) const;
+
+	void pop_back();
+
+	auto begin();
+	auto end();
+	auto begin() const;
+	auto end() const;
+};
+
 using ObjectMap = std::unordered_map<std::string, class Value>;
 
 // RuntimeError class - inherits std::runtime_error
@@ -122,5 +145,57 @@ class ThrowSignal : public std::exception {
 	Value value;
 	explicit ThrowSignal(const Value& v);
 };
+
+inline size_t Array::size() const {
+	return elements.size();
+}
+
+inline bool Array::empty() const {
+	return elements.empty();
+}
+
+inline void Array::resize(size_t size) {
+	elements.resize(size);
+}
+
+inline void Array::push_back(Value value) {
+	elements.push_back(std::move(value));
+}
+
+inline Value& Array::back() {
+	return elements.back();
+}
+
+inline const Value& Array::back() const {
+	return elements.back();
+}
+
+inline Value& Array::operator[](size_t index) {
+	return elements[index];
+}
+
+inline const Value& Array::operator[](size_t index) const {
+	return elements[index];
+}
+
+inline void Array::pop_back() {
+	elements.pop_back();
+}
+
+inline auto Array::begin() {
+	return elements.begin();
+}
+
+inline auto Array::end() {
+	return elements.end();
+}
+
+inline auto Array::begin() const {
+	return elements.begin();
+}
+
+inline auto Array::end() const {
+	return elements.end();
+}
 
 }
