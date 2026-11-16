@@ -1,5 +1,5 @@
 // Compiler.cpp
-// T# v2.1.1
+// T# v2.1.2
 // Dylan Armstrong, 2026
 
 #include "Compiler.h"

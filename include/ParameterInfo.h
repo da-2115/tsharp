@@ -6,7 +6,6 @@
 #include <string>
 
 namespace tsharp {
-;
 
 // Parameter info struct
 struct ParameterInfo {

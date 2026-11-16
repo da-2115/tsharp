@@ -1,0 +1,56 @@
+// Simple Linear Regression Model in T#
+// Dylan Armstrong, 2026
+
+void main() {
+    int n = 5
+
+    float X[n] = { 1.0f, 2.0f, 3.0f, 4.0f, 5.0f }
+    float Y[n] = { 2.0f, 4.0f, 5.0f, 4.0f, 5.0f }
+
+    float sumX = 0.0f
+    float sumY = 0.0f
+    
+    int i = 0
+
+    // Calculate means of X and Y
+    while i < n {
+        sumX = sumX + X[i]
+        sumY = sumY + Y[i]
+
+        i++
+    }
+
+    float meanX = sumX / n
+    float meanY = sumY / n
+
+    // Calculate slop (m) and y-intercept (c)
+    float numerator = 0.0f
+    float denominator = 0.0f
+
+    i = 0
+
+    while i < n {
+        float xDiff = X[i] - meanX
+        float yDiff = Y[i] - meanY
+
+        numerator += (xDiff * yDiff)
+        denominator += (xDiff * xDiff)
+
+        i++
+    }
+
+    float m
+    float c
+    if denominator != 0.0f {
+        m = numerator / denominator
+        c = meanY - (m * meanX)
+    }
+    
+
+    println("Trained model y = " + m + " * x + " + c)
+
+    float input_x = 6.0f
+    float predicted_y = (m * input_x) + c
+
+    println("Prediction for x = 6.0: " + predicted_y)
+}

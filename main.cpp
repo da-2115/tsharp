@@ -1,5 +1,5 @@
 // main.cpp
-// T# v2.1.1
+// T# v2.1.2
 // Dylan Armstrong, 2026
 
 #include "TSharpLexer.h"
@@ -20,7 +20,7 @@
 #include <string>
 #include <string_view>
 
-constexpr std::string_view tsharp_version = "v2.1.1";
+constexpr std::string_view tsharp_version = "v2.1.2";
 
 namespace {
 

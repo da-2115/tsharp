@@ -1,0 +1,23 @@
+// Now fixed in T# v2.1.2
+
+void main() {
+    int i =
+        5 * 5
+        + 3
+
+    double d[] = {
+        0.0,
+        0.5,
+        1.0,
+        1.5,
+        2.0
+    }
+
+    println(
+        i
+    )
+
+    for i in d {
+        println(i)
+    }
+}

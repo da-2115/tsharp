@@ -1,8 +1,8 @@
-# T# v2.1.1
+# T# v2.1.2
 
 The T# Programming Language — written by Dylan Armstrong, 2026, in C++ with ANTLR.
 
-T# is a small, statically typed, C#/Java-inspired programming language with classes, interfaces, enums, generics, imports, a growing standard library, and a native interpreter runtime.
+T# is a statically typed, C#/Java-inspired programming language with classes, interfaces, enums, generics, imports, a growing standard library, and a native interpreter runtime.
 
 ## Highlights
 
@@ -18,6 +18,21 @@ T# is a small, statically typed, C#/Java-inspired programming language with clas
 - C++20 interpreter runtime
 
 ## Changelog
+
+### v3.0.0 (Coming Soon)
+T# v3.0.0 will be released sometime in late 2026/early 2027. It will likely be the "concurrency update" - introducing concurrency and multithreading into the language giving great performance benefits for T# developers.
+
+Also some new features coming soon include: `readln` - the input version of `println` for taking user input, dates and times will also be introduced to the language in v3.0.0.
+
+Future development resources is also going into work on **Rise** (the T# Machine Learning and Deep Learning Framework): https://github.com/da-2115/rise
+
+### v2.1.2
+
+Linear Regression T# Example (`examples/linear_reg.tsharp`).
+
+Fixed the bug with new lines causing errors on variable declarations, etc. spanning over multiple lines (see: `examples/new_line_fix.tsharp`).
+
+
 
 ### v2.0.0
 
@@ -36,9 +51,11 @@ Final bug fixes primarily in the ANTLR graz1mmar specification.
 This will be the final beta before a full release of the language.
 
 **Fixes**:
+
 - Fixed bugs with arrays. This includes bugs with array types and array intitialisation within the interpreter. Arrays should now behave much better than what they did before.
 
 **General Code Patching**:
+
 - Commented out the T# codebase a lot more.
 - Added formatting properly via `clang-format`.
 
@@ -216,34 +233,34 @@ void main() {
 
 ## Built-in Constants
 
-| Name | Description |
-| --- | --- |
-| `pi` | Mathematical constant π |
-| `e` | Euler's number |
-| `tau` | 2π |
-| `golden_ratio` | Golden ratio |
+| Name           | Description             |
+| -------------- | ----------------------- |
+| `pi`           | Mathematical constant π |
+| `e`            | Euler's number          |
+| `tau`          | 2π                      |
+| `golden_ratio` | Golden ratio            |
 
 ## Built-in Functions
 
-| Function | Description |
-| --- | --- |
-| `print(value)` | Prints without a newline |
-| `println(value)` | Prints with a newline |
-| `size(value)` | Returns array length, string length or runtime value size |
-| `typeof(value)` | Returns the runtime type name |
-| `address(value)` | Returns the runtime memory address as a hexadecimal string |
-| `push(array, value)` | Pushes a value into an array |
-| `pop(array)` | Removes and returns the last array element |
-| `sort(array)` | Sorts an array |
-| `sqrt(x)` | Square root |
-| `abs(x)` | Absolute value |
-| `pow(x, y)` | Power |
-| `sin(x)` | Sine in radians |
-| `cos(x)` | Cosine in radians |
-| `tan(x)` | Tangent in radians |
-| `min(a, b)` | Minimum |
-| `max(a, b)` | Maximum |
-| `factorial(n)` | Factorial |
+| Function             | Description                                                |
+| -------------------- | ---------------------------------------------------------- |
+| `print(value)`       | Prints without a newline                                   |
+| `println(value)`     | Prints with a newline                                      |
+| `size(value)`        | Returns array length, string length or runtime value size  |
+| `typeof(value)`      | Returns the runtime type name                              |
+| `address(value)`     | Returns the runtime memory address as a hexadecimal string |
+| `push(array, value)` | Pushes a value into an array                               |
+| `pop(array)`         | Removes and returns the last array element                 |
+| `sort(array)`        | Sorts an array                                             |
+| `sqrt(x)`            | Square root                                                |
+| `abs(x)`             | Absolute value                                             |
+| `pow(x, y)`          | Power                                                      |
+| `sin(x)`             | Sine in radians                                            |
+| `cos(x)`             | Cosine in radians                                          |
+| `tan(x)`             | Tangent in radians                                         |
+| `min(a, b)`          | Minimum                                                    |
+| `max(a, b)`          | Maximum                                                    |
+| `factorial(n)`       | Factorial                                                  |
 
 ## Open Source and Free
 
@@ -252,6 +269,7 @@ T# is open source and free to use, run and contribute to.
 Pull requests are welcome.
 
 # Open Source and Free
+
 T# is an open source and free language, now accepting pull requests (PRs). The language is also free - there is no cost to use, run and contribute to T#.
 
 | Token          | Type of Token | Description                                                               |
@@ -264,7 +282,7 @@ T# is an open source and free language, now accepting pull requests (PRs). The l
 | `bool`         | Type          | True or false                                                             |
 | `void`         | Type          | Does not return anything                                                  |
 | `any`          | Type          | Can be any type                                                           |
-| `long`         | Type         | Stores bigger whole numbers than `int`                                    |
+| `long`         | Type          | Stores bigger whole numbers than `int`                                    |
 | `class`        | Keyword       | Declares a class for object-oriented programming                          |
 | `interface`    | Keyword       | Declares an interface defining a contract for classes                     |
 | `enum`         | Keyword       | Declares an enumeration of named constants                                |

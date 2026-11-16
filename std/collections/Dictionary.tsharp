@@ -32,9 +32,9 @@ class Dictionary<K, V> {
     }
 
     public V get(K key) {
-        for (int i = 0; i < size(entries); i++) {
-            if (entries[i].key == key) {
-                return entries[i].value
+        for k in entries {
+            if k == key {
+                return k
             }
         }
 
@@ -42,8 +42,8 @@ class Dictionary<K, V> {
     }
 
     public bool contains_key(K key) {
-        for (int i = 0; i < size(entries); i++) {
-            if (entries[i].key == key) {
+        for k in entries {
+            if k == key {
                 return true
             }
         }

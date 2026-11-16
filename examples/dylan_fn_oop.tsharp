@@ -21,7 +21,7 @@ class DylanFunctionWithPrint : DylanFunction {
 
     public void print_to_screen() {
         println("Now printing: " + this.count)
-        for (int i = 0; i < this.count; i++) {
+        for int i = 0; i < this.count; i++ {
             println(i + "=" + base.Answer)
         }
     }

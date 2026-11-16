@@ -1,4 +1,4 @@
-// TSharp.g4 T# v2.0.0 Dylan Armstrong, 2026
+// TSharp.g4 T# v2.1.2 Dylan Armstrong, 2026
 
 grammar TSharp;
 
@@ -138,7 +138,7 @@ variableDecl:
 	typeRef IDENTIFIER arrayDeclarator? variableInitializer?;
 
 variableInitializer:
-	ASSIGN expression
+	ASSIGN NEWLINE? expression
 	| LPAREN argumentList? RPAREN;
 
 arrayDeclarator: LBRACK expression? RBRACK;
@@ -279,7 +279,7 @@ primary:
 argumentList:
 	NEWLINE* expression (NEWLINE* COMMA NEWLINE* expression)* NEWLINE*;
 
-arrayLiteral: LBRACE (expression (COMMA expression)*)? RBRACE;
+arrayLiteral: LBRACE NEWLINE? (expression (COMMA NEWLINE? expression)*)? NEWLINE? RBRACE;
 
 literal:
 	LONG_LITERAL

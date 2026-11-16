@@ -1,0 +1,64 @@
+// conways_game_of_life.tsharp
+// AshKmo, 2026
+
+static int WIDTH = 55
+static int HEIGHT = 45
+static int ITERATIONS = 3000
+
+void main() {
+	bool[] board[] = {}
+	bool[] newBoard[] = {}
+	bool[] temp[]
+
+	for (int y = 0; y < HEIGHT; y++) {
+		bool row[WIDTH]
+		bool newRow[WIDTH]
+
+		push(board, row)
+		push(newBoard, newRow)
+	}
+
+	board[0][1] = true
+	board[1][0] = true
+	board[2][0] = true
+	board[2][1] = true
+	board[2][2] = true
+
+	for (int i = 0; i < ITERATIONS; i++) {
+		for (int y = 0; y < HEIGHT; y++) {
+			string out = ""
+
+			for (int x = 0; x < WIDTH; x++) {
+				int total = 0
+
+				for (int cy = -1; cy <= 1; cy++) {
+					for (int cx = -1; cx <= 1; cx++) {
+						if (board[(y + cy + HEIGHT) % HEIGHT][(x + cx + WIDTH) % WIDTH]) {
+							total++
+						}
+					}
+				}
+
+				if (board[y][x]) {
+					total--
+				}
+
+				newBoard[y][x] = total == 3 || total == 2 && board[y][x]
+
+				if (newBoard[y][x]) {
+					out += "#"
+				} else {
+					out += "-"
+				}
+			}
+
+			println(out)
+		}
+
+		temp = board
+		board = newBoard
+		newBoard = temp
+
+		println("")
+	}
+}
