@@ -1,5 +1,5 @@
 // Compiler.h
-// T# v2.1.2
+// T# v3.0.0-alpha1
 // Dylan Armstrong, 2026
 
 #pragma once
@@ -215,6 +215,8 @@ class Compiler final : public TSharpBaseVisitor {
 	void emit_string_operand(const std::string& value);
 
 	void compile_call(const std::string& name, TSharpParser::ArgumentListContext* arguments);
+
+	void compile_spawn(const std::string& name, TSharpParser::ArgumentListContext* arguments);
 
 	void compile_postfix_suffix(TSharpParser::PostfixSuffixContext* ctx);
 

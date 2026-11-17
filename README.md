@@ -1,4 +1,4 @@
-# T# v2.1.2
+# T# v3.0.0-alpha1
 
 The T# Programming Language — written by Dylan Armstrong, 2026, in C++ with ANTLR.
 
@@ -26,7 +26,7 @@ Also some new features coming soon include: `readln` - the input version of `pri
 
 Future development resources is also going into work on **Rise** (the T# Machine Learning and Deep Learning Framework): https://github.com/da-2115/rise
 
-### v2.1.2
+### v3.0.0-alpha1
 
 Linear Regression T# Example (`examples/linear_reg.tsharp`).
 

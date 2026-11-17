@@ -1,5 +1,5 @@
 // VM.cpp
-// T# v2.1.2
+// T# v3.0.0-alpha1
 // Dylan Armstrong, 2026
 
 #include "VM.h"
@@ -9,11 +9,15 @@
 
 #include "BytecodeFunction.h"
 #include "Numeric.h"
+#include "TaskValue.h"
 
 #include <algorithm>
+#include <any>
 #include <cmath>
 #include <cstdint>
+#include <future>
 #include <iostream>
+#include <memory>
 #include <sstream>
 #include <stdexcept>
 #include <utility>
@@ -240,6 +244,21 @@ static Value primitive_cast_value(const std::string& primitive_name, const Value
 VM::VM(VMOptions options) : options(options) {
 }
 
+Value VM::run(const BytecodeModule& module) {
+	return run_function(module, module.main_function, {});
+}
+
+Value VM::run_function(const BytecodeModule& module, size_t function_index, std::vector<Value> arguments) {
+	this->module = &module;
+
+	frames.clear();
+	globals = module.globals;
+
+	push_frame(function_index, std::move(arguments));
+
+	return execute();
+}
+
 void VM::push(Value value) {
 	get_frame().stack.push_back(std::move(value));
 }
@@ -348,14 +367,7 @@ Value default_value_for_type(const std::string& type);
 
 bool value_matches_type(const Value& value, const std::string& type);
 
-Value VM::run(const BytecodeModule& module) {
-	this->module = &module;
-
-	frames.clear();
-	globals = module.globals;
-
-	push_frame(module.main_function, {});
-
+Value VM::execute() {
 	while (!frames.empty()) {
 		const auto& code = get_frame().function->chunk.get_code();
 		const auto& constants = get_frame().function->chunk.get_constants();
@@ -1888,6 +1900,56 @@ Value VM::run(const BytecodeModule& module) {
 					if (!handled) {
 						throw std::runtime_error("Unhandled exception: " + value_to_string(exception_value));
 					}
+
+					break;
+				}
+
+			case OpCode::Spawn:
+				{
+					const uint16_t function_index = read_u16();
+					const uint16_t argument_count = read_u16();
+
+					std::vector<Value> arguments(argument_count);
+
+					for (size_t i = argument_count; i > 0; i--) {
+						arguments[i - 1] = pop();
+					}
+
+					const BytecodeModule* task_module = module;
+					VMOptions task_options = options;
+
+					auto future = std::async(std::launch::async, [task_module, task_options, function_index, args = std::move(arguments)]() mutable -> Value {
+						VM worker(task_options);
+
+						return worker.run_function(*task_module, function_index, std::move(args));
+					});
+
+					auto task = std::make_shared<TaskValue>(std::move(future));
+
+					push(Value(std::any(task)));
+
+					break;
+				}
+
+			case OpCode::Await:
+				{
+					Value value = pop();
+
+					if (!std::holds_alternative<std::any>(value.raw())) {
+						throw std::runtime_error("AWAIT requires a task");
+					}
+
+					const auto& any_value = std::get<std::any>(value.raw());
+
+					const auto* task = std::any_cast<TaskHandle>(&any_value);
+
+					if (!task || !*task) {
+						throw std::runtime_error("Invalid task handle");
+					}
+
+					Value result = (*task)->future.get();
+
+					push(std::move(result));
 
 					break;
 				}

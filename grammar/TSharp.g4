@@ -1,4 +1,4 @@
-// TSharp.g4 T# v2.1.2 Dylan Armstrong, 2026
+// TSharp.g4 T# v3.0.0-alpha1 Dylan Armstrong, 2026
 
 grammar TSharp;
 

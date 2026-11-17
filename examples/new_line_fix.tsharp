@@ -1,4 +1,4 @@
-// Now fixed in T# v2.1.2
+// Now fixed in T# v3.0.0-alpha1
 
 void main() {
     int i =

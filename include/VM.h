@@ -1,5 +1,5 @@
 // VM.h
-// T# v2.1.2
+// T# v3.0.0-alpha1
 // Dylan Armstrong, 2026
 
 #pragma once
@@ -50,6 +50,7 @@ class VM {
 	explicit VM(VMOptions options = {});
 
 	Value run(const BytecodeModule& module);
+	Value run_function(const BytecodeModule& module, size_t function_index, std::vector<Value> arguments);
 
   private:
 	VMOptions options;
@@ -58,6 +59,8 @@ class VM {
 
 	std::vector<CallFrame> frames;
 	std::vector<Value> globals;
+
+	Value execute();
 
 	CallFrame& get_frame();
 

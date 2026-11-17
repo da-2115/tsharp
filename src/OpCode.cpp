@@ -1,5 +1,5 @@
 // OpCode.cpp
-// T# v2.1.2
+// T# v3.0.0-alpha1
 // Dylan Armstrong, 2026
 
 #include "OpCode.h"
@@ -303,6 +303,12 @@ const char* opcode_name(OpCode opcode) {
 		// VM
 		case OpCode::Halt:
 			return "HALT";
+
+		// Concurrency
+		case OpCode::Spawn:
+			return "SPAWN";
+		case OpCode::Await:
+			return "AWAIT";
 	}
 
 	return "UNKNOWN";

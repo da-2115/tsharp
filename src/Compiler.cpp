@@ -1,5 +1,5 @@
 // Compiler.cpp
-// T# v2.1.2
+// T# v3.0.0-alpha1
 // Dylan Armstrong, 2026
 
 #include "Compiler.h"
@@ -2251,6 +2251,40 @@ void Compiler::compile_call(const std::string& name, TSharpParser::ArgumentListC
 	}
 
 	throw std::runtime_error("Undefined callable: " + name);
+}
+
+void Compiler::compile_spawn(const std::string& name, TSharpParser::ArgumentListContext* arguments) {
+	if (!module.function_lookup.contains(name)) {
+		throw std::runtime_error("Cannot spawn unknown function: " + name);
+	}
+
+	const size_t function_index = resolve_function(name);
+	const auto& function = module.functions[function_index];
+
+	if (function.is_method || function.is_constructor) {
+		throw std::runtime_error("Cannot spawn methods or constructors yet");
+	}
+
+	const size_t argument_count = arguments ? arguments->expression().size() : 0;
+
+	if (argument_count != function.arity) {
+		throw std::runtime_error("Incorrect argument count for spawned function: " + name);
+	}
+
+	if (function_index > UINT16_MAX || argument_count > UINT16_MAX) {
+		throw std::runtime_error("SPAWN operands exceed bytecode limits");
+	}
+
+	if (arguments) {
+		for (auto* argument : arguments->expression()) {
+			visit(argument);
+		}
+	}
+
+	emit_opcode(OpCode::Spawn);
+
+	emit_u16(static_cast<uint16_t>(function_index));
+	emit_u16(static_cast<uint16_t>(argument_count));
 }
 
 // Postfix suffix
