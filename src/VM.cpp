@@ -332,7 +332,7 @@ void VM::push_frame(size_t function_index, std::vector<Value> arguments, std::op
 
 	new_frame.locals.resize(std::max(function.local_count, required_locals));
 
-	new_frame.stack.reserve(64);
+	new_frame.stack.reserve(8);
 
 	size_t argument_offset = 0;
 
@@ -347,6 +347,57 @@ void VM::push_frame(size_t function_index, std::vector<Value> arguments, std::op
 
 	frames.push_back(std::move(new_frame));
 }
+
+void VM::push_frame_from_stack(size_t function_index, size_t argument_count) {
+	if (module == nullptr) {
+		throw std::runtime_error("No bytecode module loaded");
+	}
+
+	if (function_index >= module->functions.size()) {
+		throw std::runtime_error("Function index out of bounds");
+	}
+
+	const BytecodeFunction& function = module->functions[function_index];
+
+	if (argument_count != function.arity) {
+		throw std::runtime_error("Incorrect argument count for " + function.name);
+	}
+
+	// Get the current caller frame
+	auto& caller = get_frame();
+
+	if (caller.stack.size() < argument_count) {
+		throw std::runtime_error("Operand stack underflow");
+	}
+
+	// Create a new frame
+	CallFrame new_frame;
+
+	new_frame.function = &function;
+	new_frame.function_index = function_index;
+	new_frame.ip = 0;
+
+	// Allocate local variables
+	new_frame.locals.resize(std::max(function.local_count, argument_count));
+
+	// Reserve space for the operand stack
+	new_frame.stack.reserve(8);
+
+	// Transfer arguments directly into the new frame
+	const size_t start = caller.stack.size() - argument_count;
+
+	for (size_t i = 0; i < argument_count; i++) {
+		new_frame.locals[i] = std::move(caller.stack[start + i]);
+	}
+
+	// Remove transferred arguments from caller's stack
+	caller.stack.resize(start);
+
+	// Push the new frame
+	// Do not use 'caller' after this: frames may reallocate.
+	frames.push_back(std::move(new_frame));
+}
+
 uint8_t VM::read_byte() {
 	auto& current = get_frame();
 
@@ -1386,16 +1437,9 @@ Value VM::execute() {
 			case OpCode::Call:
 				{
 					const uint16_t function_index = read_u16();
-
 					const uint16_t argument_count = read_u16();
 
-					std::vector<Value> arguments(argument_count);
-
-					for (size_t i = argument_count; i > 0; i--) {
-						arguments[i - 1] = pop();
-					}
-
-					push_frame(function_index, std::move(arguments));
+					push_frame_from_stack(function_index, argument_count);
 
 					break;
 				}

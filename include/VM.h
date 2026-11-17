@@ -58,6 +58,7 @@ class VM {
 	const BytecodeModule* module = nullptr;
 
 	std::vector<CallFrame> frames;
+	std::vector<CallFrame> free_frames;
 	std::vector<Value> globals;
 
 	Value execute();
@@ -77,6 +78,8 @@ class VM {
 	uint16_t read_u16();
 
 	void push_frame(size_t function_index, std::vector<Value> arguments, std::optional<Value> receiver = std::nullopt);
+
+	void push_frame_from_stack(size_t function_index, size_t argument_count);
 
 	void trace_instruction(const CallFrame& frame, size_t instruction_offset, OpCode opcode) const;
 
