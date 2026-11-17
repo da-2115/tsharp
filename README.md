@@ -19,20 +19,25 @@ T# is a statically typed, C#/Java-inspired programming language with classes, in
 
 ## Changelog
 
-### v3.0.0 (Coming Soon)
-T# v3.0.0 will be released sometime in late 2026/early 2027. It will likely be the "concurrency update" - introducing concurrency and multithreading into the language giving great performance benefits for T# developers.
-
-Also some new features coming soon include: `readln` - the input version of `println` for taking user input, dates and times will also be introduced to the language in v3.0.0.
-
-Future development resources is also going into work on **Rise** (the T# Machine Learning and Deep Learning Framework): https://github.com/da-2115/rise
-
 ### v3.0.0-alpha1
 
-Linear Regression T# Example (`examples/linear_reg.tsharp`).
+#### New Features:
+**Concurrency and multithreading in T# (WIP)**: added `spawn` to spawn tasks on different threads in T# and `await` to call those tasks spawned using `spawn`. This means multiple tasks can be ran on different threads allowing for T# concurrency and multithreading - giving great performance benefits.
 
-Fixed the bug with new lines causing errors on variable declarations, etc. spanning over multiple lines (see: `examples/new_line_fix.tsharp`).
+**Nullable/optional types (WIP)**: nullable/optional support in T#. If you use a `?` after the type name - you can make the variable a nullable meaning it can have a value of the given type OR be marked `null`. This supports null safety.
 
+**readln**: The `readln` function in T# - allows for a developer to take user's input in T#.
 
+**datetime**: `datetime_now()` allows for the current date and time to be stored in a value of type `long`, whilst you can format it also using `datetime_format()` and add days to the datetime using `datetime_add_days(datetime: long, days: int)`. For an example, see: `examples/datetime.tsharp`.
+
+#### New Standard Library Data Types
+**std.math.Calculus**: A data type that adds support for calculus operations (such as differentiation, integration, etc. in T#)
+
+**std.math.Optimization** A data type that adds support for optimization and gradient descent in T#.
+
+**std.math.Statistics** A data type that adds support for operations such as mean, standard deviation, etc in T#.
+
+---
 
 ### v2.0.0
 
