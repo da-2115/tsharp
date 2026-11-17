@@ -31,7 +31,7 @@ class Dictionary<K, V> {
         push(entries, entry)
     }
 
-    public V get(K key) {
+    public V? get(K key) {
         for entry in entries {
             if entry.key == key {
                 return entry.value

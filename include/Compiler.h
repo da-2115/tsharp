@@ -111,6 +111,8 @@ class Compiler final : public TSharpBaseVisitor {
 		std::vector<size_t> continue_jumps;
 	};
 
+	std::string current_return_type;
+
 	// Main compiler state
 	BytecodeModule module;
 

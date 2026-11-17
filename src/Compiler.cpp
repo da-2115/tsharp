@@ -534,6 +534,8 @@ void Compiler::compile_function(TSharpParser::FunctionDeclContext* ctx) {
 
 	begin_function(function);
 
+	current_return_type = ctx->returnType()->getText();
+
 	for (size_t i = 0; i < function.parameter_names.size(); i++) {
 		const std::string type = i < function.parameter_types.size() ? function.parameter_types[i] : std::string{};
 
@@ -552,6 +554,8 @@ void Compiler::compile_function(TSharpParser::FunctionDeclContext* ctx) {
 	function.local_count = current_context().next_local;
 
 	end_function();
+
+	current_return_type.clear();
 }
 
 // Compile class bodies
@@ -600,6 +604,7 @@ void Compiler::compile_method(size_t class_index, TSharpParser::MethodDeclContex
 	BytecodeFunction& function = module.functions[function_index];
 
 	begin_function(function);
+	current_return_type = ctx->returnType()->getText();
 
 	for (size_t i = 0; i < function.parameter_names.size(); i++) {
 		const std::string type = i < function.parameter_types.size() ? function.parameter_types[i] : std::string{};
@@ -618,6 +623,7 @@ void Compiler::compile_method(size_t class_index, TSharpParser::MethodDeclContex
 	function.local_count = current_context().next_local;
 
 	end_function();
+	current_return_type.clear();
 }
 
 // Compile constructor
@@ -2183,13 +2189,24 @@ antlrcpp::Any Compiler::visitSwitchStatement(TSharpParser::SwitchStatementContex
 
 antlrcpp::Any Compiler::visitReturnStatement(TSharpParser::ReturnStatementContext* ctx) {
 	if (ctx->expression()) {
-		visit(ctx->expression());
+		auto* expression = ctx->expression();
+
+		const std::string source_name = simple_identifier_from_expression(expression);
+
+		const std::string source_type = source_name.empty() || !has_local(source_name) ? "" : resolve_local_type(source_name);
+
+		check_nullable_assignment("return value", current_return_type, expression, source_type);
+
+		visit(expression);
 	} else {
+		if (!current_return_type.empty() && current_return_type != "void") {
+			throw std::runtime_error("Cannot return without a value from function returning '" + current_return_type + "'");
+		}
+
 		emit_opcode(OpCode::Null);
 	}
 
 	emit_opcode(OpCode::Return);
-
 	return {};
 }
 

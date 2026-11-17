@@ -1,0 +1,21 @@
+
+int? findValue(bool found) {
+    if (found) {
+        return 42
+    }
+
+    return null
+}
+
+int getValue() {
+    return 100
+}
+
+void main() {
+    int? a = findValue(false)
+    int? b = findValue(true)
+
+    println(a)
+    println(b)
+    println(getValue())
+}
