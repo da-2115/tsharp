@@ -49,9 +49,9 @@ genericParams: LT IDENTIFIER (COMMA IDENTIFIER)* GT;
 typeArgs: LT typeRef (COMMA typeRef)* GT;
 
 typeRef:
-	primitiveType arrayTypeSuffix?
-	| IDENTIFIER typeArgs? arrayTypeSuffix?
-	| ANY arrayTypeSuffix?;
+	primitiveType QUESTION? arrayTypeSuffix?
+	| IDENTIFIER typeArgs? QUESTION? arrayTypeSuffix?
+	| ANY QUESTION? arrayTypeSuffix?;
 
 arrayTypeSuffix: LBRACK RBRACK;
 
@@ -389,6 +389,7 @@ DOT: '.';
 COLON: ':';
 SEMICOLON: ';';
 PIPE: '|';
+QUESTION: '?';
 
 IN: 'in';
 

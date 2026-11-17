@@ -14,13 +14,36 @@
 namespace tsharp {
 
 static std::string base_type_name(const std::string& type_name) {
-	auto pos = type_name.find('<');
+	const auto generic_pos = type_name.find('<');
 
-	if (pos == std::string::npos) {
-		return type_name;
+	if (generic_pos != std::string::npos) {
+		return type_name.substr(0, generic_pos);
 	}
 
-	return type_name.substr(0, pos);
+	// Preserve nullable markers, but strip array suffixes.
+	const auto array_pos = type_name.find('[');
+
+	if (array_pos != std::string::npos) {
+		return type_name.substr(0, array_pos);
+	}
+
+	return type_name;
+}
+
+static void check_nullable_assignment(const std::string& target_name, const std::string& target_type, TSharpParser::ExpressionContext* expression, const std::string& source_type = "") {
+	if (target_type.empty() || target_type == "any") {
+		return;
+	}
+
+	const bool target_nullable = target_type.find('?') != std::string::npos;
+
+	if (expression->getText() == "null" && !target_nullable) {
+		throw std::runtime_error("Cannot assign null to non-nullable variable '" + target_name + "' of type '" + target_type + "'");
+	}
+
+	if (!source_type.empty() && source_type.find('?') != std::string::npos && !target_nullable) {
+		throw std::runtime_error("Cannot assign nullable type '" + source_type + "' to non-nullable variable '" + target_name + "'");
+	}
 }
 
 static std::string simple_identifier_from_expression(TSharpParser::ExpressionContext* expression) {
@@ -692,6 +715,11 @@ void Compiler::end_function() {
 }
 
 void Compiler::emit_default_value(const std::string& type) {
+	if (type.find('?') != std::string::npos) {
+		emit_opcode(OpCode::Null);
+		return;
+	}
+
 	if (type == "int") {
 		emit_constant(Value(0));
 		return;
@@ -957,7 +985,15 @@ antlrcpp::Any Compiler::visitVariableDecl(TSharpParser::VariableDeclContext* ctx
 
 	if (initializer) {
 		if (initializer->expression()) {
-			visit(initializer->expression());
+			auto* expression = initializer->expression();
+
+			const std::string source_name = simple_identifier_from_expression(expression);
+
+			const std::string source_type = source_name.empty() || !has_local(source_name) ? "" : resolve_local_type(source_name);
+
+			check_nullable_assignment(name, declared_type, expression, source_type);
+
+			visit(expression);
 
 			if (array_decl) {
 				emit_array_type(declared_type);
@@ -1086,6 +1122,16 @@ antlrcpp::Any Compiler::visitAssignment(TSharpParser::AssignmentContext* ctx) {
 
 		if (has_local(name)) {
 			const size_t slot = resolve_local(name);
+
+			if (op == "=") {
+				const std::string target_type = resolve_local_type(name);
+
+				const std::string source_name = simple_identifier_from_expression(ctx->expression());
+
+				const std::string source_type = source_name.empty() || !has_local(source_name) ? "" : resolve_local_type(source_name);
+
+				check_nullable_assignment(name, target_type, ctx->expression(), source_type);
+			}
 
 			// Fused local addition
 			//
