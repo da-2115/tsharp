@@ -1,0 +1,20 @@
+long compute(long n) {
+    long sum = 0
+
+    for long i = 0; i < n; i++ {
+        sum += i
+    }
+
+    return sum
+}
+
+void main() {
+    task<long> a = spawn compute(10000000)
+    task<long> b = spawn compute(10000000)
+
+    long x = await a
+    long y = await b
+
+    println(x)
+    println(y)
+}

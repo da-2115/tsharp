@@ -1509,6 +1509,12 @@ antlrcpp::Any Compiler::visitMultiplicativeExpression(TSharpParser::Multiplicati
 
 // Unary
 antlrcpp::Any Compiler::visitUnaryExpression(TSharpParser::UnaryExpressionContext* ctx) {
+	if (auto* spawn = ctx->spawnExpression()) {
+		compile_spawn(spawn->IDENTIFIER()->getText(), spawn->argumentList());
+
+		return {};
+	}
+
 	if (ctx->postfixExpression()) {
 		return visit(ctx->postfixExpression());
 	}
@@ -1517,7 +1523,6 @@ antlrcpp::Any Compiler::visitUnaryExpression(TSharpParser::UnaryExpressionContex
 
 	if (op == "++" || op == "--") {
 		auto* inner = ctx->unaryExpression();
-
 		auto* postfix = inner->postfixExpression();
 
 		if (!postfix || !postfix->primary() || !postfix->primary()->IDENTIFIER()) {
@@ -1531,7 +1536,6 @@ antlrcpp::Any Compiler::visitUnaryExpression(TSharpParser::UnaryExpressionContex
 		emit_opcode(op == "++" ? OpCode::IncrementLocal : OpCode::DecrementLocal);
 
 		emit_u16(static_cast<uint16_t>(slot));
-
 		emit_load_local(slot);
 
 		return {};
@@ -1539,7 +1543,9 @@ antlrcpp::Any Compiler::visitUnaryExpression(TSharpParser::UnaryExpressionContex
 
 	visit(ctx->unaryExpression());
 
-	if (op == "!") {
+	if (op == "await") {
+		emit_opcode(OpCode::Await);
+	} else if (op == "!") {
 		emit_opcode(OpCode::LogicalNot);
 	} else if (op == "-") {
 		emit_opcode(OpCode::Negate);

@@ -256,8 +256,11 @@ multiplicativeExpression:
 	unaryExpression (
 		NEWLINE* (MUL | DIV | MOD) NEWLINE* unaryExpression
 	)*;
-unaryExpression: (NOT | SUB | ADD | INC | DEC) unaryExpression
+unaryExpression: (NOT | SUB | ADD | INC | DEC | AWAIT) unaryExpression
+	| spawnExpression
 	| postfixExpression;
+
+spawnExpression: SPAWN IDENTIFIER LPAREN argumentList? RPAREN;
 
 postfixExpression: primary postfixSuffix*;
 
@@ -279,7 +282,8 @@ primary:
 argumentList:
 	NEWLINE* expression (NEWLINE* COMMA NEWLINE* expression)* NEWLINE*;
 
-arrayLiteral: LBRACE NEWLINE? (expression (COMMA NEWLINE? expression)*)? NEWLINE? RBRACE;
+arrayLiteral:
+	LBRACE NEWLINE? (expression (COMMA NEWLINE? expression)*)? NEWLINE? RBRACE;
 
 literal:
 	LONG_LITERAL
@@ -305,6 +309,8 @@ PROTECTED: 'protected';
 VIRTUAL: 'virtual';
 OVERRIDE: 'override';
 IMPORT: 'import';
+SPAWN: 'spawn';
+AWAIT: 'await';
 
 // Statements
 IF: 'if';
