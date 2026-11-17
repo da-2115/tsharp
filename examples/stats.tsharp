@@ -3,10 +3,10 @@ import std.math.Statistics
 void main() {
     Statistics stats()
 
-    double values[] = {2.0, 4.0, 6.0, 8.0, 10.0}
+    double values[] = { 2.0, 4.0, 6.0, 8.0, 10.0 }
 
     println(stats.mean(values))
     println(stats.variance(values))
-    println(stats.sampleVariance(values))
-    println(stats.standardDeviation(values))
+    println(stats.sample_variance(values))
+    println(stats.standard_deviation(values))
 }

@@ -9,18 +9,18 @@ class Quadratic : MathFunction {
 }
 
 void main() {
-    Quadratic f = Quadratic()
+    Quadratic f()
 
-    Calculus calc = Calculus()
-    Optimization opt = Optimization()
+    Calculus calc()
+    Optimization opt()
 
     println("Calculus")
     println(calc.derivative(f, 3.0))
-    println(calc.secondDerivative(f, 3.0))
+    println(calc.second_derivative(f, 3.0))
     println(calc.integrate(f, 0.0, 3.0, 1000))
-    println(calc.newtonRoot(f, 0.0, 100, 0.000001))
+    println(calc.newton_root(f, 0.0, 100, 0.000001))
 
     println("Optimization")
-    println(opt.gradientDescent(f, 10.0, 0.1, 1000))
+    println(opt.gradient_descent(f, 10.0, 0.1, 1000))
     println(opt.minimize(f, 0.0, 5.0, 0.000001, 1000))
 }

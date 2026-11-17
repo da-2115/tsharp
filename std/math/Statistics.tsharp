@@ -1,6 +1,7 @@
+
 // Statistics.tsharp
-// T# standard library - to use: import std.math.Vector2
-// Dylan Armstrong, 2026
+// T# standard library
+// import std.math.Statistics
 
 class Statistics {
     public double mean(double values[]) {
@@ -37,7 +38,7 @@ class Statistics {
         return sum / n
     }
 
-    public double sampleVariance(double values[]) {
+    public double sample_variance(double values[]) {
         int n = size(values)
 
         if (n < 2) {
@@ -55,12 +56,12 @@ class Statistics {
         return sum / (n - 1)
     }
 
-    public double standardDeviation(double values[]) {
+    public double standard_deviation(double values[]) {
         return sqrt(this.variance(values))
     }
 
-    public double sampleStandardDeviation(double values[]) {
-        return sqrt(this.sampleVariance(values))
+    public double sample_standard_deviation(double values[]) {
+        return sqrt(this.sample_variance(values))
     }
 
     public double covariance(double x[], double y[]) {
@@ -70,26 +71,26 @@ class Statistics {
             return 0.0
         }
 
-        double meanX = this.mean(x)
-        double meanY = this.mean(y)
+        double mean_x = this.mean(x)
+        double mean_y = this.mean(y)
         double sum = 0.0
 
         for (int i = 0; i < n; i++) {
-            sum += (x[i] - meanX) * (y[i] - meanY)
+            sum += (x[i] - mean_x) * (y[i] - mean_y)
         }
 
         return sum / n
     }
 
     public double correlation(double x[], double y[]) {
-        double cov = covariance(x, y)
-        double stdX = standardDeviation(x)
-        double stdY = standardDeviation(y)
+        double cov = this.covariance(x, y)
+        double std_x = this.standard_deviation(x)
+        double std_y = this.standard_deviation(y)
 
-        if (stdX == 0.0 || stdY == 0.0) {
+        if (std_x == 0.0 || std_y == 0.0) {
             return 0.0
         }
 
-        return cov / (stdX * stdY)
+        return cov / (std_x * std_y)
     }
 }

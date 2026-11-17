@@ -16,7 +16,7 @@ class Calculus {
         this.h = 0.00001
     }
 
-    public void setStep(double step) {
+    public void set_step(double step) {
         if (step > 0.0) {
             this.h = step
         }
@@ -26,7 +26,7 @@ class Calculus {
         return (f.evaluate(x + h) - f.evaluate(x - h)) / (2.0 * h)
     }
 
-    public double secondDerivative(MathFunction f, double x) {
+    public double second_derivative(MathFunction f, double x) {
         return (f.evaluate(x + h) - 2.0 * f.evaluate(x) + f.evaluate(x - h)) / (h * h)
     }
 
@@ -56,10 +56,10 @@ class Calculus {
         return total * step / 3.0
     }
 
-    public double newtonRoot(MathFunction f, double initial, int maxIterations, double tolerance) {
+    public double newton_root(MathFunction f, double initial, int max_iterations, double tolerance) {
         double x = initial
 
-        for (int i = 0; i < maxIterations; i++) {
+        for (int i = 0; i < max_iterations; i++) {
             double fx = f.evaluate(x)
 
             if (abs(fx) < tolerance) {
