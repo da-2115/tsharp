@@ -11,7 +11,9 @@ long compute(long n) {
 void main() {
     long x = compute(10000000)
     long y = compute(10000000)
+    long z = compute(10000000)
 
     println(x)
     println(y)
+    println(z)
 }

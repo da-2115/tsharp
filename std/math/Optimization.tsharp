@@ -1,0 +1,88 @@
+
+ // Optimization.tsharp
+ // T# standard library
+ // import std.math.Optimization
+ // Depends on std.math.Calculus
+
+import std.math.Calculus
+
+class Optimization {
+    private Calculus calculus
+
+    public () {
+        this.calculus = Calculus()
+    }
+
+    public double gradientDescent(MathFunction f, double initial, double learningRate, int iterations) {
+        double x = initial
+
+        for (int i = 0; i < iterations; i++) {
+            double gradient = calculus.derivative(f, x)
+            x -= learningRate * gradient
+        }
+
+        return x
+    }
+
+    public double gradientAscent(MathFunction f, double initial, double learningRate, int iterations) {
+        double x = initial
+
+        for (int i = 0; i < iterations; i++) {
+            double gradient = calculus.derivative(f, x)
+            x += learningRate * gradient
+        }
+
+        return x
+    }
+
+    public double minimize(MathFunction f, double a, double b, double tolerance, int maxIterations) {
+        // Golden-section search
+        double ratio = (sqrt(5.0) - 1.0) / 2.0
+
+        double c = b - ratio * (b - a)
+        double d = a + ratio * (b - a)
+
+        for (int i = 0; i < maxIterations; i++) {
+            if (abs(b - a) < tolerance) {
+                break
+            }
+
+            if (f.evaluate(c) < f.evaluate(d)) {
+                b = d
+                d = c
+                c = b - ratio * (b - a)
+            } else {
+                a = c
+                c = d
+                d = a + ratio * (b - a)
+            }
+        }
+
+        return (a + b) / 2.0
+    }
+
+    public double maximize(MathFunction f, double a, double b, double tolerance, int maxIterations) {
+        double ratio = (sqrt(5.0) - 1.0) / 2.0
+
+        double c = b - ratio * (b - a)
+        double d = a + ratio * (b - a)
+
+        for (int i = 0; i < maxIterations; i++) {
+            if (abs(b - a) < tolerance) {
+                break
+            }
+
+            if (f.evaluate(c) > f.evaluate(d)) {
+                b = d
+                d = c
+                c = b - ratio * (b - a)
+            } else {
+                a = c
+                c = d
+                d = a + ratio * (b - a)
+            }
+        }
+
+        return (a + b) / 2.0
+    }
+}

@@ -13,10 +13,14 @@
 
 #include <algorithm>
 #include <any>
+#include <chrono>
 #include <cmath>
 #include <cstdint>
+#include <ctime>
 #include <future>
+#include <iomanip>
 #include <iostream>
+#include <limits>
 #include <memory>
 #include <sstream>
 #include <stdexcept>
@@ -2011,6 +2015,80 @@ Value VM::call_native(size_t native_index, const std::vector<Value>& arguments) 
 	const auto& native = this->module->natives[native_index];
 
 	const std::string& name = native.name;
+
+	// DateTime: current Unix timestamp in seconds
+	if (name == "datetime_now") {
+		if (!arguments.empty()) {
+			throw std::runtime_error("datetime_now expects 0 arguments");
+		}
+
+		const auto now = std::chrono::system_clock::now();
+
+		const auto seconds = std::chrono::duration_cast<std::chrono::seconds>(now.time_since_epoch()).count();
+
+		return Value(static_cast<std::int64_t>(seconds));
+	}
+
+	// DateTime: format a Unix timestamp
+	if (name == "datetime_format") {
+		if (arguments.size() != 3) {
+			throw std::runtime_error("datetime_format expects 3 arguments");
+		}
+
+		const std::time_t timestamp = static_cast<std::time_t>(arguments[0].as_long());
+
+		const std::string pattern = arguments[1].as_string();
+		const bool utc = arguments[2].as_bool();
+
+		std::tm time_info{};
+
+#ifdef _WIN32
+		const errno_t error = utc ? gmtime_s(&time_info, &timestamp) : localtime_s(&time_info, &timestamp);
+
+		if (error != 0) {
+			throw std::runtime_error("Invalid DateTime timestamp");
+		}
+#else
+		const std::tm* result = utc ? gmtime_r(&timestamp, &time_info) : localtime_r(&timestamp, &time_info);
+
+		if (!result) {
+			throw std::runtime_error("Invalid DateTime timestamp");
+		}
+#endif
+
+		std::ostringstream output;
+		output << std::put_time(&time_info, pattern.c_str());
+
+		if (output.fail()) {
+			throw std::runtime_error("DateTime formatting failed");
+		}
+
+		return Value(output.str());
+	}
+
+	// DateTime: add fixed 24-hour periods
+	if (name == "datetime_add_days") {
+		if (arguments.size() != 2) {
+			throw std::runtime_error("datetime_add_days expects 2 arguments");
+		}
+
+		const std::int64_t timestamp = arguments[0].as_long();
+		const std::int64_t days = arguments[1].as_long();
+
+		constexpr std::int64_t seconds_per_day = 86400;
+
+		if (days > std::numeric_limits<std::int64_t>::max() / seconds_per_day || days < std::numeric_limits<std::int64_t>::min() / seconds_per_day) {
+			throw std::runtime_error("DateTime day offset overflow");
+		}
+
+		const std::int64_t offset = days * seconds_per_day;
+
+		if ((offset > 0 && timestamp > std::numeric_limits<std::int64_t>::max() - offset) || (offset < 0 && timestamp < std::numeric_limits<std::int64_t>::min() - offset)) {
+			throw std::runtime_error("DateTime timestamp overflow");
+		}
+
+		return Value(timestamp + offset);
+	}
 
 	if (name == "file_read_all_text") {
 		if (arguments.size() != 1) {

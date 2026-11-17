@@ -1,0 +1,26 @@
+
+import std.math.Calculus
+import std.math.Optimization
+
+class Quadratic : MathFunction {
+    public double evaluate(double x) {
+        return x * x - 4.0 * x + 3.0
+    }
+}
+
+void main() {
+    Quadratic f = Quadratic()
+
+    Calculus calc = Calculus()
+    Optimization opt = Optimization()
+
+    println("Calculus")
+    println(calc.derivative(f, 3.0))
+    println(calc.secondDerivative(f, 3.0))
+    println(calc.integrate(f, 0.0, 3.0, 1000))
+    println(calc.newtonRoot(f, 0.0, 100, 0.000001))
+
+    println("Optimization")
+    println(opt.gradientDescent(f, 10.0, 0.1, 1000))
+    println(opt.minimize(f, 0.0, 5.0, 0.000001, 1000))
+}

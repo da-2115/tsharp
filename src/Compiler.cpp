@@ -2606,10 +2606,7 @@ bool Compiler::try_get_constant_expression(TSharpParser::ExpressionContext* expr
 }
 
 bool Compiler::is_builtin(const std::string& name) const {
-	return (name == "print" || name == "println" || name == "sqrt" || name == "abs" || name == "cube_root" || name == "exp" || name == "log" || name == "sin" || name == "cos" || name == "tan" ||
-			name == "factorial" || name == "x_root" || name == "pow" || name == "floor" || name == "ceil" || name == "round" || name == "min" || name == "max" || name == "address" || name == "size" ||
-			name == "typeof" || name == "push" || name == "pop" || name == "sort" || name == "file_read_all_text" || name == "file_write_all_text" || name == "file_append_all_text" ||
-			name == "file_exists" || name == "file_delete" || name == "file_copy" || name == "file_move" || name == "atan2");
+	return module.native_lookup.contains(name);
 }
 
 size_t Compiler::resolve_native(const std::string& name) const {
@@ -2710,6 +2707,11 @@ void Compiler::register_natives() {
 
 	register_native("print", 1);
 	register_native("println", 1);
+
+	// DateTime
+	register_native("datetime_now", 0);
+	register_native("datetime_format", 3);
+	register_native("datetime_add_days", 2);
 
 	register_native("sqrt", 1);
 	register_native("abs", 1);
