@@ -524,7 +524,6 @@ void Compiler::declare_property(size_t class_index, TSharpParser::PropertyDeclCo
 }
 
 // Compile top-level function
-
 void Compiler::compile_function(TSharpParser::FunctionDeclContext* ctx) {
 	const std::string name = ctx->IDENTIFIER()->getText();
 
@@ -532,9 +531,11 @@ void Compiler::compile_function(TSharpParser::FunctionDeclContext* ctx) {
 
 	BytecodeFunction& function = module.functions[function_index];
 
+	function.return_type = ctx->returnType()->getText();
+
 	begin_function(function);
 
-	current_return_type = ctx->returnType()->getText();
+	current_return_type = function.return_type;
 
 	for (size_t i = 0; i < function.parameter_names.size(); i++) {
 		const std::string type = i < function.parameter_types.size() ? function.parameter_types[i] : std::string{};
@@ -604,7 +605,8 @@ void Compiler::compile_method(size_t class_index, TSharpParser::MethodDeclContex
 	BytecodeFunction& function = module.functions[function_index];
 
 	begin_function(function);
-	current_return_type = ctx->returnType()->getText();
+	function.return_type = ctx->returnType()->getText();
+current_return_type = function.return_type;
 
 	for (size_t i = 0; i < function.parameter_names.size(); i++) {
 		const std::string type = i < function.parameter_types.size() ? function.parameter_types[i] : std::string{};

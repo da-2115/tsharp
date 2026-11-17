@@ -399,23 +399,34 @@ void VM::push_frame_from_stack(size_t function_index, size_t argument_count) {
 }
 
 uint8_t VM::read_byte() {
-	auto& current = get_frame();
+	CallFrame& frame = frames.back();
 
-	const auto& code = current.function->chunk.get_code();
+	const auto& code = frame.function->chunk.get_code();
+	const size_t ip = frame.ip;
 
-	if (current.ip >= code.size()) {
+	if (ip >= code.size()) [[unlikely]] {
 		throw std::runtime_error("Unexpected end of bytecode");
 	}
 
-	return code[current.ip++];
+	frame.ip = ip + 1;
+	return code[ip];
 }
 
 uint16_t VM::read_u16() {
-	const uint16_t low = read_byte();
+	CallFrame& frame = frames.back();
 
-	const uint16_t high = read_byte();
+	const auto& code = frame.function->chunk.get_code();
+	const size_t ip = frame.ip;
 
-	return static_cast<uint16_t>(low | (high << 8));
+	if (ip > code.size() || code.size() - ip < 2) [[unlikely]] {
+		throw std::runtime_error("Unexpected end of bytecode");
+	}
+
+	const uint16_t value = static_cast<uint16_t>(code[ip]) | (static_cast<uint16_t>(code[ip + 1]) << 8);
+
+	frame.ip = ip + 2;
+
+	return value;
 }
 
 Value default_value_for_type(const std::string& type);
@@ -482,8 +493,13 @@ Value VM::execute() {
 
 			case OpCode::Pop:
 				{
-					pop();
+					auto& stack = frames.back().stack;
 
+					if (stack.empty()) [[unlikely]] {
+						throw std::runtime_error("VM stack underflow");
+					}
+
+					stack.pop_back();
 					break;
 				}
 
@@ -824,55 +840,90 @@ Value VM::execute() {
 
 			case OpCode::Add:
 				{
-					const Value rhs = pop();
+					auto& stack = frames.back().stack;
 
-					const Value lhs = pop();
+					if (stack.size() < 2) [[unlikely]] {
+						throw std::runtime_error("VM stack underflow");
+					}
 
-					push(add_values(lhs, rhs));
+					const size_t lhs_index = stack.size() - 2;
+
+					Value result = add_values(stack[lhs_index], stack[lhs_index + 1]);
+
+					stack[lhs_index] = std::move(result);
+					stack.pop_back();
 
 					break;
 				}
 
 			case OpCode::Subtract:
 				{
-					const Value rhs = pop();
+					auto& stack = frames.back().stack;
 
-					const Value lhs = pop();
+					if (stack.size() < 2) [[unlikely]] {
+						throw std::runtime_error("VM stack underflow");
+					}
 
-					push(subtract_values(lhs, rhs));
+					const size_t lhs_index = stack.size() - 2;
+
+					Value result = subtract_values(stack[lhs_index], stack[lhs_index + 1]);
+
+					stack[lhs_index] = std::move(result);
+					stack.pop_back();
 
 					break;
 				}
 
 			case OpCode::Multiply:
 				{
-					const Value rhs = pop();
+					auto& stack = frames.back().stack;
 
-					const Value lhs = pop();
+					if (stack.size() < 2) [[unlikely]] {
+						throw std::runtime_error("VM stack underflow");
+					}
 
-					push(multiply_values(lhs, rhs));
+					const size_t lhs_index = stack.size() - 2;
+
+					Value result = multiply_values(stack[lhs_index], stack[lhs_index + 1]);
+
+					stack[lhs_index] = std::move(result);
+					stack.pop_back();
 
 					break;
 				}
 
 			case OpCode::Divide:
 				{
-					const Value rhs = pop();
+					auto& stack = frames.back().stack;
 
-					const Value lhs = pop();
+					if (stack.size() < 2) [[unlikely]] {
+						throw std::runtime_error("VM stack underflow");
+					}
 
-					push(divide_values(lhs, rhs));
+					const size_t lhs_index = stack.size() - 2;
+
+					Value result = divide_values(stack[lhs_index], stack[lhs_index + 1]);
+
+					stack[lhs_index] = std::move(result);
+					stack.pop_back();
 
 					break;
 				}
 
 			case OpCode::Modulo:
 				{
-					const Value rhs = pop();
+					auto& stack = frames.back().stack;
 
-					const Value lhs = pop();
+					if (stack.size() < 2) [[unlikely]] {
+						throw std::runtime_error("VM stack underflow");
+					}
 
-					push(modulo_values(lhs, rhs));
+					const size_t lhs_index = stack.size() - 2;
+
+					Value result = modulo_values(stack[lhs_index], stack[lhs_index + 1]);
+
+					stack[lhs_index] = std::move(result);
+					stack.pop_back();
 
 					break;
 				}
@@ -881,11 +932,19 @@ Value VM::execute() {
 
 			case OpCode::AddInt:
 				{
-					const int rhs = pop().as_int();
+					auto& stack = frames.back().stack;
 
-					const int lhs = pop().as_int();
+					if (stack.size() < 2) [[unlikely]] {
+						throw std::runtime_error("VM stack underflow");
+					}
 
-					push(Value(lhs + rhs));
+					const int lhs = stack[stack.size() - 2].as_int();
+					const int rhs = stack.back().as_int();
+
+					const int result = lhs + rhs;
+
+					stack[stack.size() - 2] = Value(result);
+					stack.pop_back();
 
 					break;
 				}
@@ -925,11 +984,19 @@ Value VM::execute() {
 
 			case OpCode::SubtractInt:
 				{
-					const int rhs = pop().as_int();
+					auto& stack = frames.back().stack;
 
-					const int lhs = pop().as_int();
+					if (stack.size() < 2) [[unlikely]] {
+						throw std::runtime_error("VM stack underflow");
+					}
 
-					push(Value(lhs - rhs));
+					const int lhs = stack[stack.size() - 2].as_int();
+					const int rhs = stack.back().as_int();
+
+					const int result = lhs - rhs;
+
+					stack[stack.size() - 2] = Value(result);
+					stack.pop_back();
 
 					break;
 				}
@@ -1132,15 +1199,25 @@ Value VM::execute() {
 
 			case OpCode::LessEqual:
 				{
-					const Value rhs = pop();
+					auto& stack = frames.back().stack;
 
-					const Value lhs = pop();
+					if (stack.size() < 2) [[unlikely]] {
+						throw std::runtime_error("VM stack underflow");
+					}
+
+					const size_t lhs_index = stack.size() - 2;
+
+					const Value& lhs = stack[lhs_index];
+					const Value& rhs = stack[lhs_index + 1];
 
 					if (!lhs.is_number() || !rhs.is_number()) {
 						throw std::runtime_error("Invalid operands for <=");
 					}
 
-					push(Value(lhs.as_double() <= rhs.as_double()));
+					const bool result = lhs.as_double() <= rhs.as_double();
+
+					stack[lhs_index] = Value(result);
+					stack.pop_back();
 
 					break;
 				}
@@ -1397,10 +1474,18 @@ Value VM::execute() {
 				{
 					const uint16_t offset = read_u16();
 
-					const Value condition = pop();
+					auto& frame = frames.back();
+					auto& stack = frame.stack;
 
-					if (!is_truthy(condition)) {
-						get_frame().ip += offset;
+					if (stack.empty()) [[unlikely]] {
+						throw std::runtime_error("VM stack underflow");
+					}
+
+					const bool condition = is_truthy(stack.back());
+					stack.pop_back();
+
+					if (!condition) {
+						frame.ip += offset;
 					}
 
 					break;
@@ -1410,10 +1495,18 @@ Value VM::execute() {
 				{
 					const uint16_t offset = read_u16();
 
-					const Value condition = pop();
+					auto& frame = frames.back();
+					auto& stack = frame.stack;
 
-					if (is_truthy(condition)) {
-						get_frame().ip += offset;
+					if (stack.empty()) [[unlikely]] {
+						throw std::runtime_error("VM stack underflow");
+					}
+
+					const bool condition = is_truthy(stack.back());
+					stack.pop_back();
+
+					if (condition) {
+						frame.ip += offset;
 					}
 
 					break;
@@ -1463,7 +1556,13 @@ Value VM::execute() {
 
 			case OpCode::Return:
 				{
-					Value result = get_frame().stack.empty() ? Value() : pop();
+					auto& frame = frames.back();
+
+					Value result;
+
+					if (!frame.stack.empty()) {
+						result = std::move(frame.stack.back());
+					}
 
 					frames.pop_back();
 
@@ -1471,7 +1570,7 @@ Value VM::execute() {
 						return result;
 					}
 
-					push(std::move(result));
+					frames.back().stack.push_back(std::move(result));
 
 					break;
 				}

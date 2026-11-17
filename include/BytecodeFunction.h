@@ -29,6 +29,9 @@ struct BytecodeFunction {
 	// Parameter information
 	std::vector<std::string> parameter_names;
 	std::vector<std::string> parameter_types;
+
+	// Declared function return type
+	std::string return_type;
 };
 
 }
