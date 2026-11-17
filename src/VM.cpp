@@ -2205,6 +2205,17 @@ Value VM::call_native(size_t native_index, const std::vector<Value>& arguments) 
 		return Value();
 	}
 
+	if (name == "readln") {
+		std::string line;
+
+		if (!std::getline(std::cin, line)) {
+			line = "";
+		}
+
+		// Return the line as a T# string.
+		return Value(line);
+	}
+
 	if (name == "sqrt") {
 		if (arguments.size() != 1) {
 			throw std::runtime_error("sqrt expects 1 argument");

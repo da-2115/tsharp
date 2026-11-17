@@ -2707,6 +2707,7 @@ void Compiler::register_natives() {
 
 	register_native("print", 1);
 	register_native("println", 1);
+	register_native("readln", 0);
 
 	// DateTime
 	register_native("datetime_now", 0);

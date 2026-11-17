@@ -1,0 +1,10 @@
+void main() {
+    print("Name: ")
+    string name = readln()
+
+    print("Age: ")
+    int age = readln().to_int()
+
+    println("Hello, " + name)
+    println("You are " + age + " years old.")
+}
