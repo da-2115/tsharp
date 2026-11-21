@@ -1,4 +1,4 @@
-# T# v3.0.0-alpha1
+# T# v3.0.0
 
 The T# Programming Language — written by Dylan Armstrong, 2026, in C++ with ANTLR.
 
@@ -47,11 +47,11 @@ Short answer: No. It definetly has a sound type system now (which is LOTS better
 
 ---
 
-**Concurrency and multithreading in T# (WIP)**: As mentioned in the type system part of this version changelog, added `spawn` to spawn tasks on different threads in T# and `await` to call those tasks spawned using `spawn`. This means multiple tasks can be ran on different threads allowing for T# concurrency and multithreading - giving great performance benefits.
+**Concurrency and multithreading in T#**: As mentioned in the type system part of this version changelog, added `spawn` to spawn tasks on different threads in T# and `await` to call those tasks spawned using `spawn`. This means multiple tasks can be ran on different threads allowing for T# concurrency and multithreading - giving great performance benefits.
 
 ---
 
-**Nullable/optional types (WIP)**: nullable/optional support in T#. If you use a `?` after the type name - you can make the variable a nullable meaning it can have a value of the given type OR be marked `null`. This supports null safety.
+**Nullable/optional types**: nullable/optional support in T#. If you use a `?` after the type name - you can make the variable a nullable meaning it can have a value of the given type OR be marked `null`. This supports null safety.
 
 ---
 
