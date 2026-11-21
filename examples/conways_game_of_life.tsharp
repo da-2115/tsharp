@@ -1,11 +1,12 @@
 // conways_game_of_life.tsharp
 // AshKmo, 2026
+// PLEASE NOTE: Under the new type system, this version no longer works.
 
 static int width = 30
 static int height = 20
 
-int cellToN(int c) {
-	if (c) {
+int cellToN(bool c) {
+	if (c != 0) {
 		return 1
 	} else {
 		return 0
@@ -31,7 +32,7 @@ void main() {
 
 	bool newBoard[width * height]
 
-	while (true) {
+	for int i = 0; i < 100; i++ {
 		for (int x = 0; x < width; x++) {
 			print("=")
 		}

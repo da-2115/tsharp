@@ -1,8 +1,0 @@
-{
-    "C_Cpp.formatting": "clangFormat",
-    "C_Cpp.clang_format_style": "file",
-    "editor.formatOnSave": true,
-    "[cpp]": {
-        "editor.defaultFormatter": "xaver.clang-format"
-    }
-}

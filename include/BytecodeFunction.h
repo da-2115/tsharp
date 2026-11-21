@@ -1,5 +1,5 @@
 // BytecodeFunction.h
-// T# v2.1.2
+// T# v3.0.0-alpha1
 // Dylan Armstrong, 2026
 
 #pragma once
@@ -29,6 +29,9 @@ struct BytecodeFunction {
 	// Parameter information
 	std::vector<std::string> parameter_names;
 	std::vector<std::string> parameter_types;
+
+	// Declared function return type
+	std::string return_type;
 };
 
 }

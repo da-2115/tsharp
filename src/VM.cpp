@@ -1,5 +1,5 @@
 // VM.cpp
-// T# v2.1.2
+// T# v3.0.0-alpha1
 // Dylan Armstrong, 2026
 
 #include "VM.h"
@@ -9,11 +9,19 @@
 
 #include "BytecodeFunction.h"
 #include "Numeric.h"
+#include "TaskValue.h"
 
 #include <algorithm>
+#include <any>
+#include <chrono>
 #include <cmath>
 #include <cstdint>
+#include <ctime>
+#include <future>
+#include <iomanip>
 #include <iostream>
+#include <limits>
+#include <memory>
 #include <sstream>
 #include <stdexcept>
 #include <utility>
@@ -240,6 +248,21 @@ static Value primitive_cast_value(const std::string& primitive_name, const Value
 VM::VM(VMOptions options) : options(options) {
 }
 
+Value VM::run(const BytecodeModule& module) {
+	return run_function(module, module.main_function, {});
+}
+
+Value VM::run_function(const BytecodeModule& module, size_t function_index, std::vector<Value> arguments) {
+	this->module = &module;
+
+	frames.clear();
+	globals = module.globals;
+
+	push_frame(function_index, std::move(arguments));
+
+	return execute();
+}
+
 void VM::push(Value value) {
 	get_frame().stack.push_back(std::move(value));
 }
@@ -309,7 +332,7 @@ void VM::push_frame(size_t function_index, std::vector<Value> arguments, std::op
 
 	new_frame.locals.resize(std::max(function.local_count, required_locals));
 
-	new_frame.stack.reserve(64);
+	new_frame.stack.reserve(8);
 
 	size_t argument_offset = 0;
 
@@ -324,38 +347,93 @@ void VM::push_frame(size_t function_index, std::vector<Value> arguments, std::op
 
 	frames.push_back(std::move(new_frame));
 }
+
+void VM::push_frame_from_stack(size_t function_index, size_t argument_count) {
+	if (module == nullptr) {
+		throw std::runtime_error("No bytecode module loaded");
+	}
+
+	if (function_index >= module->functions.size()) {
+		throw std::runtime_error("Function index out of bounds");
+	}
+
+	const BytecodeFunction& function = module->functions[function_index];
+
+	if (argument_count != function.arity) {
+		throw std::runtime_error("Incorrect argument count for " + function.name);
+	}
+
+	// Get the current caller frame
+	auto& caller = get_frame();
+
+	if (caller.stack.size() < argument_count) {
+		throw std::runtime_error("Operand stack underflow");
+	}
+
+	// Create a new frame
+	CallFrame new_frame;
+
+	new_frame.function = &function;
+	new_frame.function_index = function_index;
+	new_frame.ip = 0;
+
+	// Allocate local variables
+	new_frame.locals.resize(std::max(function.local_count, argument_count));
+
+	// Reserve space for the operand stack
+	new_frame.stack.reserve(8);
+
+	// Transfer arguments directly into the new frame
+	const size_t start = caller.stack.size() - argument_count;
+
+	for (size_t i = 0; i < argument_count; i++) {
+		new_frame.locals[i] = std::move(caller.stack[start + i]);
+	}
+
+	// Remove transferred arguments from caller's stack
+	caller.stack.resize(start);
+
+	// Push the new frame
+	// Do not use 'caller' after this: frames may reallocate.
+	frames.push_back(std::move(new_frame));
+}
+
 uint8_t VM::read_byte() {
-	auto& current = get_frame();
+	CallFrame& frame = frames.back();
 
-	const auto& code = current.function->chunk.get_code();
+	const auto& code = frame.function->chunk.get_code();
+	const size_t ip = frame.ip;
 
-	if (current.ip >= code.size()) {
+	if (ip >= code.size()) [[unlikely]] {
 		throw std::runtime_error("Unexpected end of bytecode");
 	}
 
-	return code[current.ip++];
+	frame.ip = ip + 1;
+	return code[ip];
 }
 
 uint16_t VM::read_u16() {
-	const uint16_t low = read_byte();
+	CallFrame& frame = frames.back();
 
-	const uint16_t high = read_byte();
+	const auto& code = frame.function->chunk.get_code();
+	const size_t ip = frame.ip;
 
-	return static_cast<uint16_t>(low | (high << 8));
+	if (ip > code.size() || code.size() - ip < 2) [[unlikely]] {
+		throw std::runtime_error("Unexpected end of bytecode");
+	}
+
+	const uint16_t value = static_cast<uint16_t>(code[ip]) | (static_cast<uint16_t>(code[ip + 1]) << 8);
+
+	frame.ip = ip + 2;
+
+	return value;
 }
 
 Value default_value_for_type(const std::string& type);
 
 bool value_matches_type(const Value& value, const std::string& type);
 
-Value VM::run(const BytecodeModule& module) {
-	this->module = &module;
-
-	frames.clear();
-	globals = module.globals;
-
-	push_frame(module.main_function, {});
-
+Value VM::execute() {
 	while (!frames.empty()) {
 		const auto& code = get_frame().function->chunk.get_code();
 		const auto& constants = get_frame().function->chunk.get_constants();
@@ -415,8 +493,13 @@ Value VM::run(const BytecodeModule& module) {
 
 			case OpCode::Pop:
 				{
-					pop();
+					auto& stack = frames.back().stack;
 
+					if (stack.empty()) [[unlikely]] {
+						throw std::runtime_error("VM stack underflow");
+					}
+
+					stack.pop_back();
 					break;
 				}
 
@@ -757,55 +840,90 @@ Value VM::run(const BytecodeModule& module) {
 
 			case OpCode::Add:
 				{
-					const Value rhs = pop();
+					auto& stack = frames.back().stack;
 
-					const Value lhs = pop();
+					if (stack.size() < 2) [[unlikely]] {
+						throw std::runtime_error("VM stack underflow");
+					}
 
-					push(add_values(lhs, rhs));
+					const size_t lhs_index = stack.size() - 2;
+
+					Value result = add_values(stack[lhs_index], stack[lhs_index + 1]);
+
+					stack[lhs_index] = std::move(result);
+					stack.pop_back();
 
 					break;
 				}
 
 			case OpCode::Subtract:
 				{
-					const Value rhs = pop();
+					auto& stack = frames.back().stack;
 
-					const Value lhs = pop();
+					if (stack.size() < 2) [[unlikely]] {
+						throw std::runtime_error("VM stack underflow");
+					}
 
-					push(subtract_values(lhs, rhs));
+					const size_t lhs_index = stack.size() - 2;
+
+					Value result = subtract_values(stack[lhs_index], stack[lhs_index + 1]);
+
+					stack[lhs_index] = std::move(result);
+					stack.pop_back();
 
 					break;
 				}
 
 			case OpCode::Multiply:
 				{
-					const Value rhs = pop();
+					auto& stack = frames.back().stack;
 
-					const Value lhs = pop();
+					if (stack.size() < 2) [[unlikely]] {
+						throw std::runtime_error("VM stack underflow");
+					}
 
-					push(multiply_values(lhs, rhs));
+					const size_t lhs_index = stack.size() - 2;
+
+					Value result = multiply_values(stack[lhs_index], stack[lhs_index + 1]);
+
+					stack[lhs_index] = std::move(result);
+					stack.pop_back();
 
 					break;
 				}
 
 			case OpCode::Divide:
 				{
-					const Value rhs = pop();
+					auto& stack = frames.back().stack;
 
-					const Value lhs = pop();
+					if (stack.size() < 2) [[unlikely]] {
+						throw std::runtime_error("VM stack underflow");
+					}
 
-					push(divide_values(lhs, rhs));
+					const size_t lhs_index = stack.size() - 2;
+
+					Value result = divide_values(stack[lhs_index], stack[lhs_index + 1]);
+
+					stack[lhs_index] = std::move(result);
+					stack.pop_back();
 
 					break;
 				}
 
 			case OpCode::Modulo:
 				{
-					const Value rhs = pop();
+					auto& stack = frames.back().stack;
 
-					const Value lhs = pop();
+					if (stack.size() < 2) [[unlikely]] {
+						throw std::runtime_error("VM stack underflow");
+					}
 
-					push(modulo_values(lhs, rhs));
+					const size_t lhs_index = stack.size() - 2;
+
+					Value result = modulo_values(stack[lhs_index], stack[lhs_index + 1]);
+
+					stack[lhs_index] = std::move(result);
+					stack.pop_back();
 
 					break;
 				}
@@ -814,11 +932,19 @@ Value VM::run(const BytecodeModule& module) {
 
 			case OpCode::AddInt:
 				{
-					const int rhs = pop().as_int();
+					auto& stack = frames.back().stack;
 
-					const int lhs = pop().as_int();
+					if (stack.size() < 2) [[unlikely]] {
+						throw std::runtime_error("VM stack underflow");
+					}
 
-					push(Value(lhs + rhs));
+					const int lhs = stack[stack.size() - 2].as_int();
+					const int rhs = stack.back().as_int();
+
+					const int result = lhs + rhs;
+
+					stack[stack.size() - 2] = Value(result);
+					stack.pop_back();
 
 					break;
 				}
@@ -858,11 +984,19 @@ Value VM::run(const BytecodeModule& module) {
 
 			case OpCode::SubtractInt:
 				{
-					const int rhs = pop().as_int();
+					auto& stack = frames.back().stack;
 
-					const int lhs = pop().as_int();
+					if (stack.size() < 2) [[unlikely]] {
+						throw std::runtime_error("VM stack underflow");
+					}
 
-					push(Value(lhs - rhs));
+					const int lhs = stack[stack.size() - 2].as_int();
+					const int rhs = stack.back().as_int();
+
+					const int result = lhs - rhs;
+
+					stack[stack.size() - 2] = Value(result);
+					stack.pop_back();
 
 					break;
 				}
@@ -1065,15 +1199,25 @@ Value VM::run(const BytecodeModule& module) {
 
 			case OpCode::LessEqual:
 				{
-					const Value rhs = pop();
+					auto& stack = frames.back().stack;
 
-					const Value lhs = pop();
+					if (stack.size() < 2) [[unlikely]] {
+						throw std::runtime_error("VM stack underflow");
+					}
+
+					const size_t lhs_index = stack.size() - 2;
+
+					const Value& lhs = stack[lhs_index];
+					const Value& rhs = stack[lhs_index + 1];
 
 					if (!lhs.is_number() || !rhs.is_number()) {
 						throw std::runtime_error("Invalid operands for <=");
 					}
 
-					push(Value(lhs.as_double() <= rhs.as_double()));
+					const bool result = lhs.as_double() <= rhs.as_double();
+
+					stack[lhs_index] = Value(result);
+					stack.pop_back();
 
 					break;
 				}
@@ -1330,10 +1474,18 @@ Value VM::run(const BytecodeModule& module) {
 				{
 					const uint16_t offset = read_u16();
 
-					const Value condition = pop();
+					auto& frame = frames.back();
+					auto& stack = frame.stack;
 
-					if (!is_truthy(condition)) {
-						get_frame().ip += offset;
+					if (stack.empty()) [[unlikely]] {
+						throw std::runtime_error("VM stack underflow");
+					}
+
+					const bool condition = is_truthy(stack.back());
+					stack.pop_back();
+
+					if (!condition) {
+						frame.ip += offset;
 					}
 
 					break;
@@ -1343,10 +1495,18 @@ Value VM::run(const BytecodeModule& module) {
 				{
 					const uint16_t offset = read_u16();
 
-					const Value condition = pop();
+					auto& frame = frames.back();
+					auto& stack = frame.stack;
 
-					if (is_truthy(condition)) {
-						get_frame().ip += offset;
+					if (stack.empty()) [[unlikely]] {
+						throw std::runtime_error("VM stack underflow");
+					}
+
+					const bool condition = is_truthy(stack.back());
+					stack.pop_back();
+
+					if (condition) {
+						frame.ip += offset;
 					}
 
 					break;
@@ -1370,16 +1530,9 @@ Value VM::run(const BytecodeModule& module) {
 			case OpCode::Call:
 				{
 					const uint16_t function_index = read_u16();
-
 					const uint16_t argument_count = read_u16();
 
-					std::vector<Value> arguments(argument_count);
-
-					for (size_t i = argument_count; i > 0; i--) {
-						arguments[i - 1] = pop();
-					}
-
-					push_frame(function_index, std::move(arguments));
+					push_frame_from_stack(function_index, argument_count);
 
 					break;
 				}
@@ -1403,7 +1556,13 @@ Value VM::run(const BytecodeModule& module) {
 
 			case OpCode::Return:
 				{
-					Value result = get_frame().stack.empty() ? Value() : pop();
+					auto& frame = frames.back();
+
+					Value result;
+
+					if (!frame.stack.empty()) {
+						result = std::move(frame.stack.back());
+					}
 
 					frames.pop_back();
 
@@ -1411,7 +1570,7 @@ Value VM::run(const BytecodeModule& module) {
 						return result;
 					}
 
-					push(std::move(result));
+					frames.back().stack.push_back(std::move(result));
 
 					break;
 				}
@@ -1892,6 +2051,56 @@ Value VM::run(const BytecodeModule& module) {
 					break;
 				}
 
+			case OpCode::Spawn:
+				{
+					const uint16_t function_index = read_u16();
+					const uint16_t argument_count = read_u16();
+
+					std::vector<Value> arguments(argument_count);
+
+					for (size_t i = argument_count; i > 0; i--) {
+						arguments[i - 1] = pop();
+					}
+
+					const BytecodeModule* task_module = module;
+					VMOptions task_options = options;
+
+					auto future = std::async(std::launch::async, [task_module, task_options, function_index, args = std::move(arguments)]() mutable -> Value {
+						VM worker(task_options);
+
+						return worker.run_function(*task_module, function_index, std::move(args));
+					});
+
+					auto task = std::make_shared<TaskValue>(std::move(future));
+
+					push(Value(std::any(task)));
+
+					break;
+				}
+
+			case OpCode::Await:
+				{
+					Value value = pop();
+
+					if (!std::holds_alternative<std::any>(value.raw())) {
+						throw std::runtime_error("AWAIT requires a task");
+					}
+
+					const auto& any_value = std::get<std::any>(value.raw());
+
+					const auto* task = std::any_cast<TaskHandle>(&any_value);
+
+					if (!task || !*task) {
+						throw std::runtime_error("Invalid task handle");
+					}
+
+					Value result = (*task)->future.get();
+
+					push(std::move(result));
+
+					break;
+				}
+
 			default:
 				{
 					throw std::runtime_error("Unknown bytecode instruction at offset " + std::to_string(instruction_offset) + ": " + std::to_string(static_cast<int>(static_cast<uint8_t>(opcode))));
@@ -1949,6 +2158,80 @@ Value VM::call_native(size_t native_index, const std::vector<Value>& arguments) 
 	const auto& native = this->module->natives[native_index];
 
 	const std::string& name = native.name;
+
+	// DateTime: current Unix timestamp in seconds
+	if (name == "datetime_now") {
+		if (!arguments.empty()) {
+			throw std::runtime_error("datetime_now expects 0 arguments");
+		}
+
+		const auto now = std::chrono::system_clock::now();
+
+		const auto seconds = std::chrono::duration_cast<std::chrono::seconds>(now.time_since_epoch()).count();
+
+		return Value(static_cast<std::int64_t>(seconds));
+	}
+
+	// DateTime: format a Unix timestamp
+	if (name == "datetime_format") {
+		if (arguments.size() != 3) {
+			throw std::runtime_error("datetime_format expects 3 arguments");
+		}
+
+		const std::time_t timestamp = static_cast<std::time_t>(arguments[0].as_long());
+
+		const std::string pattern = arguments[1].as_string();
+		const bool utc = arguments[2].as_bool();
+
+		std::tm time_info{};
+
+#ifdef _WIN32
+		const errno_t error = utc ? gmtime_s(&time_info, &timestamp) : localtime_s(&time_info, &timestamp);
+
+		if (error != 0) {
+			throw std::runtime_error("Invalid DateTime timestamp");
+		}
+#else
+		const std::tm* result = utc ? gmtime_r(&timestamp, &time_info) : localtime_r(&timestamp, &time_info);
+
+		if (!result) {
+			throw std::runtime_error("Invalid DateTime timestamp");
+		}
+#endif
+
+		std::ostringstream output;
+		output << std::put_time(&time_info, pattern.c_str());
+
+		if (output.fail()) {
+			throw std::runtime_error("DateTime formatting failed");
+		}
+
+		return Value(output.str());
+	}
+
+	// DateTime: add fixed 24-hour periods
+	if (name == "datetime_add_days") {
+		if (arguments.size() != 2) {
+			throw std::runtime_error("datetime_add_days expects 2 arguments");
+		}
+
+		const std::int64_t timestamp = arguments[0].as_long();
+		const std::int64_t days = arguments[1].as_long();
+
+		constexpr std::int64_t seconds_per_day = 86400;
+
+		if (days > std::numeric_limits<std::int64_t>::max() / seconds_per_day || days < std::numeric_limits<std::int64_t>::min() / seconds_per_day) {
+			throw std::runtime_error("DateTime day offset overflow");
+		}
+
+		const std::int64_t offset = days * seconds_per_day;
+
+		if ((offset > 0 && timestamp > std::numeric_limits<std::int64_t>::max() - offset) || (offset < 0 && timestamp < std::numeric_limits<std::int64_t>::min() - offset)) {
+			throw std::runtime_error("DateTime timestamp overflow");
+		}
+
+		return Value(timestamp + offset);
+	}
 
 	if (name == "file_read_all_text") {
 		if (arguments.size() != 1) {
@@ -2063,6 +2346,17 @@ Value VM::call_native(size_t native_index, const std::vector<Value>& arguments) 
 		std::cout << value_to_string(arguments[0]) << '\n';
 
 		return Value();
+	}
+
+	if (name == "readln") {
+		std::string line;
+
+		if (!std::getline(std::cin, line)) {
+			line = "";
+		}
+
+		// Return the line as a T# string.
+		return Value(line);
 	}
 
 	if (name == "sqrt") {

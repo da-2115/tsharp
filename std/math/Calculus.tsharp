@@ -1,0 +1,80 @@
+
+ // Calculus.tsharp
+ // T# standard library
+ // import std.math.Calculus
+
+class MathFunction {
+    public double evaluate(double x) {
+        return 0.0
+    }
+}
+
+class Calculus {
+    private double h
+
+    public () {
+        this.h = 0.00001
+    }
+
+    public void set_step(double step) {
+        if (step > 0.0) {
+            this.h = step
+        }
+    }
+
+    public double derivative(MathFunction f, double x) {
+        return (f.evaluate(x + h) - f.evaluate(x - h)) / (2.0 * h)
+    }
+
+    public double second_derivative(MathFunction f, double x) {
+        return (f.evaluate(x + h) - 2.0 * f.evaluate(x) + f.evaluate(x - h)) / (h * h)
+    }
+
+    public double integrate(MathFunction f, double a, double b, int n) {
+        if (n <= 0) {
+            return 0.0
+        }
+
+        // Composite Simpson's rule requires an even n.
+        if (n % 2 != 0) {
+            n++
+        }
+
+        double step = (b - a) / n
+        double total = f.evaluate(a) + f.evaluate(b)
+
+        for (int i = 1; i < n; i++) {
+            double x = a + i * step
+
+            if (i % 2 == 0) {
+                total += 2.0 * f.evaluate(x)
+            } else {
+                total += 4.0 * f.evaluate(x)
+            }
+        }
+
+        return total * step / 3.0
+    }
+
+    public double newton_root(MathFunction f, double initial, int max_iterations, double tolerance) {
+        double x = initial
+
+        for (int i = 0; i < max_iterations; i++) {
+            double fx = f.evaluate(x)
+
+            if (abs(fx) < tolerance) {
+                return x
+            }
+
+            double df = this.derivative(f, x)
+
+            if (abs(df) < 0.000000000001) {
+                return x
+            }
+
+            x -= fx / df
+        }
+
+        return x
+    }
+}

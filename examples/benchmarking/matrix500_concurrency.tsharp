@@ -1,0 +1,32 @@
+double multiplyRows(int n, int startRow, int endRow) {
+    double total = 0.0
+
+    for (int i = startRow; i < endRow; i++) {
+        for (int j = 0; j < n; j++) {
+            double sum = 0.0
+
+            for (int k = 0; k < n; k++) {
+                // Equivalent to A = 1.0 and B = 2.0
+                sum = sum + 1.0 * 2.0
+            }
+
+            total = total + sum
+        }
+    }
+    
+    return total
+}
+
+void main() {
+    int n = 500
+
+    task<double> a = spawn multiplyRows(n, 0, 125)
+    task<double> b = spawn multiplyRows(n, 125, 250)
+    task<double> c = spawn multiplyRows(n, 250, 375)
+    task<double> d = spawn multiplyRows(n, 375, 500)
+
+    double total = await a + await b + await c + await d
+
+    println(total)
+}
+

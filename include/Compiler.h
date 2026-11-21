@@ -1,5 +1,5 @@
 // Compiler.h
-// T# v2.1.2
+// T# v3.0.0-alpha1
 // Dylan Armstrong, 2026
 
 #pragma once
@@ -111,8 +111,22 @@ class Compiler final : public TSharpBaseVisitor {
 		std::vector<size_t> continue_jumps;
 	};
 
+	// Static analysis only: no runtime bytecode or VM type checks.
+    bool is_subtype_of(const std::string& derived, const std::string& base) const;
+    void check_type_compatibility(const std::string& context,
+        const std::string& target, const std::string& source) const;
+    std::string infer_expression_type(TSharpParser::ExpressionContext* expression) const;
+    std::string infer_node_type(antlr4::ParserRuleContext* node) const;
+
+    std::string current_return_type;
+    std::unordered_map<std::string, std::vector<std::string>> class_generic_parameters;
+
 	// Main compiler state
 	BytecodeModule module;
+
+    // Compile-time metadata only; never consulted by the VM.
+    std::unordered_map<std::string, std::string> global_types;
+    std::unordered_map<std::string, std::unordered_map<std::string, std::string>> class_field_types;
 
 	BytecodeFunction* current_function = nullptr;
 
@@ -215,6 +229,8 @@ class Compiler final : public TSharpBaseVisitor {
 	void emit_string_operand(const std::string& value);
 
 	void compile_call(const std::string& name, TSharpParser::ArgumentListContext* arguments);
+
+	void compile_spawn(const std::string& name, TSharpParser::ArgumentListContext* arguments);
 
 	void compile_postfix_suffix(TSharpParser::PostfixSuffixContext* ctx);
 

@@ -1,4 +1,4 @@
-# T# v2.1.2
+# T# v3.0.0-alpha1
 
 The T# Programming Language — written by Dylan Armstrong, 2026, in C++ with ANTLR.
 
@@ -19,20 +19,58 @@ T# is a statically typed, C#/Java-inspired programming language with classes, in
 
 ## Changelog
 
-### v3.0.0 (Coming Soon)
-T# v3.0.0 will be released sometime in late 2026/early 2027. It will likely be the "concurrency update" - introducing concurrency and multithreading into the language giving great performance benefits for T# developers.
+### v3.0.0
 
-Also some new features coming soon include: `readln` - the input version of `println` for taking user input, dates and times will also be introduced to the language in v3.0.0.
+#### New Features and Fixes:
+---
+**Static Typing/Type Safety (MASSIVE enhancements)**: A much better static type system is now in the language. 
 
-Future development resources is also going into work on **Rise** (the T# Machine Learning and Deep Learning Framework): https://github.com/da-2115/rise
+#### How does it work? 
+T# now has a **compile-time static-type checking system**. The compiler (or really interpreter in this case), infers the expression types, resolves symbols, checks assignments and method calls for their types. Then, ONLY if there are no errors (including type errors) is the T# bytecode generated.
 
-### v2.1.2
+#### What about generic types?
+When a method call of a generic class's method is called it constructs a substituion map e.g.
+```
+K -> string
+V -> int
+```
+It then susbtitutes the generic parameter types in the method signature before checking the supplied arguments.
 
-Linear Regression T# Example (`examples/linear_reg.tsharp`).
+#### With spawn/await concurrency?
+T# (see the next part below on concurrency/multithreading), now has `spawn` and `await` for concurrency (similiar in a way to Go's goroutines). The way this works with static typing is similiar but the type checker treats `spawn` as producing a task and `await` as extracting the return type of that task.
 
-Fixed the bug with new lines causing errors on variable declarations, etc. spanning over multiple lines (see: `examples/new_line_fix.tsharp`).
+So:
+`await task<long>` actually produces a value of type `long`.
 
+#### Is it type safe?
+Short answer: No. It definetly has a sound type system now (which is LOTS better than the old system), but I still wouldn't call it type safe. Why? Certain expressions could be out there that can produce an empty type. Type systems are one of the hardest parts of any language. Further testing is required.
 
+---
+
+**Concurrency and multithreading in T# (WIP)**: As mentioned in the type system part of this version changelog, added `spawn` to spawn tasks on different threads in T# and `await` to call those tasks spawned using `spawn`. This means multiple tasks can be ran on different threads allowing for T# concurrency and multithreading - giving great performance benefits.
+
+---
+
+**Nullable/optional types (WIP)**: nullable/optional support in T#. If you use a `?` after the type name - you can make the variable a nullable meaning it can have a value of the given type OR be marked `null`. This supports null safety.
+
+---
+
+**readln**: The `readln` function in T# - allows for a developer to take user's input in T#.
+
+---
+
+**datetime**: `datetime_now()` allows for the current date and time to be stored in a value of type `long`, whilst you can format it also using `datetime_format()` and add days to the datetime using `datetime_add_days(datetime: long, days: int)`. For an example, see: `examples/datetime.tsharp`.
+
+---
+
+#### New Standard Library Data Types
+**std.math.Calculus**: A data type that adds support for calculus operations (such as differentiation, integration, etc. in T#)
+
+**std.math.Optimization** A data type that adds support for optimization and gradient descent in T#.
+
+**std.math.Statistics** A data type that adds support for operations such as mean, standard deviation, etc in T#.
+
+---
 
 ### v2.0.0
 

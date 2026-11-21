@@ -1,0 +1,14 @@
+void main() {
+    long now = datetime_now()
+
+    println("Current local time:")
+    println(datetime_format(now, "%Y-%m-%d %H:%M:%S", false))
+
+    println("Current UTC time:")
+    println(datetime_format(now, "%Y-%m-%d %H:%M:%S", true))
+
+    long tomorrow = datetime_add_days(now, 1)
+
+    println("Tomorrow (UTC):")
+    println(datetime_format(tomorrow, "%Y-%m-%d", true))
+}

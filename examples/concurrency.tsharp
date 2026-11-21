@@ -1,0 +1,13 @@
+int square(int x) {
+    return x * x
+}
+
+void main() {
+    task<int> a = spawn square(10)
+    task<int> b = spawn square(20)
+
+    int x = await a
+    int y = await b
+
+    println(x + y)
+}

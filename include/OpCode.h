@@ -1,5 +1,5 @@
 // OpCode.h
-// T# v2.1.2
+// T# v3.0.0-alpha1
 // Dylan Armstrong, 2026
 
 #pragma once
@@ -189,7 +189,11 @@ enum class OpCode : uint8_t {
 	// Program control
 	AddLocalLong,
 	AddLocalInt,
-	Halt
+	Halt,
+
+	// Concurrency
+	Spawn,
+	Await
 };
 
 const char* opcode_name(OpCode opcode);

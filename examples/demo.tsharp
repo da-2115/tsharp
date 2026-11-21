@@ -433,7 +433,7 @@ void main() {
 
     PrintHeading("Null")
 
-    string maybe = null
+    string? maybe = null
     println("null string: " + maybe)
 
     if (maybe == null) {

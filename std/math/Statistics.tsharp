@@ -1,0 +1,96 @@
+
+// Statistics.tsharp
+// T# standard library
+// import std.math.Statistics
+
+class Statistics {
+    public double mean(double values[]) {
+        int n = size(values)
+
+        if (n == 0) {
+            return 0.0
+        }
+
+        double total = 0.0
+
+        for (int i = 0; i < n; i++) {
+            total += values[i]
+        }
+
+        return total / n
+    }
+
+    public double variance(double values[]) {
+        int n = size(values)
+
+        if (n == 0) {
+            return 0.0
+        }
+
+        double average = this.mean(values)
+        double sum = 0.0
+
+        for (int i = 0; i < n; i++) {
+            double difference = values[i] - average
+            sum += difference * difference
+        }
+
+        return sum / n
+    }
+
+    public double sample_variance(double values[]) {
+        int n = size(values)
+
+        if (n < 2) {
+            return 0.0
+        }
+
+        double average = this.mean(values)
+        double sum = 0.0
+
+        for (int i = 0; i < n; i++) {
+            double difference = values[i] - average
+            sum += difference * difference
+        }
+
+        return sum / (n - 1)
+    }
+
+    public double standard_deviation(double values[]) {
+        return sqrt(this.variance(values))
+    }
+
+    public double sample_standard_deviation(double values[]) {
+        return sqrt(this.sample_variance(values))
+    }
+
+    public double covariance(double x[], double y[]) {
+        int n = size(x)
+
+        if (n == 0 || n != size(y)) {
+            return 0.0
+        }
+
+        double mean_x = this.mean(x)
+        double mean_y = this.mean(y)
+        double sum = 0.0
+
+        for (int i = 0; i < n; i++) {
+            sum += (x[i] - mean_x) * (y[i] - mean_y)
+        }
+
+        return sum / n
+    }
+
+    public double correlation(double x[], double y[]) {
+        double cov = this.covariance(x, y)
+        double std_x = this.standard_deviation(x)
+        double std_y = this.standard_deviation(y)
+
+        if (std_x == 0.0 || std_y == 0.0) {
+            return 0.0
+        }
+
+        return cov / (std_x * std_y)
+    }
+}

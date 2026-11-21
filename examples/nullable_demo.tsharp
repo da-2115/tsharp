@@ -1,0 +1,32 @@
+
+void main() {
+    println("Nullable Types")
+
+    int? age = null
+    double? score = 87.5
+    string? name = null
+    bool? active
+
+    println(age)
+    println(score)
+    println(name)
+    println(active)
+
+    age = 23
+    name = "Dylan"
+    active = true
+
+    println(age)
+    println(name)
+    println(active)
+
+    if (age != null) {
+        println("Age has a value")
+    }
+
+    age = null
+
+    if (age == null) {
+        println("Age is null again")
+    }
+}

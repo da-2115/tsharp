@@ -1,0 +1,19 @@
+long compute(long n) {
+    long sum = 0
+
+    for long i = 0; i < n; i++ {
+        sum += i
+    }
+
+    return sum
+}
+
+void main() {
+    long x = compute(10000000)
+    long y = compute(10000000)
+    long z = compute(10000000)
+
+    println(x)
+    println(y)
+    println(z)
+}
