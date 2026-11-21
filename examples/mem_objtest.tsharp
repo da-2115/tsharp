@@ -1,0 +1,19 @@
+class A {
+    public string name
+
+    public (string n) {
+        this.name = n
+    }
+}
+
+void main() {
+    A aClass("Dylan")
+
+    A bClass("Dylan")
+
+    bClass = aClass
+
+    println(bClass.name)
+    println(address(bClass))
+    println(address(aClass))
+}

@@ -1,0 +1,34 @@
+// Benchmark test of a 300x300 Matrix in T#
+// Dylan Armstrong, 2026
+
+void main() {
+    int n = 300
+
+    double A[] = {}
+    double B[] = {}
+    double C[] = {}
+
+    // Initialize matrices
+    for (int i = 0; i < n * n; i++) {
+        push(A, 1.0)
+        push(B, 2.0)
+        push(C, 0.0)
+    }
+
+    // Matrix multiplication: C = A * B
+    for (int i = 0; i < n; i++) {
+        for (int j = 0; j < n; j++) {
+            double sum = 0.0
+
+            for (int k = 0; k < n; k++) {
+                sum = sum + A[i * n + k] * B[k * n + j]
+            }
+
+            C[i * n + j] = sum
+        }
+    }
+
+    // Verify result
+    println(C[0])
+    println(C[n * n - 1])
+}

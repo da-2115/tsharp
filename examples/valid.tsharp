@@ -1,0 +1,25 @@
+// Expected: compiles and runs without type errors.
+int add(int x, int y) {
+    return x + y
+}
+
+double scale(double x, double factor) {
+    return x * factor
+}
+
+void main() {
+    int a = 10
+    int b = 20
+    int total = a + b
+    double promoted = a * 2.5
+    bool greater = b > a
+    bool combined = greater && true
+    int result = add(a, b)
+    double scaled = scale(2.0, 3.0)
+    println(total)
+    println(promoted)
+    println(greater)
+    println(combined)
+    println(result)
+    println(scaled)
+}

@@ -1,4 +1,3 @@
-
 void main() {
     int? a = null
     int? b = 42
